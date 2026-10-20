@@ -19,6 +19,7 @@ test('baseline is fixed; double settlement is rejected and a new season expires 
   const decision = nextSeason(baseline);
   assert.deepEqual(decision.draft, { cap: null, subsidy: 0, release: 0 });
   assert.equal(settleTurn(decision).ok, false);
+  assert.equal(settleTurn({ ...decision, prediction: { price: 'up', purchases: 'down', reason: '   ' } }).ok, false);
 });
 test('changing policy clears predictions; invalid policies preserve resources and history', () => {
   const decision = predict(nextSeason(settle(newGame())));

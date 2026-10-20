@@ -16,6 +16,8 @@ export type GameState = {
 };
 
 export const emptyPrediction = (): Prediction => ({ price: '', purchases: '', reason: '' });
+export const predictionComplete = (prediction: Prediction): boolean =>
+  Boolean(prediction.price && prediction.purchases && prediction.reason.trim());
 export function newGame(): GameState {
   return {
     version: 1, phase: 'briefing', seasonIndex: 0,
@@ -36,8 +38,8 @@ export function settleTurn(state: GameState): { ok: true; state: GameState } | {
   if (!['briefing', 'decision'].includes(state.phase)) {
     return { ok: false, message: '本季已经结算。请进入下一季，或在回放中比较其他政策。' };
   }
-  if (needsPrediction(state) && (!state.prediction.price || !state.prediction.purchases)) {
-    return { ok: false, message: '请先预测价格与低收入组实际购粮的变化方向。' };
+  if (needsPrediction(state) && !predictionComplete(state.prediction)) {
+    return { ok: false, message: '请先预测价格与实际购粮的变化方向，并用一句话写下理由。' };
   }
   const policy = state.seasonIndex === 0 ? DEFAULT_POLICY : state.draft;
   const evaluation = evaluate(SEASONS[state.seasonIndex], policy, currentResources(state));
@@ -103,12 +105,10 @@ export function restoreGame(text: string): GameState | null {
     for (let index = 0; index < count; index++) {
       const row = saved.records[index];
       if (!row || !row.result || !isPolicy(row.result.policy)) return null;
-      if (index === 0 && JSON.stringify(row.result.policy) !== JSON.stringify(DEFAULT_POLICY)) {
-        const p = row.result.policy;
-        if (p.cap !== null || p.subsidy !== 0 || p.release !== 0) return null;
-      }
+      const p = row.result.policy;
+      if (index === 0 && (p.cap !== null || p.subsidy !== 0 || p.release !== 0)) return null;
       const priorPrediction = readPrediction(row.prediction);
-      if (!priorPrediction || ([1, 3].includes(index) && (!priorPrediction.price || !priorPrediction.purchases))) return null;
+      if (!priorPrediction || ([1, 3].includes(index) && !predictionComplete(priorPrediction))) return null;
       const evaluation = evaluate(SEASONS[index], row.result.policy, resources);
       if (!evaluation.valid) return null;
       records.push({ result: evaluation.result, prediction: priorPrediction });

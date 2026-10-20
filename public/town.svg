@@ -1,0 +1,238 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="590" viewBox="0 0 900 590" fill="none">
+  <defs>
+    <linearGradient id="land" x1="450" y1="0" x2="450" y2="590" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#dfe1c4"/><stop offset="1" stop-color="#ccd5b4"/>
+    </linearGradient>
+    <linearGradient id="water" x1="380" y1="0" x2="550" y2="590" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8eb5b3"/><stop offset="1" stop-color="#719c9c"/>
+    </linearGradient>
+    <pattern id="grain" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)">
+      <path d="M3 0v12" stroke="#bbaa63" stroke-width="1.3" opacity=".5"/>
+    </pattern>
+    <pattern id="plough" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(25)">
+      <path d="M0 1h13" stroke="#a8a476" stroke-width="2" opacity=".5"/>
+    </pattern>
+    <pattern id="paper" width="80" height="80" patternUnits="userSpaceOnUse">
+      <circle cx="12" cy="8" r=".7" fill="#7c855d" opacity=".2"/>
+      <circle cx="64" cy="42" r=".7" fill="#7c855d" opacity=".2"/>
+      <circle cx="26" cy="67" r=".5" fill="#fff" opacity=".4"/>
+    </pattern>
+    <symbol id="tree" viewBox="0 0 30 40">
+      <ellipse cx="15" cy="34" rx="13" ry="4" fill="#697e55" opacity=".18"/>
+      <path d="M15 24v12" stroke="#827657" stroke-width="3"/>
+      <path d="M15 0C6 3 1 13 3 21c1 8 10 10 15 7 8 0 12-8 8-14C26 7 21 2 15 0Z" fill="#758e63"/>
+      <path d="M15 0C9 6 7 17 12 26c-8-1-12-8-9-15C5 5 9 1 15 0Z" fill="#8d9f70"/>
+      <path d="M15 8v18m0-8 6-5m-6 8-6-5" stroke="#5f7b55" opacity=".5"/>
+    </symbol>
+    <symbol id="poplar" viewBox="0 0 18 48">
+      <ellipse cx="9" cy="43" rx="8" ry="3" fill="#6a7b55" opacity=".2"/>
+      <path d="M9 25v20" stroke="#827657" stroke-width="2"/>
+      <path d="M9 1C4 8 1 17 2 28c1 12 13 12 14 0C17 18 14 8 9 1Z" fill="#647e56"/>
+      <path d="M9 1C3 17 4 28 8 36 0 33-1 16 9 1Z" fill="#8ba170"/>
+    </symbol>
+    <symbol id="house" viewBox="0 0 66 67">
+      <path d="m5 55 34 10 27-15-35-10Z" fill="#6b795b" opacity=".2"/>
+      <path d="m9 31 27 9v21L9 51Z" fill="#e7dfc1" stroke="#8b8568" stroke-width=".8"/>
+      <path d="m36 40 23-13v21L36 61Z" fill="#c0baa2" stroke="#8b8568" stroke-width=".8"/>
+      <path d="m5 32 24-22 34 15-27 18Z" fill="#a26f53" stroke="#75644d" stroke-width=".8"/>
+      <path d="m29 10 7 30 27-15Z" fill="#7e6050"/>
+      <path d="m38 12 5 2v10l-5-2Z" fill="#c2baa0"/>
+      <path d="m43 14 4-2v10l-4 2Z" fill="#989584"/>
+      <path d="m38 12 4-2 5 2-4 2Z" fill="#d4c9ab"/>
+      <path d="m16 37 6 2v7l-6-2Zm11 4 6 2v7l-6-2Z" fill="#677b73"/>
+      <path d="m43 43 7-4v10l-7 4Z" fill="#706958"/>
+      <path d="m53 35 4-2v6l-4 2Z" fill="#62766f"/>
+    </symbol>
+    <symbol id="warehouse" viewBox="0 0 110 89">
+      <path d="m4 73 57 15 48-23-55-14Z" fill="#637655" opacity=".2"/>
+      <path d="m8 38 51 16v30L8 68Z" fill="#d8cbaa" stroke="#8e8465"/>
+      <path d="m59 54 43-22v30L59 84Z" fill="#b8af90" stroke="#8e8465"/>
+      <path d="m3 39 38-28 67 20-49 26Z" fill="#8f7b5b" stroke="#746a50"/>
+      <path d="m41 11 18 43 49-23Z" fill="#6f6c55"/>
+      <path d="m18 49 13 4v20l-13-4Zm21 7 12 4v19l-12-3Z" fill="#8d7859"/>
+      <path d="m69 52 20-10v25L69 77Z" fill="#726e57"/>
+      <path d="m70 52 19-10M79 47v25M69 65l20-10" stroke="#aaa083"/>
+      <path d="m18 49 13 4m8 3 12 4" stroke="#f4e7c4" stroke-width="2"/>
+    </symbol>
+    <symbol id="factory" viewBox="0 0 166 137">
+      <path d="m6 111 93 26 65-34-99-25Z" fill="#68775a" opacity=".2"/>
+      <path d="m10 66 86 28v38l-86-28Z" fill="#c5af8c" stroke="#8e8066"/>
+      <path d="m96 94 61-32v38l-61 32Z" fill="#a49478" stroke="#8e8066"/>
+      <path d="m6 67 27-27 85 29-22 28Z" fill="#7c8069" stroke="#686d56"/>
+      <path d="m33 40 26 8 24-19 79 31-44 9Z" fill="#a2a38a" stroke="#686d56"/>
+      <path d="m83 29 13 65 66-34Z" fill="#747c68" stroke="#686d56"/>
+      <path d="m21 77 10 3v12l-10-3Zm19 6 10 3v12l-10-3Zm20 7 10 3v12l-10-3Zm19 6 10 3v12l-10-3Z" fill="#506c66"/>
+      <path d="m108 94 14-7v21l-14 7Zm26-14 10-5v13l-10 5Z" fill="#5b6255"/>
+      <path d="m113 59-2-47 13 4 1 48Z" fill="#aa8468" stroke="#7a7259"/>
+      <path d="m124 16 7-4v48l-6 4Z" fill="#856f58"/>
+      <path d="m109 10 9-5 15 5-9 7Z" fill="#c1a384"/>
+      <path d="m109 10 15 5 9-5v5l-9 6-15-5Z" fill="#927459"/>
+      <path d="m116 7 7-3 6 2-7 4Z" fill="#5f6053"/>
+    </symbol>
+    <symbol id="windmill" viewBox="0 0 100 125">
+      <ellipse cx="48" cy="116" rx="35" ry="8" fill="#6b7c59" opacity=".2"/>
+      <path d="m34 57-9 52 27 12 24-16-13-51Z" fill="#e5ddbc" stroke="#958769"/>
+      <path d="m52 121 24-16-13-51-13 11Z" fill="#bfb898"/>
+      <path d="m26 62 21-31 26 21-23 14Z" fill="#8e7451" stroke="#79694c"/>
+      <path d="m47 31 3 35 23-14Z" fill="#6e6751"/>
+      <path d="m41 102 9 4v15l-9-4Z" fill="#7d765c"/>
+      <path d="m39 78 7 3v9l-7-3Z" fill="#718477"/>
+      <path d="M45 60 13 10M45 60 83 96M45 60 5 82M45 60 86 32" stroke="#8b7a57" stroke-width="4"/>
+      <path d="m14 12 8-5 25 43-7 5Zm37 55 7-5 25 33-7 5ZM7 80l-5-8 33-19 6 8Zm48-27-4-8 33-22 6 9Z" fill="#e9e0bf" stroke="#988969"/>
+      <path d="m23 27 8-5m-2 15 7-5m-1 15 7-5m15 38 7-5m-1 13 7-5M17 67l5 8m4-13 5 8m32-31 5 8m5-15 5 8" stroke="#b5a37b"/>
+      <circle cx="45" cy="60" r="5" fill="#8b7552"/>
+    </symbol>
+    <symbol id="bale" viewBox="0 0 31 25">
+      <path d="m2 10 13-7 14 7v10l-13 5-14-6Z" fill="#c3a96b" stroke="#a3905d"/>
+      <path d="m2 10 14 6 13-6M16 16v9" stroke="#ddc687"/>
+      <path d="m8 7 14 6v9M9 13v9" stroke="#8f8357"/>
+    </symbol>
+  </defs>
+
+  <!-- Original map illustration. Buildings are decorative; controls sit above this image. -->
+  <path fill="url(#land)" d="M0 0h900v590H0z"/>
+  <path d="M0 9c135 18 221-8 321 8s96 68 157 58 129-73 422-60M-10 532c140-37 215 57 341 30s180-13 273 13 174-22 310-39" stroke="#c1cba6" stroke-width="2" opacity=".7"/>
+  <path d="M0 75c118-32 187 21 282 3M13 92c112-27 171 18 243 12M0 571c112-37 174 13 259 0M704 13c61 21 133 9 196 19M740 31c57 15 107 8 160 17" stroke="#b3c09a" opacity=".55"/>
+  <path d="m23 33 148-9 24 80-159 9Z" fill="#d7c77e" stroke="#aaa875"/>
+  <path d="m23 33 148-9 24 80-159 9Z" fill="url(#grain)"/>
+  <path d="m191 23 108 20 9 85-98-19Z" fill="#c5bb77" stroke="#aaa875"/>
+  <path d="m191 23 108 20 9 85-98-19Z" fill="url(#plough)"/>
+  <path d="m38 129 129-9 5 85-135 16Z" fill="#d7c88c" stroke="#aaa875"/>
+  <path d="m38 129 129-9 5 85-135 16Z" fill="url(#grain)"/>
+  <path d="m29 235 140-16 34 63-165 23Z" fill="#b9bd87" stroke="#a4ab76"/>
+  <path d="m29 235 140-16 34 63-165 23Z" fill="url(#plough)"/>
+  <path d="m245 206 71 16 11 65-95-12Z" fill="#d8cb92" stroke="#aaa875"/>
+  <path d="m245 206 71 16 11 65-95-12Z" fill="url(#grain)"/>
+  <path d="M192 106c-8 72-12 121 19 184M37 116l273 20M174 207l135-14" stroke="#a2a77a" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Water and reed-lined banks. -->
+  <path d="M411-40c-81 91-60 133 19 179 70 40 60 73 3 122-69 59-85 103-21 160 40 36 83 68 71 174" stroke="#adbea0" stroke-width="121" stroke-linecap="round"/>
+  <path d="M411-40c-81 91-60 133 19 179 70 40 60 73 3 122-69 59-85 103-21 160 40 36 83 68 71 174" stroke="url(#water)" stroke-width="99" stroke-linecap="round"/>
+  <path d="M397-30c-71 94-51 122 21 170 80 52 55 95 0 141-59 50-57 91 9 145 46 39 58 85 51 164" stroke="#c4d5cb" stroke-width="2" opacity=".5"/>
+  <path d="m386 49 20-3m-11 10 25-3m11 119 28 8m-17 2 24 7m-56 143-22 14m8 5-13 9m71 87 16 14m-4 2 22 22m-4 74 23 2" stroke="#d8e0d1" stroke-width="1.5" stroke-linecap="round" opacity=".65"/>
+  <path d="m344 87-4-11m10 13 1-12m4 17 6-7m123 112 5-10m-9 13 2-13m-97 136-4-9m0 19-6-8m90 130 9-7m-6 17 11-7m-7 15 12-2" stroke="#7e9c76" stroke-width="2"/>
+  <path d="M527 356c26 0 46 6 64 17" stroke="#9bb49a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M530 352c23 0 44 7 57 15" stroke="#d4dac0" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Main road and market crossing. -->
+  <path d="M-10 363c118-45 213-25 310-33 65-5 75-42 143-52 61-9 101 11 171-18s185-19 296-26M202 0c6 96 18 158 60 226 31 49 52 87 30 174-13 50-29 92-17 200M704-10c-53 100-57 170-26 226 34 60 58 120 47 192-10 66-39 128-33 192" stroke="#b5b596" stroke-width="22" stroke-linecap="round"/>
+  <path d="M-10 363c118-45 213-25 310-33 65-5 75-42 143-52 61-9 101 11 171-18s185-19 296-26M202 0c6 96 18 158 60 226 31 49 52 87 30 174-13 50-29 92-17 200M704-10c-53 100-57 170-26 226 34 60 58 120 47 192-10 66-39 128-33 192" stroke="#e7dec2" stroke-width="15" stroke-linecap="round"/>
+  <path d="M397 289 483 269" stroke="#7a8065" stroke-width="28"/>
+  <path d="M397 285 483 265" stroke="#c0b499" stroke-width="22"/>
+  <path d="M397 274 482 254M400 296l85-20" stroke="#e9dec4" stroke-width="5"/>
+  <path d="m410 273 4 19m11-23 4 19m11-22 4 18m12-22 4 18m12-22 4 18" stroke="#948c73" stroke-width="1.4"/>
+  <path d="M559 372c76-25 147-23 212-1l139 47M592 494c64-25 165 27 260 8" stroke="#b7b697" stroke-width="12"/>
+  <path d="M559 372c76-25 147-23 212-1l139 47M592 494c64-25 165 27 260 8" stroke="#e6ddc1" stroke-width="8"/>
+
+  <!-- Farmsteads and working mills. -->
+  <use href="#windmill" x="245" y="45" width="99" height="124"/>
+  <use href="#house" x="184" y="206" width="67" height="68"/>
+  <use href="#bale" x="104" y="270" width="29" height="24"/>
+  <use href="#bale" x="128" y="264" width="29" height="24"/>
+  <use href="#bale" x="116" y="248" width="29" height="24"/>
+  <path d="m50 191 8-3 5 4-1 6-7 1-5-4Zm6 8v5m5-6 1 4M75 183l8-4 6 5-2 5-8 1-4-4Zm5 7v5m6-6 1 5" fill="#f2ead0" stroke="#9b9274"/>
+  <path d="m70 231 0-8m0 4-4-4m4 2 4-4m-4 12h6M89 246v-8m0 4-4-4m4 2 4-4" stroke="#8d9a67" stroke-linecap="round"/>
+
+  <!-- Bakery, industrial yard, coal and brick chimneys. -->
+  <path d="m553 48 252 28 49 144-285-17Z" fill="#cbcbb1" opacity=".65"/>
+  <use href="#factory" x="684" y="45" width="164" height="135"/>
+  <use href="#warehouse" x="548" y="61" width="107" height="87"/>
+  <use href="#house" x="790" y="170" width="65" height="66"/>
+  <path d="m798 48-7-10 6-12 18-2 5-13 23 4 11-10 18 6" stroke="#aab4a1" stroke-width="12" stroke-linecap="round" opacity=".42"/>
+  <path d="m778 211 16-10 26 7-13 12Z" fill="#636a5c"/>
+  <path d="m781 208 9-11 10 4 8 12" fill="#737b67"/>
+  <path d="m593 223 31 9 18-9-33-10Z" fill="#ac9c76" stroke="#8f8969"/>
+  <path d="m599 216 26 8m-16-12 0 12m15-7v13" stroke="#ded3a7" stroke-width="2"/>
+  <path d="m535 119 6 3 2 23-7-2Zm3-4 7 2-4 5-6-3Z" fill="#a58b66"/>
+  <use href="#poplar" x="527" y="56" width="17" height="47"/>
+  <use href="#poplar" x="855" y="109" width="18" height="48"/>
+  <use href="#poplar" x="869" y="131" width="17" height="46"/>
+  <use href="#poplar" x="875" y="169" width="17" height="46"/>
+
+  <!-- Public grain reserve. -->
+  <path d="m103 393 143-22 85 115-159 34-63-44Z" fill="#ced0ac"/>
+  <use href="#warehouse" x="133" y="350" width="124" height="101"/>
+  <use href="#warehouse" x="191" y="459" width="104" height="84"/>
+  <use href="#bale" x="110" y="465" width="32" height="26"/>
+  <use href="#bale" x="133" y="478" width="32" height="26"/>
+  <use href="#bale" x="112" y="445" width="32" height="26"/>
+  <use href="#bale" x="136" y="458" width="32" height="26"/>
+  <path d="m323 383 19-3 4 13-20 3Z" fill="#ba9d69" stroke="#817b5a"/>
+  <path d="m327 381-2-10 10-2 7 12m-14-8 10 7" stroke="#8e805b" stroke-width="2"/>
+  <circle cx="329" cy="397" r="4" fill="#716e54"/><circle cx="344" cy="394" r="4" fill="#716e54"/>
+  <path d="m348 387 12-2" stroke="#827959" stroke-width="2"/>
+  <path d="m357 385 6-6 11 2-3 8-12-1m3-7 2 12m6-11 4 10" stroke="#877354" stroke-width="3" stroke-linecap="round"/>
+  <path d="M99 413v34m-7-28 14-4m-14 19 14-4M294 510l35-10m-31-3v22m14-26v22m14-26v22" stroke="#9ca17b" stroke-width="2"/>
+
+  <!-- The residents' quarter. -->
+  <path d="m580 315 121-16 27 48-140 15Zm185 32 103 28-16 36-103-30Zm-193 178 100-13 11 50-110-8Zm167-24 108 17-22 52-104-17Z" fill="#b8c4a0" opacity=".8"/>
+  <use href="#house" x="560" y="300" width="67" height="68"/>
+  <use href="#house" x="622" y="282" width="70" height="71"/>
+  <use href="#house" x="750" y="300" width="76" height="77"/>
+  <use href="#house" x="808" y="328" width="63" height="64"/>
+  <use href="#house" x="535" y="408" width="70" height="71"/>
+  <use href="#house" x="579" y="501" width="67" height="68"/>
+  <use href="#house" x="745" y="446" width="69" height="70"/>
+  <use href="#house" x="805" y="473" width="68" height="69"/>
+  <path d="m641 379 19-10 18 11-17 11Z" fill="#b9b99d" stroke="#92977a"/>
+  <ellipse cx="660" cy="379" rx="11" ry="6" fill="#d5d1b8" stroke="#969980"/>
+  <path d="M650 377v-7c0-7 20-7 20 0v7c0 7-20 7-20 0Z" fill="#c6c3a8" stroke="#93967b"/>
+  <ellipse cx="660" cy="369" rx="10" ry="5" fill="#83a2a0" stroke="#969980"/>
+  <path d="M660 368v-16" stroke="#a5a88c" stroke-width="4"/>
+  <ellipse cx="660" cy="353" rx="6" ry="3" fill="#dbd7bb"/>
+  <path d="m570 484 7-3m117 43 7 3m-7-4 1-6m80-117 7 3" stroke="#8b8e73" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="571" cy="477" r="3" fill="#9f7657"/><circle cx="698" cy="517" r="3" fill="#9f7657"/>
+  <path d="m567 480 8 1m120 40 6 2" stroke="#526e60" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Orchards, hedges and woodland at the edge of town. -->
+  <use href="#tree" x="12" y="320" width="28" height="38"/>
+  <use href="#tree" x="45" y="309" width="26" height="35"/>
+  <use href="#tree" x="66" y="312" width="24" height="33"/>
+  <use href="#tree" x="10" y="385" width="40" height="53"/>
+  <use href="#tree" x="42" y="405" width="33" height="44"/>
+  <use href="#tree" x="0" y="436" width="41" height="55"/>
+  <use href="#tree" x="27" y="466" width="39" height="52"/>
+  <use href="#tree" x="61" y="492" width="38" height="51"/>
+  <use href="#tree" x="0" y="512" width="44" height="59"/>
+  <use href="#tree" x="35" y="535" width="36" height="48"/>
+  <use href="#tree" x="87" y="540" width="30" height="40"/>
+  <use href="#tree" x="144" y="536" width="30" height="40"/>
+  <use href="#tree" x="323" y="455" width="32" height="43"/>
+  <use href="#tree" x="345" y="486" width="30" height="40"/>
+  <use href="#tree" x="339" y="533" width="40" height="53"/>
+  <use href="#tree" x="375" y="555" width="37" height="49"/>
+  <use href="#tree" x="521" y="1" width="30" height="40"/>
+  <use href="#tree" x="551" y="-8" width="31" height="41"/>
+  <use href="#tree" x="586" y="8" width="29" height="39"/>
+  <use href="#tree" x="849" y="19" width="36" height="48"/>
+  <use href="#tree" x="878" y="40" width="32" height="43"/>
+  <use href="#tree" x="875" y="275" width="30" height="40"/>
+  <use href="#tree" x="522" y="309" width="30" height="40"/>
+  <use href="#tree" x="541" y="327" width="25" height="34"/>
+  <use href="#tree" x="884" y="451" width="31" height="41"/>
+  <use href="#tree" x="868" y="547" width="32" height="43"/>
+  <use href="#tree" x="848" y="556" width="27" height="36"/>
+  <use href="#poplar" x="602" y="448" width="18" height="48"/>
+  <use href="#poplar" x="761" y="530" width="17" height="46"/>
+  <use href="#poplar" x="727" y="530" width="17" height="46"/>
+  <use href="#poplar" x="308" y="305" width="17" height="46"/>
+  <use href="#poplar" x="324" y="297" width="17" height="46"/>
+  <use href="#tree" x="90" y="374" width="26" height="35"/>
+  <use href="#tree" x="104" y="345" width="29" height="39"/>
+  <use href="#tree" x="344" y="206" width="26" height="35"/>
+  <use href="#tree" x="331" y="175" width="26" height="35"/>
+  <path fill="url(#paper)" d="M0 0h900v590H0z"/>
+
+  <!-- Cartographic details. -->
+  <g opacity=".65" stroke="#69775c">
+    <path d="M849 44v50m-25-25h50" stroke-width="1"/>
+    <path d="m849 44-7 24 7-3 7 3Z" fill="#64755c"/>
+    <path d="m849 94-7-24 7 3 7-3Z" fill="#e4e1c6"/>
+    <circle cx="849" cy="69" r="19" stroke-width=".7"/>
+  </g>
+  <text x="849" y="34" fill="#65765a" font-family="Georgia, serif" font-size="12" text-anchor="middle">N</text>
+  <path d="M31 559h66m-66-4v8m33-8v8m33-8v8" stroke="#65775d" opacity=".75"/>
+  <text x="31" y="578" fill="#67745c" font-family="Arial, sans-serif" font-size="9" letter-spacing="1.2">SCHEMATIC MAP</text>
+  <path d="m467 40 7-3 7 3m8-12 7-3 7 3M377 510l7-3 7 3m-14 7 7-3 7 3" stroke="#74866a" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M1 1h898v588H1z" stroke="#6f7b5c" opacity=".2"/>
+</svg>

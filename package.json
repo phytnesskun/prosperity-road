@@ -9,11 +9,13 @@
     "dev": "vite --host 127.0.0.1",
     "check": "tsc --noEmit",
     "test": "node --test tests/*.test.ts",
+    "test:browser": "node scripts/browser-smoke.mjs",
     "build": "npm run check && vite build",
     "preview": "vite preview --host 127.0.0.1"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "playwright": "1.62.1",
     "typescript": "7.0.2",
     "vite": "8.3.4"
   }
