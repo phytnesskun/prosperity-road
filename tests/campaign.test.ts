@@ -23,6 +23,7 @@ test('baseline is fixed; double settlement is rejected and a new season expires 
 });
 test('changing policy clears predictions; invalid policies preserve resources and history', () => {
   const decision = predict(nextSeason(settle(newGame())));
+  assert.equal(choosePolicy(decision, { ...decision.draft }), decision, 'Reselecting the same policy preserves predictions.');
   const changed = choosePolicy(decision, { cap: null, subsidy: 0, release: 20 });
   assert.equal(changed.prediction.price, '');
   const poor = { ...decision, records: [{ ...decision.records[0], result: {

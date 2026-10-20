@@ -22,12 +22,53 @@ async function savedState(page) {
   return JSON.parse(text);
 }
 
-async function predict(page, reason = '结合当季原料上限与政策，判断价格和实际购粮变化。') {
-  if (await page.locator('#prediction-price').count()) {
-    await page.locator('#prediction-price').selectOption('down');
-    await page.locator('#prediction-purchases').selectOption('up');
-    await page.locator('#prediction-reason').fill(reason);
+async function writeReason(page, reason) {
+  const details = page.locator('details').filter({ has: page.locator('#prediction-reason') });
+  if (await details.getAttribute('open') === null) {
+    await details.locator('summary').click();
   }
+  await page.locator('#prediction-reason').fill(reason);
+}
+
+async function predict(page, reason) {
+  if (await page.locator('#prediction-price-down').count()) {
+    await page.locator('#prediction-price-down').click();
+    await page.locator('#prediction-purchases-up').click();
+    if (reason === undefined) await page.locator('#reason-0').click();
+    else await writeReason(page, reason);
+  }
+}
+
+async function assertDockReachable(page, action = 'settle') {
+  const button = page.locator(`.action-dock button[data-action="${action}"]`);
+  const box = await button.boundingBox();
+  assert.ok(box, 'The main action button must have a visible box.');
+  const viewport = page.viewportSize();
+  assert.ok(
+    box.x >= 0 && box.y >= 0 &&
+    box.x + box.width <= viewport.width + 1 &&
+    box.y + box.height <= viewport.height + 1,
+    `The main action must fit inside the viewport: ${JSON.stringify({ box, viewport })}`,
+  );
+  assert.ok(box.width >= 44 && box.height >= 44, 'The main action needs a usable touch target.');
+  const unobstructed = await button.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    return element === hit || element.contains(hit);
+  });
+  assert.equal(unobstructed, true, 'No other element may cover the main action.');
+}
+
+async function assertNoHorizontalOverflow(page, label) {
+  const dimensions = await page.evaluate(() => ({
+    document: document.documentElement.scrollWidth,
+    body: document.body.scrollWidth,
+    viewport: window.innerWidth,
+  }));
+  assert.ok(
+    Math.max(dimensions.document, dimensions.body) <= dimensions.viewport + 1,
+    `${label} overflows the viewport: ${JSON.stringify(dimensions)}`,
+  );
 }
 
 async function baseline(page) {
@@ -44,6 +85,7 @@ async function baseline(page) {
 
 async function advance(page) {
   await page.locator('[data-action="next"]').click();
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'season-title', 'Advancing keeps keyboard focus on the new season.');
 }
 
 async function settlePolicy(page, policy = {}) {
@@ -81,24 +123,26 @@ try {
     await baseline(page);
     await advance(page);
     assert.equal(await page.locator('#settle-button').isDisabled(), true);
-    await page.locator('#prediction-price').selectOption('down');
-    await page.locator('#prediction-purchases').selectOption('up');
+    await page.locator('#prediction-price-down').click();
+    await page.locator('#prediction-purchases-up').click();
     assert.equal(await page.locator('#settle-button').isDisabled(), true, 'Two directions alone are insufficient.');
-    await page.locator('#prediction-reason').fill('   ');
+    await writeReason(page, '   ');
     assert.equal(await page.locator('#settle-button').isDisabled(), true, 'Whitespace is not a reason.');
-    await page.locator('#prediction-reason').fill('较低的限价可能使生产者减少供给。');
+    await writeReason(page, '较低的限价可能使生产者减少供给。');
     assert.equal(await page.locator('#settle-button').isDisabled(), false);
 
     await page.locator('#draft-cap-5').click();
-    assert.equal(await page.locator('#prediction-price').inputValue(), '');
-    assert.equal(await page.locator('#prediction-purchases').inputValue(), '');
+    assert.equal(await page.locator('[data-action="predict"][aria-pressed="true"]').count(), 0);
     assert.equal(await page.locator('#prediction-reason').inputValue(), '');
     assert.equal(await page.locator('#settle-button').isDisabled(), true);
     await predict(page, '限价降低生产者所得，可能减少实际供给与购粮。');
     const decision = await savedState(page);
+    assert.equal(decision.version, 1, 'The previous save format remains supported.');
     await page.reload({ waitUntil: 'networkidle' });
     assert.deepEqual(await savedState(page), decision);
     assert.equal(await page.locator('#draft-cap-5').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('#prediction-price-down').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('#prediction-purchases-up').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('#prediction-reason').inputValue(), decision.prediction.reason);
     assert.equal(await page.locator('#settle-button').isDisabled(), false);
     await page.locator('#settle-button').click();
@@ -107,6 +151,9 @@ try {
     near(result.price, 5, 'Capped price');
     near(result.purchasesLow, 24, 'Capped low-income purchases');
     near(result.excessDemand, 40, 'Capped excess demand');
+    await page.locator('#outcome-title').waitFor({ state: 'visible' });
+    const effect = page.locator('.effect-card').filter({ hasText: '低收入组实际购粮' });
+    assert.match(await effect.innerText(), /24\.00.*无干预 25\.00 → 政策影响 −1\.00/s);
     await page.locator('#tab-people').click();
     const residentRow = page.locator('tbody tr').filter({ hasText: '低收入组' });
     assert.equal(await residentRow.locator('td').nth(2).innerText(), '24.00');
@@ -115,12 +162,17 @@ try {
 
     await page.reload({ waitUntil: 'networkidle' });
     assert.deepEqual(await savedState(page), original);
-    await page.locator('[data-action="replay-season"][data-season="2"]').click();
+    await page.locator('[data-action="compare-baseline"]').click();
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'replay-season', 'Opening a comparison focuses the replay selector.');
+    assert.deepEqual(await savedState(page), original, 'One-click comparison must not change the campaign.');
+    await page.locator('#replay-cap-5').click();
+    const autoComparison = page.locator('.comparison-table tbody tr').filter({ hasText: '低收入组实际购粮' });
+    assert.equal(await autoComparison.locator('td').nth(2).innerText(), '24.00');
     await page.locator('#replay-cap-none').click();
-    await page.locator('[data-action="run-replay"]').click();
     const comparison = page.locator('.comparison-table tbody tr').filter({ hasText: '低收入组实际购粮' });
     assert.equal(await comparison.locator('td').nth(1).innerText(), '24.00');
     assert.equal(await comparison.locator('td').nth(2).innerText(), '25.00');
+    assert.equal(await comparison.locator('td').nth(3).innerText(), '+1.00');
     assert.deepEqual(await savedState(page), original, 'Replay must leave the original campaign untouched.');
   });
 
@@ -184,18 +236,10 @@ try {
     await mkdir('.qa', { recursive: true });
     await page.screenshot({ path: '.qa/browser-smoke-desktop.png', fullPage: true });
     await page.setViewportSize({ width: 375, height: 812 });
-    for (const view of ['town', 'market', 'people', 'accounts', 'history', 'replay', 'report']) {
+    for (const view of ['command', 'town', 'market', 'people', 'accounts', 'history', 'replay', 'report']) {
       await page.locator(`#tab-${view}`).click();
       if (view === 'replay') await page.locator('[data-action="run-replay"]').click();
-      const dimensions = await page.evaluate(() => ({
-        document: document.documentElement.scrollWidth,
-        body: document.body.scrollWidth,
-        viewport: window.innerWidth,
-      }));
-      assert.ok(
-        Math.max(dimensions.document, dimensions.body) <= dimensions.viewport + 1,
-        `${view} view overflows a 375px viewport: ${JSON.stringify(dimensions)}`,
-      );
+      await assertNoHorizontalOverflow(page, view);
     }
     await page.locator('#tab-town').click();
     await page.screenshot({ path: '.qa/browser-smoke-mobile.png', fullPage: true });
@@ -243,6 +287,65 @@ try {
     assert.equal(before.records.length, 4);
     assert.equal(before.phase, 'decision');
   });
+
+  for (const [device, viewport] of [
+    ['desktop', { width: 1280, height: 800 }],
+    ['mobile', { width: 375, height: 812 }],
+  ]) {
+    await isolated(`${device} 操作可达、三次点击预测、即时结算反馈与无损试算`, async page => {
+      await page.setViewportSize(viewport);
+      await assertDockReachable(page);
+      await baseline(page);
+      await assertDockReachable(page, 'next');
+      await advance(page);
+      await assertDockReachable(page);
+      await page.locator('#strategy-1').click();
+      assert.deepEqual((await savedState(page)).draft, { cap: 5, subsidy: 0, release: 0 });
+      await page.locator('#prediction-price-down').click();
+      await page.locator('#prediction-purchases-up').click();
+      assert.equal(await page.locator('#settle-button').isDisabled(), true);
+      await page.locator('#reason-1').click();
+      assert.equal(await page.locator('#settle-button').isDisabled(), false, 'Three clicks complete the prediction without typing.');
+      const selectedPrediction = (await savedState(page)).prediction;
+      assert.ok(selectedPrediction.reason.trim());
+      await page.locator('#strategy-1').click();
+      assert.deepEqual((await savedState(page)).prediction, selectedPrediction, 'Re-selecting a strategy preserves the prediction.');
+      await page.locator('#draft-cap-5').click();
+      assert.deepEqual((await savedState(page)).prediction, selectedPrediction, 'Re-selecting the same policy preserves the prediction.');
+      await page.locator('#strategy-2').click();
+      assert.deepEqual((await savedState(page)).prediction, { price: '', purchases: '', reason: '' });
+      assert.equal(await page.locator('#settle-button').isDisabled(), true);
+      await page.locator('#strategy-1').click();
+      await predict(page);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await assertDockReachable(page);
+      await assertNoHorizontalOverflow(page, `${device} decision`);
+      await page.screenshot({ path: `.qa/ux-${device}-decision.png` });
+      await page.locator('#settle-button').click();
+      const title = page.locator('#outcome-title');
+      await title.waitFor({ state: 'visible' });
+      assert.equal(await page.evaluate(() => document.activeElement?.id), 'outcome-title', 'Settlement focuses the new outcome.');
+      const titleBox = await title.boundingBox();
+      assert.ok(titleBox && titleBox.y >= 0 && titleBox.y + titleBox.height <= viewport.height, 'The outcome headline should be immediately in view.');
+      assert.match(await title.innerText(), /未达标.*少买 1 篮/);
+      const effect = page.locator('.effect-card').filter({ hasText: '低收入组实际购粮' });
+      assert.match(await effect.innerText(), /24\.00.*无干预 25\.00 → 政策影响 −1\.00/s);
+      await assertDockReachable(page, 'next');
+      await assertNoHorizontalOverflow(page, `${device} result`);
+      await page.screenshot({ path: `.qa/ux-${device}-result.png` });
+      const original = await savedState(page);
+      await page.locator('[data-action="compare-baseline"]').click();
+      assert.equal(await page.evaluate(() => document.activeElement?.id), 'replay-season');
+      const row = page.locator('.comparison-table tbody tr').filter({ hasText: '低收入组实际购粮' });
+      assert.equal(await row.locator('td').nth(1).innerText(), '24.00');
+      assert.equal(await row.locator('td').nth(2).innerText(), '25.00');
+      assert.equal(await row.locator('td').nth(3).innerText(), '+1.00');
+      assert.deepEqual(await savedState(page), original);
+      await page.reload({ waitUntil: 'networkidle' });
+      assert.deepEqual(await savedState(page), original);
+      assert.match(await page.locator('#outcome-title').innerText(), /未达标/);
+    });
+  }
 
   console.log(`Browser smoke: ${completed} isolated scenarios passed.`);
 } finally {

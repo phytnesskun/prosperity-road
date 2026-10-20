@@ -4,6 +4,7 @@ import type { Policy, Result } from './economy.ts';
 import { choosePolicy, currentResources, goals, needsPrediction, newGame, nextSeason, predictionComplete, restoreGame, settleTurn } from './campaign.ts';
 import type { Direction, GameState, Report } from './campaign.ts';
 import { drawMarketChart } from './charts.ts';
+import { outcomeFeedback } from './feedback.ts';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const SAVE_KEY = 'prosperity-road.bread-crisis.v1';
@@ -13,8 +14,8 @@ const escape = (value: string): string => value.replace(/[&<>"']/g, char =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!);
 let storageMessage = '';
 let state = loadGame();
-type View = 'town' | 'market' | 'people' | 'accounts' | 'history' | 'replay' | 'report';
-let view: View = state.phase === 'complete' ? 'report' : 'town';
+type View = 'command' | 'town' | 'market' | 'people' | 'accounts' | 'history' | 'replay' | 'report';
+let view: View = state.phase === 'complete' ? 'report' : 'command';
 let district = 'farm';
 let notice = '';
 let dialog: 'help' | 'reset' | null = null;
@@ -23,6 +24,15 @@ let replayPolicy: Policy = { ...DEFAULT_POLICY };
 let replayResult: Result | null = null;
 let replayError = '';
 let chartObserver: ResizeObserver | null = null;
+const strategies: { name: string; intent: string; caution: string; policy: Policy }[] = [
+  { name: '让市场调节', intent: '不设限价，不使用公共资源', caution: '价格可能上涨，低收入居民未必买得够。', policy: { cap: null, subsidy: 0, release: 0 } },
+  { name: '压低面包标价', intent: '将最高价格设为 5', caution: '便宜了，但私人生产和分配会怎样？', policy: { cap: 5, subsidy: 0, release: 0 } },
+  { name: '鼓励私人生产', intent: '每单位补贴 1 credit', caution: '要花国库现金，也受原料上限限制。', policy: { cap: null, subsidy: 1, release: 0 } },
+  { name: '打开公共粮仓', intent: '向市场出售 20 单位储备', caution: '增加当季可售量，留下的储备更少。', policy: { cap: null, subsidy: 0, release: 20 } },
+];
+const predictionReasons = ['原料不足限制生产', '价格改变购买与生产意愿', '补贴可能增加私人生产', '公共投放增加可售量'];
+const samePolicy = (a: Policy, b: Policy): boolean => a.cap === b.cap && a.subsidy === b.subsidy && a.release === b.release;
+const signed = (value: number): string => `${value > 1e-7 ? '+' : value < -1e-7 ? '−' : ''}${fmt(Math.abs(value))}`;
 
 function loadGame(): GameState {
   try {
@@ -56,11 +66,86 @@ function stat(label: string, value: string, note: string): string {
   return `<div class="stat"><div class="stat-label">${label}</div><div class="stat-value">${value}</div><div class="stat-note">${note}</div></div>`;
 }
 function tabs(): string {
-  const items: [View, string][] = [['town', '城镇'], ['market', '供需'], ['people', '居民'], ['accounts', '账目'], ['history', '历史']];
+  const items: [View, string][] = [['command', settled() ? '本季结果' : '决策台'], ['town', '城镇'], ['market', '供需'], ['people', '居民'], ['accounts', '账目'], ['history', '历史']];
   if (state.records.length > 1) items.push(['replay', '政策回放']);
   if (state.phase === 'complete') items.push(['report', '学习复盘']);
   return `<nav class="view-tabs" aria-label="经济视图">${items.map(([key, label]) =>
     `<button class="tab-button" id="tab-${key}" type="button" data-action="view" data-view="${key}" aria-selected="${view === key}">${label}</button>`).join('')}</nav>`;
+}
+function missionStrip(): string {
+  const progress = goals(state.records);
+  const remaining = 6 - state.records.length;
+  const possible = progress.metSeasons + remaining >= 5 && progress.reserves >= 20;
+  return `<section class="mission-strip" aria-label="任期任务"><strong>任期任务</strong>
+    <span>保障达标 <b>${progress.metSeasons} / 5 季</b></span><span>最终储备 <b>≥20</b></span><span>现金 <b>始终≥0</b></span>
+    <span class="mission-status">${progress.passed ? '任期目标已达成' : possible ? `还有 ${remaining} 季可争取` : '本局已无法全部达标，仍可继续实验与复盘'}</span></section>`;
+}
+function commandView(): string {
+  if (settled()) return outcomeView();
+  if (state.phase === 'briefing') return `<section class="command-view briefing">
+    <div class="briefing-art"><img src="/town.svg" alt="你将管理的面包产区与公共粮仓" width="900" height="590" /></div>
+    <span class="eyebrow">你是新任经济部长</span><h3>面包便宜了，居民就能吃饱吗？</h3>
+    <p>一场歉收即将到来。你有五次决策机会，让居民获得足够的面包，同时保住国库和应急储备。</p>
+    <ol class="play-loop"><li><strong>选方案</strong><span>限价、补贴、开仓，也可以自由组合。</span></li>
+      <li><strong>看后果</strong><span>实际买到多少，比标价更重要。</span></li>
+      <li><strong>试另一招</strong><span>结算后对比政策，再决定下一季。</span></li></ol>
+    <p class="inline-help">先观察一次正常市场。无需填写答案即可开始。</p></section>`;
+  const season = SEASONS[state.seasonIndex];
+  const prior = SEASONS[state.seasonIndex - 1];
+  const hints = [
+    '',
+    '原料上限骤降。你的政策能增加面包，还是只改变标价？',
+    '原料仍然紧张。继续开仓能缓解眼前问题，但粮仓不会自动补满。',
+    '加工能力恢复。此时补贴的效果，会与歉收最严重时相同吗？',
+    '供给条件继续改善。现在还需要消耗国库或储备吗？',
+    '最后一季：兼顾居民购粮与至少20单位的期末储备。',
+  ];
+  return `<section class="command-view">
+    <div class="situation"><div><span>私人原料上限</span><strong>${prior.K} → ${season.K}</strong></div>
+      <div><span>额外单位成本</span><strong>${prior.c} → ${season.c}</strong></div><p>${hints[state.seasonIndex]}</p></div>
+    <div class="section-heading"><h3>01 · 选择你的应对方式</h3><span>点选即应用，还可以微调</span></div>
+    <div class="strategy-grid">${strategies.map((strategy, index) => {
+      const selected = samePolicy(state.draft, strategy.policy);
+      const valid = evaluate(season, strategy.policy, currentResources(state)).valid;
+      return `<button type="button" id="strategy-${index}" class="strategy-card ${selected ? 'selected' : ''}" data-action="strategy" data-strategy="${index}" aria-pressed="${selected}" ${valid ? '' : 'disabled'}>
+        <span class="strategy-number">0${index + 1} <span>${selected ? '已选' : valid ? '选择' : '资源不足'}</span></span>
+        <strong>${strategy.name}</strong><span>${strategy.intent}</span><small>${strategy.caution}</small></button>`;
+    }).join('')}</div>
+    <div class="decision-note" aria-live="polite"><strong>当前组合：${policyLabel(state.draft)}</strong><p>${draftAdvice()}</p></div>
+    <p class="inline-help">先凭判断选择，执行后揭示真实结果。第2、4季额外记录一次简短预测。</p></section>`;
+}
+function draftAdvice(): string {
+  const p = state.draft;
+  const messages = [];
+  if (p.cap !== null) messages.push(`最高标价 ${p.cap}；若压在均衡价之下，会出现配给，低价不保证多买。`);
+  if (p.subsidy) messages.push(`每单位私人产量补贴 ${p.subsidy}；原料上限 ${SEASONS[state.seasonIndex].K} 不变。`);
+  if (p.release) messages.push(`出售 ${p.release} 单位公共储备，余量 ${currentResources(state).reserves - p.release}；${currentResources(state).reserves - p.release < 20 ? '将低于任期末20单位目标。' : '售粮收入进入国库。'}`);
+  return messages.join(' ') || '本季由市场调节价格。国库与储备不消耗，但居民保障仍要看实际成交。';
+}
+function outcomeView(): string {
+  const r = latestResult();
+  if (!r) return emptyView('先观察正常市场。');
+  const feedback = outcomeFeedback(r);
+  const baseline = feedback.baseline;
+  const met = r.coverageLow >= .95 - 1e-9;
+  const effect = (label: string, actual: number, reference: number, unit: string) =>
+    `<div class="effect-card"><span>${label}</span><strong>${fmt(actual)}<small>${unit}</small></strong>
+      <span class="effect-delta">${r.season === 1 ? '正常市场参考值' : `无干预 ${fmt(reference)} → 政策影响 ${signed(actual - reference)}`}</span></div>`;
+  return `<section class="command-view outcome" aria-labelledby="outcome-title">
+    <div class="outcome-heading ${met ? 'success' : 'warning'}"><span class="eyebrow">第 ${r.season} 季结算 · ${policyLabel(r.policy)}</span>
+      <h3 id="outcome-title" tabindex="-1">${feedback.headline}</h3>
+      <div class="basket-meter"><div style="width:${r.coverageLow * 100}%"></div><i></i></div>
+      <p>低收入组基本篮子完成 <strong>${pct(r.coverageLow)}</strong> · 本季目标 ≥95%${met ? '，已达标' : `，还差 ${fmt(Math.max(0, 34.2 - r.purchasesLow))} 单位面包`}</p></div>
+    <div class="section-heading"><h3>你的选择改变了什么？</h3><span>${r.season === 1 ? '固定无干预基期' : '与同一季、不干预相比'}</span></div>
+    <div class="effect-grid">${effect('低收入组实际购粮', r.purchasesLow, baseline.purchasesLow, '单位')}
+      ${effect('面包价格', r.price, baseline.price, 'credits')}
+      ${effect('期末国库', r.after.cash, baseline.after.cash, 'credits')}
+      ${effect('剩余储备', r.after.reserves, baseline.after.reserves, '单位')}</div>
+    <div class="causal-feedback"><strong>为什么？</strong><p>${feedback.explanation}</p><span>${feedback.lesson}</span></div>
+    <div class="resident-feedback"><div><span>居民的账本</span><p>${feedback.resident}</p></div><div><span>生产者的账本</span><p>${feedback.producer}</p></div></div>
+    <p class="tradeoff"><strong>代价与取舍</strong> ${feedback.tradeoff}</p>
+    ${r.season > 1 ? '<button class="button secondary" type="button" data-action="compare-baseline">试试看：本季不干预会怎样？</button><p class="inline-help">对照保持天气、成本与期初资源相同。角色反馈来自本模型；试算不消耗资源。</p>' : '<p class="inline-help">下一季将发生歉收。这次正常市场会成为你的第一个比较基准。</p>'}
+    </section>`;
 }
 function missionMarkup(): string {
   const progress = goals(state.records);
@@ -95,7 +180,7 @@ function town(): string {
     ${places.map(place => `<button type="button" class="map-hotspot ${district === place.id ? 'selected' : ''}" data-action="district" data-district="${place.id}" aria-pressed="${district === place.id}" style="left:${place.x}%;top:${place.y}%">
       <span class="hotspot-name">${place.name}</span><span class="hotspot-english">${place.english}</span><span class="hotspot-value">${place.value}</span></button>`).join('')}
   </div><div class="map-caption">同一面包市场 · 地区位置不产生额外价格差异 · 数量为面包篮单位</div>
-  <div class="district-detail" aria-live="polite"><strong>${detail[district][0]}</strong><p>${detail[district][1]}</p></div>
+  <div class="district-detail" aria-live="polite"><strong>${detail[district][0]}</strong><p>${detail[district][1]}</p>${state.phase === 'decision' ? '<button class="button secondary" type="button" data-action="guide-policy">前往政策桌作出选择 →</button>' : ''}</div>
   ${state.phase === 'briefing' ? `<div class="notice"><strong>部长，欢迎上任。</strong><p>先点击地图了解四个地区，再查看正常市场。下一季起，你将决定如何应对歉收。</p>${missionMarkup()}</div>` : ''}
   ${state.phase === 'result' ? resultExplanation(latestResult()!) : ''}`;
 }
@@ -187,14 +272,14 @@ function replayView(): string {
   if (!original || original.season === 1) return emptyView('第2季结算后，可以在这里比较另一种政策。');
   const result = replayResult;
   const comparison = (label: string, originalValue: number, alternative?: number, percentage = false) =>
-    `<tr><td>${label}</td><td>${percentage ? pct(originalValue) : fmt(originalValue)}</td><td>${alternative === undefined ? '待运行' : percentage ? pct(alternative) : fmt(alternative)}</td></tr>`;
+    `<tr><td>${label}</td><td>${percentage ? pct(originalValue) : fmt(originalValue)}</td><td>${alternative === undefined ? '待运行' : percentage ? pct(alternative) : fmt(alternative)}</td><td>${alternative === undefined ? '—' : percentage ? `${signed((alternative - originalValue) * 100)} 个百分点` : signed(alternative - originalValue)}</td></tr>`;
   return `<div class="replay-banner"><strong>同一季度，换一种选择</strong><p>本次比较复制第${replaySeason}季的期初资源与天气，不改变原始游戏，也不自动延续到以后季度。</p></div>
     <label class="replay-select-label">选择已完成的季度<select id="replay-season" aria-label="选择回放季度">${state.records.filter(row => row.result.season > 1).map(row => `<option value="${row.result.season}" ${row.result.season === replaySeason ? 'selected' : ''}>第${row.result.season}季 · ${SEASONS[row.result.season - 1].title}</option>`).join('')}</select></label>
     <p class="inline-help">相同期初：现金${fmt(original.before.cash)}，储备${fmt(original.before.reserves)}；原方案：${policyLabel(original.policy)}。</p>
     <div class="replay-controls">${policyControls(replayPolicy, 'replay')}</div>
-    <button class="button primary" type="button" data-action="run-replay">运行替代方案</button>
+    <button class="button primary" type="button" data-action="run-replay">运行替代方案</button><p class="inline-help">调整任何一项会立即重新试算；不改写原记录，也不消耗资源。</p>
     ${replayError ? `<p class="notice error" role="alert">${escape(replayError)}</p>` : ''}
-    <div class="table-wrap"><table class="data-table comparison-table"><thead><tr><th>指标</th><th>原始记录</th><th>替代方案</th></tr></thead><tbody>
+    <div class="table-wrap"><table class="data-table comparison-table"><thead><tr><th>指标</th><th>原始记录</th><th>替代方案</th><th>变化</th></tr></thead><tbody>
       ${comparison('价格', original.price, result?.price)}
       ${comparison('私人产量', original.privateOutput, result?.privateOutput)}
       ${comparison('低收入组实际购粮', original.purchasesLow, result?.purchasesLow)}
@@ -222,49 +307,62 @@ function reportView(): string {
     <details><summary>教师评价与迁移任务</summary><div class="detail-body"><p>AO1：概念准确；AO2：引用本局证据；AO3：解释完整因果链；AO4：结合条件比较方案。教师可按每项0、1、2级记录；这是课堂量表，不是Pearson官方分数或考试等级。</p>
     <p>迁移：人口流入使某城市租房需求上升，短期住房供给缺乏弹性。评价低于新均衡租金的最高租金与新建住房补贴能否改善低收入家庭获得住房的情况。</p></div></details>`;
 }
+function predictionHint(): string {
+  const missing = [!state.prediction.price && '价格方向', !state.prediction.purchases && '购粮方向', !state.prediction.reason.trim() && '一个理由'].filter(Boolean);
+  return missing.length ? `还差：${missing.join('、')}` : '预测已记录，答错也可以继续。';
+}
 function predictionFields(): string {
-  if (!needsPrediction(state)) return '<p class="inline-help">本季可以直接执行。执行后，请用结果解释你的选择。</p>';
-  const select = (key: 'price' | 'purchases', label: string) => `<label>${label}<select id="prediction-${key}" data-prediction="${key}">
-    <option value="">选择你的预测</option>${(['up', 'same', 'down'] as const).map(value => `<option value="${value}" ${state.prediction[key] === value ? 'selected' : ''}>${value === 'up' ? '增加 / 上升' : value === 'down' ? '减少 / 下降' : '保持不变'}</option>`).join('')}</select></label>`;
-  return `<div class="prediction-form"><h3>先预测，再观察</h3><p class="inline-help">与上季已结算结果相比；预测错误也可以继续。</p>
-    ${select('price', '本季面包价格会…')}${select('purchases', '低收入组实际购粮会…')}
-    <label>用一句话写下理由<textarea id="prediction-reason" data-prediction="reason" rows="2" maxlength="3000" required placeholder="哪些约束或机制会起作用？">${escape(state.prediction.reason)}</textarea></label></div>`;
+  if (!needsPrediction(state)) return '<p class="inline-help">本季无需预测，选好组合即可执行。</p>';
+  const row = (key: 'price' | 'purchases', label: string) => `<div class="prediction-options" id="prediction-${key}" role="group" aria-label="${label}"><span>${label}</span><div>${(['up', 'same', 'down'] as const).map(value => `<button type="button" class="choice-button" id="prediction-${key}-${value}" data-action="predict" data-key="${key}" data-value="${value}" aria-pressed="${state.prediction[key] === value}">${value === 'up' ? '↑ 上升' : value === 'down' ? '↓ 下降' : '→ 不变'}</button>`).join('')}</div></div>`;
+  return `<section class="prediction-form" id="prediction-section" tabindex="-1"><h3>02 · 点选你的预测</h3><p class="inline-help">与上季已结算结果相比。无需预测准确才能继续。</p>
+    ${row('price', '面包价格')}${row('purchases', '低收入组实际购粮')}
+    <p class="policy-help">你主要依据什么？选一项，或自己写。</p>
+    <div class="reason-chips" role="group" aria-label="预测理由">${predictionReasons.map((reason, index) => `<button type="button" id="reason-${index}" class="reason-chip" data-action="reason" data-reason="${index}" aria-pressed="${state.prediction.reason === reason}">${reason}</button>`).join('')}</div>
+    <details ${state.prediction.reason && !predictionReasons.includes(state.prediction.reason) ? 'open' : ''}><summary>自己写一个理由</summary><label class="detail-body">我的理由<textarea id="prediction-reason" data-prediction="reason" rows="2" maxlength="3000" placeholder="哪些约束或机制会起作用？">${escape(state.prediction.reason)}</textarea></label></details></section>`;
 }
 function policyPanel(): string {
   const r = latestResult();
-  if (state.phase === 'complete') {
-    return `<div class="policy-header"><span class="eyebrow">END OF TERM</span><h2>任期档案</h2></div>${missionMarkup()}
-      <p class="policy-help">回看自己的预测，比较一种替代政策，再写下有条件的判断。</p>
-      <button class="button primary advance-button" type="button" data-action="view" data-view="report">完成学习复盘</button>`;
-  }
-  if (state.phase === 'briefing') {
-    return `<div class="policy-header"><span class="eyebrow">YOUR FIRST BRIEFING</span><h2>从正常市场开始</h2></div>
-      <p>你管理一个拥有农田、面包加工区和公共粮仓的小国。</p><p>这一季固定无干预。先认识市场，再作出五次政策选择。</p>
-      <div class="resource-check">初始国库160 credits<br>公共储备60单位<br>两组基本篮子目标各36单位</div>
-      <button class="button primary advance-button" type="button" data-action="settle">查看正常市场</button>
-      <p class="policy-help">约25分钟 · IAL Unit 1 · 英文术语配中文解释</p>`;
-  }
+  if (state.phase === 'complete') return `<div class="policy-header"><span class="eyebrow">END OF TERM</span><h2>任期档案</h2></div>${missionMarkup()}<p class="policy-help">用自己的数据解释一次成功或失败，比只追求通关更重要。</p><button class="button secondary advance-button" type="button" data-action="view" data-view="report">完成学习复盘</button>`;
+  if (state.phase === 'briefing') return `<div class="policy-header"><span class="eyebrow">YOUR FIRST BRIEFING</span><h2>上任前的三件事</h2></div>
+    <div class="briefing-rules"><p><strong>① 居民要买到面包</strong><br>六季中至少五季，低收入组保障率达到95%。</p><p><strong>② 粮仓要留后手</strong><br>初始60单位，任期末至少留下20。</p><p><strong>③ 国库不能透支</strong><br>初始160 credits，补贴支出不能超过可用现金。</p></div><p class="policy-help">第1季固定无干预，点击下方按钮观察市场。所有数量是面包篮单位，不是人数。</p>`;
   if (state.phase === 'result' && r) {
     const prediction = state.records.at(-1)!.prediction;
     const prior = state.records.at(-2)?.result;
     const direction = (delta: number): Direction => Math.abs(delta) < 1e-7 ? 'same' : delta > 0 ? 'up' : 'down';
-    return `<div class="policy-header"><span class="eyebrow">SEASON SETTLED</span><h2>本季结算完成</h2></div><p>${policyLabel(r.policy)}</p>
-      <div class="results-summary">${mini('低收入组保障', pct(r.coverageLow))}${mini('国库现金', `${fmt(r.before.cash)} → ${fmt(r.after.cash)}`)}${mini('公共储备', `${fmt(r.before.reserves)} → ${fmt(r.after.reserves)}`)}</div>
-      ${prediction.price && prior ? `<div class="notice"><strong>对照你的预测</strong><p>预测：${directionName(prediction.price, '价格')}；${directionName(prediction.purchases, '购粮')}。</p><p>实际：${directionName(direction(r.price - prior.price), '价格')}；${directionName(direction(r.purchasesLow - prior.purchasesLow), '购粮')}。</p></div>` : ''}
-      <button class="button primary advance-button" type="button" data-action="next">${state.seasonIndex === 5 ? '结束任期，进入复盘' : '进入下一季'}</button>
-      ${r.season > 1 ? `<button class="button secondary advance-button" type="button" data-action="replay-season" data-season="${r.season}">比较另一种政策</button>` : ''}
-      <p class="policy-help">结果已经记录。进入下一季后，本季政策自动到期。</p>`;
+    const check = (key: 'price' | 'purchases', label: string, delta: number) => `<div class="forecast-feedback"><strong>${prediction[key] === direction(delta) ? '✓ 判断一致' : '↗ 修正直觉'}</strong><span>${directionName(prediction[key], label)} → 实际${directionName(direction(delta), label)}</span></div>`;
+    return `<div class="policy-header"><span class="eyebrow">YOUR DECISION, YOUR IMPACT</span><h2>${r.season === 1 ? '正常市场已建立' : '回看你的判断'}</h2></div>
+      ${prediction.price && prior ? `<p class="policy-help">以下预测对照上季；左侧政策效果对照同季无干预。</p>${check('price', '价格', r.price - prior.price)}${check('purchases', '购粮', r.purchasesLow - prior.purchasesLow)}<p class="policy-help">你的理由：${escape(prediction.reason)}</p>` : '<p>比较实际购粮和价格，观察二者是否一起改善。</p>'}
+      <div class="results-summary">${mini('本季现金变化', signed(r.after.cash - r.before.cash))}${mini('本季储备变化', `${signed(r.after.reserves - r.before.reserves)} 单位`)}</div>
+      ${r.season > 1 ? `<button class="button secondary advance-button" type="button" data-action="replay-season" data-season="${r.season}">换个方案，免费试算</button>` : ''}
+      <p class="policy-help">${state.seasonIndex < 5 ? `下一季：${SEASONS[state.seasonIndex + 1].title}。政策每季到期，请重新选择。` : '六季已完成，进入复盘查看任期成绩。'}</p>`;
   }
   const resources = currentResources(state);
   const preview = evaluate(SEASONS[state.seasonIndex], state.draft, resources);
-  const missing = needsPrediction(state) && !predictionComplete(state.prediction);
-  return `<div class="policy-header"><span class="eyebrow">POLICY DESK</span><h2>本季政策桌</h2></div>
-    <p class="policy-help">上季政策已到期。本季默认无干预。</p>
-    ${state.records.length > 1 ? '<button class="button ghost" type="button" data-action="reuse">重新选择上季组合</button>' : ''}
+  return `<div class="policy-header" id="policy-controls" tabindex="-1"><span class="eyebrow">FINE-TUNE YOUR PLAN</span><h2>调整政策组合</h2></div>
+    ${state.records.length > 1 ? '<button class="button ghost reuse-button" type="button" data-action="reuse">沿用上季组合</button>' : ''}
     ${policyControls(state.draft, 'draft')}
-    <div class="resource-check ${preview.valid ? '' : 'error'}" ${preview.valid ? '' : 'role="alert"'}>${preview.valid ? `本组合可执行。<br>库存：${fmt(resources.reserves)} → ${fmt(resources.reserves - state.draft.release)}。<br>精确市场结果与现金账目将在执行后揭示。` : escape(preview.message)}</div>
-    ${predictionFields()}<button id="settle-button" class="button primary advance-button" type="button" data-action="settle" ${!preview.valid || missing ? 'disabled' : ''}>执行本季政策</button>
-    <p class="policy-help" id="prediction-status">${missing ? '请完成两项方向预测，并写下一句理由。' : '执行后锁定本季结果；可以在回放中尝试其他方案。'}</p>`;
+    <div class="resource-check ${preview.valid ? '' : 'error'}" ${preview.valid ? '' : 'role="alert"'}>${preview.valid ? `✓ 资源允许执行 · 投放后储备 ${fmt(resources.reserves - state.draft.release)}` : `${escape(preview.message)} 请减少补贴或投放，再执行。`}</div>
+    ${predictionFields()}`;
+}
+function actionDock(): string {
+  const evaluation = evaluate(SEASONS[state.seasonIndex], state.draft, currentResources(state));
+  const missing = needsPrediction(state) && !predictionComplete(state.prediction);
+  let label = '', hint = '', actions = '';
+  if (state.phase === 'briefing') {
+    label = '第一步 · 观察正常市场'; hint = '先建立基准，再迎接歉收。';
+    actions = '<button class="button primary" type="button" data-action="settle">查看正常市场</button>';
+  } else if (state.phase === 'decision') {
+    label = `第${state.seasonIndex + 1}季 · ${policyLabel(state.draft)}`;
+    hint = !evaluation.valid ? evaluation.message : missing ? predictionHint() : '准备好了。执行后可免费试算其他选择。';
+    actions = `${missing ? '<button class="button secondary" type="button" data-action="guide-prediction">完成预测 ↓</button>' : '<button class="button secondary" type="button" data-action="guide-policy">调整政策</button>'}<button id="settle-button" class="button primary" type="button" data-action="settle" ${!evaluation.valid || missing ? 'disabled' : ''}>执行本季政策 →</button>`;
+  } else if (state.phase === 'result') {
+    label = `第${state.seasonIndex + 1}季已结算`; hint = '先看后果，再作下一次选择。';
+    actions = `<button class="button primary" type="button" data-action="next">${state.seasonIndex === 5 ? '结束任期，进入复盘' : '进入下一季 →'}</button>`;
+  } else {
+    label = goals(state.records).passed ? '任期任务完成' : '任期结束 · 继续研究你的选择'; hint = '进度已保存，可以下载自己的学习报告。';
+    actions = '<button class="button secondary" type="button" data-action="view" data-view="replay">政策试验室</button><button class="button primary" type="button" data-action="view" data-view="report">查看学习复盘</button>';
+  }
+  return `<div class="action-dock" aria-label="本季主操作"><div class="dock-context"><strong>${label}</strong><span id="prediction-status" role="status">${hint}</span></div><div class="dock-buttons">${actions}</div></div>`;
 }
 function news(): string {
   const r = settled() ? latestResult() : undefined;
@@ -290,9 +388,9 @@ function render(focusId?: string): void {
   const season = SEASONS[state.seasonIndex];
   const stamp = r ? `第${r.season}季已结算` : '正常市场待观察';
   const views: Record<View, () => string> = {
-    town, market: marketView, people: peopleView, accounts: accountsView, history: historyView, replay: replayView, report: reportView,
+    command: commandView, town, market: marketView, people: peopleView, accounts: accountsView, history: historyView, replay: replayView, report: reportView,
   };
-  app.innerHTML = `<div class="app-shell">
+  app.innerHTML = `<div class="app-shell" data-phase="${state.phase}">
     <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true">P</span><div><span class="brand-kicker">PROSPERITY ROAD</span><h1>繁荣之路</h1></div></div>
     <div class="chapter-title">面包危机 <span>THE BREAD CRISIS · IAL UNIT 1</span></div>
     <div class="top-actions"><button class="button ghost" id="help-button" type="button" data-action="help">玩法与规则</button><button class="button ghost" id="reset-button" type="button" data-action="reset">新任期</button></div></header>
@@ -303,8 +401,8 @@ function render(focusId?: string): void {
       ${stat('TREASURY · 国库', `${fmt(resources.cash)} <small>credits</small>`, `${settled() ? '期末现金' : '本季期初'} · 始终非负`)}
     </section>
     ${storageMessage ? `<p class="notice warning" role="status">${escape(storageMessage)}</p>` : ''}
-    <div class="workspace"><main class="main-panel">
-      <div class="season-heading"><div><span class="eyebrow">SEASON ${season.id} / 6</span><h2 class="season-title">${state.phase === 'complete' ? '任期结束 · 留下你的判断' : season.title}</h2></div><span class="season-badge">${{ briefing: '基期引导', decision: '等待你的决策', result: '本季已结算', complete: '学习复盘' }[state.phase]}</span></div>
+    ${missionStrip()}<div class="workspace"><main class="main-panel">
+      <div class="season-heading"><div><span class="eyebrow">SEASON ${season.id} / 6</span><h2 class="season-title" id="season-title" tabindex="-1">${state.phase === 'complete' ? '任期结束 · 留下你的判断' : season.title}</h2></div><span class="season-badge">${{ briefing: '基期引导', decision: '等待你的决策', result: '本季已结算', complete: '学习复盘' }[state.phase]}</span></div>
       <div class="event-banner">${state.phase === 'complete' ? '六季均已结算，原始记录已保存。现在比较一项替代政策，并用本局证据写下你的判断。' : season.event}</div>
       ${notice ? `<p class="notice" role="status">${escape(notice)}</p>` : ''}
       ${tabs()}<div id="active-view" aria-label="当前经济视图">${views[view]()}</div>
@@ -312,7 +410,7 @@ function render(focusId?: string): void {
     <footer class="news-footer"><div><span class="eyebrow">MINISTER'S DISPATCH · 本季简报</span><p id="news-text" aria-live="polite">${news()}</p></div>
     <div class="season-track" aria-label="季度进度">${SEASONS.map((s, i) => `<span class="season-chip ${state.seasonIndex === i ? 'active' : ''} ${state.records.length > i ? 'complete' : ''}" aria-label="第${i + 1}季${state.records.length > i ? '已完成' : ''}">${s.id}</span>`).join('')}</div></footer>
     <div class="footer-note"><span>课堂教学模型 · 非现实预测</span><span id="save-status">${escape(storageMessage || '进度自动保存在此浏览器')}</span></div>
-    ${dialogMarkup()}</div>`;
+    ${actionDock()}${dialogMarkup()}</div>`;
   const chart = document.querySelector<HTMLElement>('#market-chart');
   const replayChart = document.querySelector<HTMLElement>('#replay-chart');
   if (chart && r) {
@@ -340,9 +438,16 @@ function beginReplay(season: number): void {
   if (!record || season === 1) return;
   replaySeason = season;
   replayPolicy = { ...record.result.policy };
-  replayResult = null;
+  replayResult = record.result;
   replayError = '';
   view = 'replay';
+}
+function runReplay(): void {
+  const original = state.records.find(row => row.result.season === replaySeason)?.result;
+  if (!original) return;
+  const evaluation = evaluate(SEASONS[replaySeason - 1], replayPolicy, original.before);
+  replayResult = evaluation.valid ? evaluation.result : null;
+  replayError = evaluation.valid ? '' : evaluation.message;
 }
 function downloadReport(): void {
   const progress = goals(state.records);
@@ -365,18 +470,38 @@ app.addEventListener('click', event => {
     if (requested === 'report' && state.phase !== 'complete') return;
     if (requested === 'replay' && state.records.length < 2) return;
     view = requested;
+    focusId = `tab-${requested}`;
     if (view === 'replay' && !state.records.some(row => row.result.season === replaySeason)) beginReplay(2);
+  } else if (action === 'guide-prediction' || action === 'guide-policy') {
+    view = 'command';
+    const id = action === 'guide-prediction' ? 'prediction-section' : 'policy-controls';
+    render(id);
+    document.getElementById(id)?.scrollIntoView({ block: 'center' });
+    return;
+  } else if (action === 'strategy') {
+    const strategy = strategies[Number(button.dataset.strategy)];
+    if (!strategy) return;
+    const changed = !samePolicy(state.draft, strategy.policy);
+    state = choosePolicy(state, strategy.policy);
+    if (changed && needsPrediction(state)) notice = '方案已应用。请按新组合点选预测。';
+    save();
+  } else if (action === 'predict' && needsPrediction(state)) {
+    state.prediction[button.dataset.key as 'price' | 'purchases'] = button.dataset.value as Direction;
+    save();
+  } else if (action === 'reason' && needsPrediction(state)) {
+    state.prediction.reason = predictionReasons[Number(button.dataset.reason)];
+    save();
   } else if (action === 'district') district = button.dataset.district!;
   else if (action === 'policy') {
     const key = button.dataset.key as keyof Policy;
     const value = button.dataset.value === 'none' ? null : Number(button.dataset.value);
     if (button.dataset.context === 'replay') {
       replayPolicy = { ...replayPolicy, [key]: value } as Policy;
-      replayResult = null;
-      replayError = '';
+      runReplay();
     } else {
+      const changed = state.draft[key] !== value;
       state = choosePolicy(state, { ...state.draft, [key]: value } as Policy);
-      if (needsPrediction(state)) notice = '政策已更新，请按当前组合重新预测。';
+      if (changed && needsPrediction(state)) notice = '政策已更新，请按当前组合重新预测。';
       save();
     }
   } else if (action === 'reuse') {
@@ -387,51 +512,48 @@ app.addEventListener('click', event => {
   } else if (action === 'settle') {
     const outcome = settleTurn(state);
     if (!outcome.ok) notice = outcome.message;
-    else { state = outcome.state; view = 'town'; save(); }
+    else { state = outcome.state; view = 'command'; focusId = 'outcome-title'; save(); }
   } else if (action === 'next') {
     state = nextSeason(state);
-    view = state.phase === 'complete' ? 'report' : 'town';
+    view = state.phase === 'complete' ? 'report' : 'command';
+    focusId = 'season-title';
     save();
-  } else if (action === 'replay-season') beginReplay(Number(button.dataset.season));
-  else if (action === 'run-replay') {
-    const original = state.records.find(row => row.result.season === replaySeason)?.result;
-    if (original) {
-      const evaluation = evaluate(SEASONS[replaySeason - 1], replayPolicy, original.before);
-      replayResult = evaluation.valid ? evaluation.result : null;
-      replayError = evaluation.valid ? '' : evaluation.message;
-    }
-  } else if (action === 'help') dialog = 'help';
+  } else if (action === 'replay-season') {
+    beginReplay(Number(button.dataset.season));
+    focusId = 'replay-season';
+  }
+  else if (action === 'compare-baseline') {
+    beginReplay(state.seasonIndex + 1);
+    replayPolicy = { ...DEFAULT_POLICY };
+    runReplay();
+    focusId = 'replay-season';
+  } else if (action === 'run-replay') runReplay();
+  else if (action === 'help') dialog = 'help';
   else if (action === 'reset') dialog = 'reset';
   else if (action === 'close-dialog') {
     focusId = dialog === 'help' ? 'help-button' : 'reset-button';
     dialog = null;
   }
   else if (action === 'confirm-reset') {
-    state = newGame(); view = 'town'; dialog = null;
+    state = newGame(); view = 'command'; dialog = null;
+    focusId = 'season-title';
     replaySeason = 2; replayPolicy = { ...DEFAULT_POLICY }; replayResult = null; replayError = '';
     save();
   } else if (action === 'download-report') { downloadReport(); return; }
   render(focusId);
+  if (['settle', 'next', 'confirm-reset', 'replay-season', 'compare-baseline'].includes(action ?? '')) {
+    document.querySelector('.workspace')?.scrollIntoView({ block: 'start' });
+  }
 });
 function refreshPredictionStatus(): void {
-  const execute = document.querySelector<HTMLButtonElement>('#settle-button');
-  if (execute) {
-    const valid = evaluate(SEASONS[state.seasonIndex], state.draft, currentResources(state)).valid;
-    execute.disabled = !valid || (needsPrediction(state) && !predictionComplete(state.prediction));
-  }
-  const message = document.querySelector('#prediction-status');
-  if (message) message.textContent = predictionComplete(state.prediction)
-    ? '预测与理由已记录，可以执行本季政策。' : '请完成两项方向预测，并写下一句理由。';
+  document.querySelector('.action-dock')!.outerHTML = actionDock();
+  document.querySelectorAll<HTMLButtonElement>('[data-action="reason"]').forEach(button => {
+    button.setAttribute('aria-pressed', String(state.prediction.reason === predictionReasons[Number(button.dataset.reason)]));
+  });
 }
 app.addEventListener('change', event => {
   const target = event.target as HTMLSelectElement;
   if (target.id === 'replay-season') { beginReplay(Number(target.value)); render('replay-season'); return; }
-  if (target.dataset.prediction && target.dataset.prediction !== 'reason') {
-    const key = target.dataset.prediction as 'price' | 'purchases';
-    state.prediction[key] = target.value as Direction;
-    save();
-    refreshPredictionStatus();
-  }
 });
 app.addEventListener('input', event => {
   const target = event.target as HTMLTextAreaElement;

@@ -32,6 +32,7 @@ export function currentResources(state: GameState): Resources {
 }
 export function choosePolicy(state: GameState, draft: Policy): GameState {
   if (state.phase !== 'decision') return state;
+  if (state.draft.cap === draft.cap && state.draft.subsidy === draft.subsidy && state.draft.release === draft.release) return state;
   return { ...state, draft: { ...draft }, prediction: emptyPrediction() };
 }
 export function settleTurn(state: GameState): { ok: true; state: GameState } | { ok: false; message: string } {
@@ -39,7 +40,7 @@ export function settleTurn(state: GameState): { ok: true; state: GameState } | {
     return { ok: false, message: '本季已经结算。请进入下一季，或在回放中比较其他政策。' };
   }
   if (needsPrediction(state) && !predictionComplete(state.prediction)) {
-    return { ok: false, message: '请先预测价格与实际购粮的变化方向，并用一句话写下理由。' };
+    return { ok: false, message: '请先点选价格与实际购粮的变化方向，再选择或填写一个理由。' };
   }
   const policy = state.seasonIndex === 0 ? DEFAULT_POLICY : state.draft;
   const evaluation = evaluate(SEASONS[state.seasonIndex], policy, currentResources(state));
