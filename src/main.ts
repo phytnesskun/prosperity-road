@@ -75,8 +75,7 @@ function syncMusic(): void {
     musicPending = true;
     void music.play().then(() => {
       musicPending = false;
-      if (!musicRequested || document.hidden || dialog === 'pilot') music.pause();
-      updateMusicButton();
+      syncMusic();
     }).catch(error => {
       musicPending = false;
       if (error instanceof DOMException && error.name === 'AbortError') { syncMusic(); return; }

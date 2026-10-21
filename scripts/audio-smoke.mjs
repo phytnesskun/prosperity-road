@@ -170,6 +170,43 @@ try {
     assert.equal(await storage(page), null);
   });
 
+  await isolated('播放成功回调延迟时快速切回前台仍自动恢复', async page => {
+    await page.locator('#music-button').click();
+    await waitPlaying(page, .1);
+    await page.waitForFunction(() => window.__musicPlayPending === true);
+    await page.evaluate(() => {
+      Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    assert.equal((await audioState(page)).paused, true);
+    const stopped = (await audioState(page)).time;
+    await page.evaluate(() => {
+      delete document.hidden;
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    assert.equal((await audioState(page)).paused, true, 'The earlier play callback is intentionally still pending.');
+    await page.evaluate(() => window.__releaseMusicPlay());
+    await waitPlaying(page, stopped);
+    assert.equal(await page.locator('#music-button').getAttribute('aria-pressed'), 'true');
+    assert.equal(await storage(page), null, 'Reconciling playback must not start a campaign.');
+  }, async page => {
+    await page.addInitScript(() => {
+      const originalPlay = HTMLMediaElement.prototype.play;
+      let delayed = false;
+      HTMLMediaElement.prototype.play = function (...args) {
+        const playing = originalPlay.apply(this, args);
+        if (this.id !== 'town-music' || delayed) return playing;
+        delayed = true;
+        // Delay just one successful completion; the original media decoding and
+        // playback continue so the test can exercise the real pending-play race.
+        return playing.then(() => new Promise(resolve => {
+          window.__musicPlayPending = true;
+          window.__releaseMusicPlay = () => { window.__musicPlayPending = false; resolve(); };
+        }));
+      };
+    });
+  });
+
   await isolated('配乐404不阻断游戏、可重试恢复真实播放', async page => {
     await page.getByRole('button', { name: '查看正常市场', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('#town-music').error !== null);
