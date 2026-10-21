@@ -1,10 +1,14 @@
 import './style.css';
+import './companion.css';
 import { DEFAULT_POLICY, SEASONS, evaluate } from './economy.ts';
 import type { Policy, Result } from './economy.ts';
 import { choosePolicy, currentResources, goals, needsPrediction, newGame, nextSeason, predictionComplete, restoreGame, settleTurn } from './campaign.ts';
 import type { Direction, GameState, Report } from './campaign.ts';
 import { drawMarketChart } from './charts.ts';
 import { outcomeFeedback } from './feedback.ts';
+import { advisorReply } from './advisor.ts';
+import type { AdvisorTopic } from './advisor.ts';
+import { renderEconomyScene } from './scene.ts';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const SAVE_KEY = 'prosperity-road.bread-crisis.v1';
@@ -18,12 +22,51 @@ type View = 'command' | 'town' | 'market' | 'people' | 'accounts' | 'history' | 
 let view: View = state.phase === 'complete' ? 'report' : 'command';
 let district = 'farm';
 let notice = '';
-let dialog: 'help' | 'reset' | null = null;
+let dialog: 'help' | 'reset' | 'advisor' | null = null;
 let replaySeason = state.records.find(r => r.result.season > 1)?.result.season ?? 2;
 let replayPolicy: Policy = { ...DEFAULT_POLICY };
 let replayResult: Result | null = null;
 let replayError = '';
 let chartObserver: ResizeObserver | null = null;
+const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+let motionRequested = loadMotion();
+let sceneTimer: ReturnType<typeof setTimeout> | undefined;
+let settlementTimer: ReturnType<typeof setTimeout> | undefined;
+let advisorTopic: AdvisorTopic = 'briefing';
+let advisorReturnFocus = 'advisor-open';
+let conversationContext = '';
+let conversation: { speaker: 'player' | 'advisor'; text: string }[] = [];
+
+function loadMotion(): boolean {
+  try { return localStorage.getItem('prosperity-road.motion.v1') !== 'off'; }
+  catch { return true; }
+}
+const motionEnabled = (): boolean => motionRequested && !motionQuery.matches;
+function syncAdvisor(topic: AdvisorTopic = 'briefing'): void {
+  const context = `${state.phase}:${state.seasonIndex}:${JSON.stringify(state.draft)}`;
+  if (context !== conversationContext || !conversation.length) {
+    conversationContext = context;
+    advisorTopic = topic;
+    conversation = [{ speaker: 'advisor', text: advisorReply(state, topic).text }];
+  }
+}
+function playScene(): void {
+  if (!motionEnabled()) return;
+  const scene = document.querySelector<HTMLElement>('.economy-scene');
+  if (!scene) return;
+  clearTimeout(sceneTimer);
+  scene.classList.remove('is-playing');
+  void scene.offsetWidth;
+  scene.classList.add('is-playing');
+  sceneTimer = setTimeout(() => scene.classList.remove('is-playing'), 4200);
+}
+function playSettlement(): void {
+  if (!motionEnabled()) return;
+  const shell = document.querySelector('.app-shell');
+  shell?.classList.add('just-settled');
+  settlementTimer = setTimeout(() => shell?.classList.remove('just-settled'), 1100);
+  playScene();
+}
 const strategies: { name: string; intent: string; caution: string; policy: Policy }[] = [
   { name: '让市场调节', intent: '不设限价，不使用公共资源', caution: '价格可能上涨，低收入居民未必买得够。', policy: { cap: null, subsidy: 0, release: 0 } },
   { name: '压低面包标价', intent: '将最高价格设为 5', caution: '便宜了，但私人生产和分配会怎样？', policy: { cap: 5, subsidy: 0, release: 0 } },
@@ -83,13 +126,13 @@ function missionStrip(): string {
 function commandView(): string {
   if (settled()) return outcomeView();
   if (state.phase === 'briefing') return `<section class="command-view briefing">
-    <div class="briefing-art"><img src="/town.svg" alt="你将管理的面包产区与公共粮仓" width="900" height="590" /></div>
+    <button class="briefing-advisor" id="intro-advisor" type="button" data-action="advisor-open" aria-label="认识你的经济顾问林岚"><img src="/advisor-lin-lan.png" alt="林岚，身穿绿衣、手持账本的经济顾问" width="1145" height="1374" /><span>林岚 · 你的经济顾问<br><small>点击和我聊聊 →</small></span></button>
     <span class="eyebrow">你是新任经济部长</span><h3>面包便宜了，居民就能吃饱吗？</h3>
     <p>一场歉收即将到来。你有五次决策机会，让居民获得足够的面包，同时保住国库和应急储备。</p>
     <ol class="play-loop"><li><strong>选方案</strong><span>限价、补贴、开仓，也可以自由组合。</span></li>
       <li><strong>看后果</strong><span>实际买到多少，比标价更重要。</span></li>
       <li><strong>试另一招</strong><span>结算后对比政策，再决定下一季。</span></li></ol>
-    <p class="inline-help">先观察一次正常市场。无需填写答案即可开始。</p></section>`;
+    <p class="inline-help">先观察一次正常市场。需要帮助时，随时点底部的「问林岚」。</p>${renderEconomyScene(state)}</section>`;
   const season = SEASONS[state.seasonIndex];
   const prior = SEASONS[state.seasonIndex - 1];
   const hints = [
@@ -112,7 +155,7 @@ function commandView(): string {
         <strong>${strategy.name}</strong><span>${strategy.intent}</span><small>${strategy.caution}</small></button>`;
     }).join('')}</div>
     <div class="decision-note" aria-live="polite"><strong>当前组合：${policyLabel(state.draft)}</strong><p>${draftAdvice()}</p></div>
-    <p class="inline-help">先凭判断选择，执行后揭示真实结果。第2、4季额外记录一次简短预测。</p></section>`;
+    <p class="inline-help">先凭判断选择，执行后揭示真实结果。第2、4季额外记录一次简短预测。</p>${renderEconomyScene(state)}</section>`;
 }
 function draftAdvice(): string {
   const p = state.draft;
@@ -141,6 +184,7 @@ function outcomeView(): string {
       ${effect('面包价格', r.price, baseline.price, 'credits')}
       ${effect('期末国库', r.after.cash, baseline.after.cash, 'credits')}
       ${effect('剩余储备', r.after.reserves, baseline.after.reserves, '单位')}</div>
+    ${renderEconomyScene(state)}
     <div class="causal-feedback"><strong>为什么？</strong><p>${feedback.explanation}</p><span>${feedback.lesson}</span></div>
     <div class="resident-feedback"><div><span>居民的账本</span><p>${feedback.resident}</p></div><div><span>生产者的账本</span><p>${feedback.producer}</p></div></div>
     <p class="tradeoff"><strong>代价与取舍</strong> ${feedback.tradeoff}</p>
@@ -180,7 +224,8 @@ function town(): string {
     ${places.map(place => `<button type="button" class="map-hotspot ${district === place.id ? 'selected' : ''}" data-action="district" data-district="${place.id}" aria-pressed="${district === place.id}" style="left:${place.x}%;top:${place.y}%">
       <span class="hotspot-name">${place.name}</span><span class="hotspot-english">${place.english}</span><span class="hotspot-value">${place.value}</span></button>`).join('')}
   </div><div class="map-caption">同一面包市场 · 地区位置不产生额外价格差异 · 数量为面包篮单位</div>
-  <div class="district-detail" aria-live="polite"><strong>${detail[district][0]}</strong><p>${detail[district][1]}</p>${state.phase === 'decision' ? '<button class="button secondary" type="button" data-action="guide-policy">前往政策桌作出选择 →</button>' : ''}</div>
+  <div class="district-detail" aria-live="polite"><strong>${detail[district][0]}</strong><p>${detail[district][1]}</p><button class="button secondary" id="district-advisor-${district}" type="button" data-action="scene-place" data-place="${district}">请林岚解释这个地区</button>${state.phase === 'decision' ? '<button class="button secondary" type="button" data-action="guide-policy">前往政策桌作出选择 →</button>' : ''}</div>
+  ${renderEconomyScene(state)}
   ${state.phase === 'briefing' ? `<div class="notice"><strong>部长，欢迎上任。</strong><p>先点击地图了解四个地区，再查看正常市场。下一季起，你将决定如何应对歉收。</p>${missionMarkup()}</div>` : ''}
   ${state.phase === 'result' ? resultExplanation(latestResult()!) : ''}`;
 }
@@ -362,7 +407,7 @@ function actionDock(): string {
     label = goals(state.records).passed ? '任期任务完成' : '任期结束 · 继续研究你的选择'; hint = '进度已保存，可以下载自己的学习报告。';
     actions = '<button class="button secondary" type="button" data-action="view" data-view="replay">政策试验室</button><button class="button primary" type="button" data-action="view" data-view="report">查看学习复盘</button>';
   }
-  return `<div class="action-dock" aria-label="本季主操作"><div class="dock-context"><strong>${label}</strong><span id="prediction-status" role="status">${hint}</span></div><div class="dock-buttons">${actions}</div></div>`;
+  return `<div class="action-dock" aria-label="本季主操作"><div class="dock-context"><button class="advisor-trigger" id="advisor-open" type="button" data-action="advisor-open" aria-label="与经济顾问林岚对话" aria-haspopup="dialog"><img src="/advisor-lin-lan.png" alt="" width="44" height="44" /><span>问林岚</span></button><div><strong>${label}</strong><span id="prediction-status" role="status">${hint}</span></div></div><div class="dock-buttons">${actions}</div></div>`;
 }
 function news(): string {
   const r = settled() ? latestResult() : undefined;
@@ -371,6 +416,7 @@ function news(): string {
 }
 function dialogMarkup(): string {
   if (!dialog) return '';
+  if (dialog === 'advisor') return advisorMarkup();
   if (dialog === 'reset') return `<dialog class="dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">开始新任期？</h2><p>这会替换此浏览器中的当前进度。已完成的复盘可以先下载保存。</p><div class="dialog-actions"><button class="button secondary" type="button" data-action="close-dialog">继续当前游戏</button><button class="button danger" type="button" data-action="confirm-reset">开始新一局</button></div></dialog>`;
   return `<dialog class="dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">你的任期与模型规则</h2>
     <p>第1季认识正常市场，第2–6季管理政策。第2、4季先预测，再执行。三个任务分别检查：</p>${missionMarkup()}
@@ -381,8 +427,31 @@ function dialogMarkup(): string {
     <p>所有数值为课堂模型假设。<a href="https://qualifications.pearson.com/content/dam/pdf/International%20Advanced%20Level/Economics/2018/Specification-and-Sample-Assessment/International-A-Level-Economics-spec.pdf" target="_blank" rel="noopener noreferrer">Pearson IAL Economics 考纲</a></p>
     <div class="dialog-actions"><button class="button primary" type="button" data-action="close-dialog">返回游戏</button></div></dialog>`;
 }
+function advisorMarkup(): string {
+  const reply = advisorReply(state, advisorTopic);
+  const mood = { welcoming: '一起看清局势', thinking: '让我和你推敲一下', concerned: '这里有个取舍', pleased: '抓到关键了' }[reply.mood];
+  return `<dialog class="dialog advisor-dialog" id="game-dialog" aria-labelledby="dialog-title">
+    <header class="advisor-header"><div><span class="eyebrow">YOUR ECONOMIC ADVISER</span><h2 id="dialog-title">林岚 <small>经济顾问</small></h2></div><button class="button ghost" type="button" data-action="close-dialog" aria-label="关闭顾问对话">返回游戏 ×</button></header>
+    <div class="advisor-conversation"><div class="advisor-portrait" data-mood="${reply.mood}"><div class="portrait-halo" aria-hidden="true"></div><img src="/advisor-lin-lan.png" alt="手持账本、向你解释的经济顾问林岚" width="1145" height="1374" /><span class="advisor-mood">${mood}</span><small>第${state.seasonIndex + 1}季 · ${state.phase === 'decision' ? '政策尚未执行' : settled() ? '依据已结算记录' : '任期开始前'}</small></div>
+      <div class="advisor-chat">${view === 'replay' ? `<p class="advisor-context-note">林岚正在讨论第${state.seasonIndex + 1}季的正式任期。替代方案的结果请看回放对照表。</p>` : ''}<div class="conversation-log" role="log" aria-label="与林岚的对话">${conversation.map((turn, index) => `<div class="speech-bubble ${turn.speaker}" ${index === conversation.length - 1 ? 'id="advisor-reply" tabindex="-1"' : ''}><span>${turn.speaker === 'advisor' ? '林岚' : '你'}</span><p>${escape(turn.text)}</p></div>`).join('')}</div>
+      <div class="dialogue-choices" aria-label="选择你的回应">${reply.choices.map(choice => `<button class="button secondary" type="button" data-action="advisor-topic" data-topic="${choice.topic}">${escape(choice.label)} <span aria-hidden="true">↗</span></button>`).join('')}</div>
+      ${reply.action ? `<button class="button primary advisor-link" type="button" data-action="advisor-go" data-destination="${reply.action.kind}">${escape(reply.action.label)} →</button>` : ''}
+      <div class="advisor-topics">${reply.choices.some(choice => choice.topic === 'challenge') || advisorTopic === 'challenge' ? '' : '<button type="button" data-action="advisor-topic" data-topic="challenge">考考我的直觉</button>'}<button type="button" data-action="advisor-topic" data-topic="briefing">回到本季局势</button></div>
+      <p class="advisor-note">点选回应来继续对话 · 台词结合本局数据与预设剧情</p></div></div></dialog>`;
+}
+function talkToAdvisor(topic: AdvisorTopic, question?: string): void {
+  syncAdvisor();
+  if (question) {
+    advisorTopic = topic;
+    conversation.push({ speaker: 'player', text: question }, { speaker: 'advisor', text: advisorReply(state, topic).text });
+    conversation = conversation.slice(-8);
+  }
+  dialog = 'advisor';
+}
 function render(focusId?: string): void {
   chartObserver?.disconnect();
+  clearTimeout(sceneTimer);
+  clearTimeout(settlementTimer);
   const r = latestResult();
   const resources = currentResources(state);
   const season = SEASONS[state.seasonIndex];
@@ -390,10 +459,10 @@ function render(focusId?: string): void {
   const views: Record<View, () => string> = {
     command: commandView, town, market: marketView, people: peopleView, accounts: accountsView, history: historyView, replay: replayView, report: reportView,
   };
-  app.innerHTML = `<div class="app-shell" data-phase="${state.phase}">
+  app.innerHTML = `<div class="app-shell" data-phase="${state.phase}" data-motion="${motionEnabled() ? 'on' : 'off'}">
     <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true">P</span><div><span class="brand-kicker">PROSPERITY ROAD</span><h1>繁荣之路</h1></div></div>
     <div class="chapter-title">面包危机 <span>THE BREAD CRISIS · IAL UNIT 1</span></div>
-    <div class="top-actions"><button class="button ghost" id="help-button" type="button" data-action="help">玩法与规则</button><button class="button ghost" id="reset-button" type="button" data-action="reset">新任期</button></div></header>
+    <div class="top-actions"><button class="button ghost" id="motion-button" type="button" data-action="motion" aria-pressed="${motionEnabled()}" ${motionQuery.matches ? 'disabled title="已遵循系统减少动态效果设置"' : ''}>动画：${motionEnabled() ? '开' : '关'}</button><button class="button ghost" id="help-button" type="button" data-action="help">玩法与规则</button><button class="button ghost" id="reset-button" type="button" data-action="reset">新任期</button></div></header>
     <section class="stats-grid" aria-label="关键指标">
       ${stat('BREAD PRICE · 面包价格', r ? `${fmt(r.price)} <small>credits</small>` : '—', stamp)}
       ${stat('BASIC BASKET · 低收入保障', r ? pct(r.coverageLow) : '—', `${stamp} · 目标 ≥95%`)}
@@ -423,15 +492,27 @@ function render(focusId?: string): void {
     chartObserver = new ResizeObserver(() => drawMarketChart(replayChart, comparison));
     chartObserver.observe(replayChart);
   }
+  if (!motionEnabled()) {
+    const replay = document.querySelector<HTMLButtonElement>('#scene-replay-button');
+    if (replay) { replay.disabled = true; replay.textContent = '动画已关闭'; }
+  }
   if (dialog) {
     const element = document.querySelector<HTMLDialogElement>('#game-dialog')!;
     element.showModal();
     element.addEventListener('cancel', event => {
       event.preventDefault();
-      const trigger = dialog === 'help' ? 'help-button' : 'reset-button';
+      const trigger = dialog === 'help' ? 'help-button' : dialog === 'advisor' ? advisorReturnFocus : 'reset-button';
       dialog = null; render(trigger);
     });
-  } else if (focusId) document.getElementById(focusId)?.focus({ preventScroll: true });
+    if (dialog === 'advisor') {
+      const log = element.querySelector('.conversation-log');
+      if (log) log.scrollTop = log.scrollHeight;
+      if (focusId) element.querySelector<HTMLElement>(`#${focusId}`)?.focus({ preventScroll: true });
+    }
+  } else if (focusId) {
+    const target = document.getElementById(focusId) ?? (focusId === advisorReturnFocus ? document.getElementById('advisor-open') : null);
+    target?.focus({ preventScroll: true });
+  }
 }
 function beginReplay(season: number): void {
   const record = state.records.find(row => row.result.season === season);
@@ -464,8 +545,48 @@ app.addEventListener('click', event => {
   if (!button || button.disabled) return;
   const action = button.dataset.action;
   let focusId = button.id || undefined;
+  let animateSettlement = false;
   notice = '';
-  if (action === 'view') {
+  if (action === 'motion') {
+    motionRequested = !motionRequested;
+    try { localStorage.setItem('prosperity-road.motion.v1', motionRequested ? 'on' : 'off'); } catch { /* Keep the setting for this visit. */ }
+  } else if (action === 'advisor-open') {
+    advisorReturnFocus = button.id || 'advisor-open';
+    talkToAdvisor('briefing');
+    focusId = 'advisor-reply';
+  } else if (action === 'advisor-topic') {
+    talkToAdvisor(button.dataset.topic as AdvisorTopic, button.textContent!.replace(/↗/g, '').trim());
+    focusId = 'advisor-reply';
+  } else if (action === 'advisor-go') {
+    const destination = advisorReply(state, advisorTopic).action?.kind;
+    if (destination !== button.dataset.destination) return;
+    dialog = null;
+    if (destination === 'policy' && state.phase === 'decision') {
+      view = 'command'; render('policy-controls');
+      document.getElementById('policy-controls')?.scrollIntoView({ block: 'center' });
+    } else if (destination === 'market' && latestResult()) {
+      view = 'market'; render('tab-market');
+      document.querySelector('.view-tabs')?.scrollIntoView({ block: 'start' });
+    } else if (destination === 'replay' && state.records.length >= 2) {
+      beginReplay(latestResult()!.season); render('replay-season');
+      document.querySelector('.view-tabs')?.scrollIntoView({ block: 'start' });
+    } else render('advisor-open');
+    return;
+  } else if (action === 'scene-place') {
+    advisorReturnFocus = button.id || 'advisor-open';
+    const topics: Record<string, [AdvisorTopic, string]> = {
+      farm: ['farm', '农田现在遇到了什么问题？'],
+      mill: ['production', '加工坊的生产会受什么影响？'],
+      market: ['market', '现在的市场价格与供求怎样？'],
+      granary: ['reserves', '我该怎样使用公共粮仓？'],
+      homes: ['why', '居民能不能买到足够的面包？'],
+    };
+    const entry = topics[button.dataset.place!];
+    if (!entry) return;
+    talkToAdvisor(...entry); focusId = 'advisor-reply';
+  } else if (action === 'scene-replay') {
+    playScene(); return;
+  } else if (action === 'view') {
     const requested = button.dataset.view as View;
     if (requested === 'report' && state.phase !== 'complete') return;
     if (requested === 'replay' && state.records.length < 2) return;
@@ -512,7 +633,7 @@ app.addEventListener('click', event => {
   } else if (action === 'settle') {
     const outcome = settleTurn(state);
     if (!outcome.ok) notice = outcome.message;
-    else { state = outcome.state; view = 'command'; focusId = 'outcome-title'; save(); }
+    else { state = outcome.state; view = 'command'; focusId = 'outcome-title'; animateSettlement = true; save(); }
   } else if (action === 'next') {
     state = nextSeason(state);
     view = state.phase === 'complete' ? 'report' : 'command';
@@ -531,16 +652,18 @@ app.addEventListener('click', event => {
   else if (action === 'help') dialog = 'help';
   else if (action === 'reset') dialog = 'reset';
   else if (action === 'close-dialog') {
-    focusId = dialog === 'help' ? 'help-button' : 'reset-button';
+    focusId = dialog === 'help' ? 'help-button' : dialog === 'advisor' ? advisorReturnFocus : 'reset-button';
     dialog = null;
   }
   else if (action === 'confirm-reset') {
     state = newGame(); view = 'command'; dialog = null;
+    conversation = []; conversationContext = ''; advisorTopic = 'briefing';
     focusId = 'season-title';
     replaySeason = 2; replayPolicy = { ...DEFAULT_POLICY }; replayResult = null; replayError = '';
     save();
   } else if (action === 'download-report') { downloadReport(); return; }
   render(focusId);
+  if (animateSettlement) playSettlement();
   if (['settle', 'next', 'confirm-reset', 'replay-season', 'compare-baseline'].includes(action ?? '')) {
     document.querySelector('.workspace')?.scrollIntoView({ block: 'start' });
   }
@@ -565,4 +688,5 @@ app.addEventListener('input', event => {
   else return;
   save();
 });
+motionQuery.addEventListener('change', () => render());
 render();

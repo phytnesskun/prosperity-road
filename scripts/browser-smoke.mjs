@@ -347,6 +347,125 @@ try {
     });
   }
 
+  await isolated('林岚多轮对话、政策上下文刷新与375px可操作弹窗', async page => {
+    const initialStorage = await page.evaluate(() => ({ ...localStorage }));
+    await page.locator('#intro-advisor').click();
+    await page.keyboard.press('Escape');
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'intro-advisor', 'Closing the introduction returns to its portrait entry.');
+    await page.locator('#advisor-open').click();
+    await page.locator('#game-dialog[open]').waitFor();
+    await page.locator('.advisor-portrait img').evaluate(image => image.decode());
+    assert.ok(await page.locator('.advisor-portrait img').evaluate(image => image.naturalWidth > 0), 'The adviser portrait must load.');
+    assert.match(await page.locator('#advisor-reply').innerText(), /林岚.*六季/s);
+    await page.locator('.dialogue-choices [data-topic="challenge"]').click();
+    const challenge = await page.locator('#advisor-reply').innerText();
+    assert.match(challenge, /便宜.*买得更多/);
+    await page.locator('.dialogue-choices [data-topic="answer-price"]').click();
+    const priceAnswer = await page.locator('#advisor-reply').innerText();
+    assert.notEqual(priceAnswer, challenge, 'Selecting an answer must advance the conversation.');
+    assert.match(priceAnswer, /配给|供给|货架/);
+    await page.locator('.dialogue-choices [data-topic="answer-access"]').click();
+    const accessAnswer = await page.locator('#advisor-reply').innerText();
+    assert.notEqual(accessAnswer, priceAnswer);
+    assert.match(accessAnswer, /想买多少.*实际买到多少/s);
+    assert.equal(await page.locator('.speech-bubble.player').count(), 3, 'The player can see their three replies.');
+    assert.deepEqual(await page.evaluate(() => ({ ...localStorage })), initialStorage, 'A conversation cannot create or mutate a campaign or settings.');
+    await mkdir('.qa', { recursive: true });
+    await page.screenshot({ path: '.qa/advisor-desktop.png' });
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#game-dialog').count(), 0);
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'advisor-open');
+
+    await baseline(page);
+    await advance(page);
+    await page.locator('#draft-cap-5').click();
+    const firstDraft = await savedState(page);
+    await page.locator('#advisor-open').click();
+    await page.locator('.dialogue-choices [data-topic="policy"]').click();
+    assert.match(await page.locator('#advisor-reply').innerText(), /售价上限设为 5/);
+    assert.deepEqual(await savedState(page), firstDraft);
+    await page.getByRole('button', { name: '关闭顾问对话', exact: true }).click();
+    await page.locator('#draft-cap-6').click();
+    const revisedDraft = await savedState(page);
+    await page.locator('#advisor-open').click();
+    assert.equal(await page.locator('.speech-bubble').count(), 1, 'Changing the draft resets stale adviser dialogue.');
+    await page.locator('.dialogue-choices [data-topic="policy"]').click();
+    const revisedReply = await page.locator('#advisor-reply').innerText();
+    assert.match(revisedReply, /售价上限设为 6/);
+    assert.doesNotMatch(await page.locator('.conversation-log').innerText(), /售价上限设为 5/);
+    assert.deepEqual(await savedState(page), revisedDraft, 'Policy discussion must preserve the revised draft and prediction.');
+    await page.getByRole('button', { name: '关闭顾问对话', exact: true }).click();
+
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await assertDockReachable(page);
+    await page.locator('#advisor-open').click();
+    await assertNoHorizontalOverflow(page, 'mobile adviser');
+    const dialogSize = await page.locator('#game-dialog').evaluate(element => ({
+      width: element.getBoundingClientRect().width,
+      scroll: element.scrollWidth,
+      client: element.clientWidth,
+    }));
+    assert.ok(dialogSize.width <= 375 && dialogSize.scroll <= dialogSize.client + 1, 'The dialogue content must fit the phone width.');
+    await page.locator('.dialogue-choices [data-topic="challenge"]').click();
+    await page.locator('.dialogue-choices [data-topic="answer-access"]').click();
+    assert.match(await page.locator('#advisor-reply').innerText(), /想买多少.*实际买到多少/s);
+    await page.screenshot({ path: '.qa/advisor-mobile.png' });
+    await page.getByRole('button', { name: '关闭顾问对话', exact: true }).click();
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'advisor-open');
+    await assertDockReachable(page);
+    assert.deepEqual(await savedState(page), revisedDraft, 'Closing the mobile dialogue returns to the same campaign.');
+  });
+
+  await isolated('建筑对话、真实流转动画、无损重播与减少动态效果', async page => {
+    await baseline(page);
+    assert.equal(await page.locator('.scene-reserve-cargo').count(), 0, 'A season without a reserve release must not show reserve cargo.');
+    await advance(page);
+    await page.locator('#draft-release-20').click();
+    assert.equal(await page.locator('.scene-reserve-cargo').count(), 0, 'A draft is not an executed reserve release.');
+    const draft = await savedState(page);
+    for (const [place, expected] of [
+      ['granary', /粮仓.*60.*20/s],
+      ['farm', /原料.*70|70.*原料/s],
+      ['market', /价格|售价|供求|供给/],
+    ]) {
+      await page.locator(`.economy-scene [data-action="scene-place"][data-place="${place}"]`).click();
+      await page.locator('#game-dialog[open]').waitFor();
+      assert.match(await page.locator('#advisor-reply').innerText(), expected, `${place} must open a relevant reply based on this season.`);
+      if (place === 'farm') await page.keyboard.press('Escape');
+      else await page.getByRole('button', { name: '关闭顾问对话', exact: true }).click();
+      assert.equal(await page.evaluate(() => document.activeElement?.id), `scene-${place}`, 'Closing the adviser returns to the building that opened the conversation.');
+      assert.deepEqual(await savedState(page), draft, 'Visiting buildings must not execute or change policy.');
+    }
+    await settlePolicy(page);
+    const settled = await savedState(page);
+    near(settled.records[1].result.policy.release, 20, 'Reserve release in the executed policy');
+    near(settled.records[1].result.after.reserves, 40, 'Remaining reserves');
+    assert.equal(await page.locator('.scene-reserve-cargo').count(), 1);
+    assert.match(await page.locator('.scene-reserve-label').innerText(), /20/);
+    await page.locator('#scene-replay-button').click();
+    assert.equal(await page.locator('.economy-scene').evaluate(element => element.classList.contains('is-playing')), true);
+    assert.ok(await page.locator('.economy-scene').evaluate(element => element.getAnimations({ subtree: true }).some(animation => animation.playState === 'running')), 'Replay must run actual CSS animation, not merely set a class.');
+    assert.deepEqual(await savedState(page), settled, 'Replaying the flow must not settle another turn or spend resources.');
+    await page.screenshot({ path: '.qa/animated-flow.png' });
+
+    await page.locator('#motion-button').click();
+    assert.equal(await page.locator('.app-shell').getAttribute('data-motion'), 'off');
+    assert.equal(await page.locator('.economy-scene').evaluate(element => element.getAnimations({ subtree: true }).filter(animation => animation.playState === 'running').length), 0, 'Turning motion off must stop every scene animation.');
+    assert.equal(await page.locator('#scene-replay-button').isDisabled(), true);
+    await page.reload({ waitUntil: 'networkidle' });
+    assert.equal(await page.locator('.app-shell').getAttribute('data-motion'), 'off', 'The animation preference must survive reload.');
+    assert.deepEqual(await savedState(page), settled);
+    await page.locator('#motion-button').click();
+    assert.equal(await page.locator('.app-shell').getAttribute('data-motion'), 'on');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.locator('.app-shell[data-motion="off"]').waitFor();
+    assert.equal(await page.locator('#motion-button').isDisabled(), true, 'The app must respect the system reduced-motion preference.');
+    assert.equal(await page.locator('#scene-replay-button').isDisabled(), true);
+    assert.equal(await page.locator('.economy-scene').evaluate(element => element.getAnimations({ subtree: true }).filter(animation => animation.playState === 'running').length), 0);
+    assert.deepEqual(await savedState(page), settled, 'Animation settings must not alter the campaign.');
+  });
+
   console.log(`Browser smoke: ${completed} isolated scenarios passed.`);
 } finally {
   await browser.close();

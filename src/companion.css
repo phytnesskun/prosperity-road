@@ -1,0 +1,97 @@
+/* The companion stays beside the primary action, without covering the game. */
+.dock-context { display: flex; align-items: center; gap: 11px; }
+.dock-context > div { min-width: 0; }
+.advisor-trigger { position: relative; flex: 0 0 54px; width: 54px; min-height: 54px; padding: 0; overflow: hidden; border: 1px solid #b7a477; border-radius: 8px; background: #e8dfc7; color: var(--green); }
+.advisor-trigger img { display: block; width: 52px; height: 40px; object-fit: cover; object-position: 50% 18%; }
+.dock-context .advisor-trigger span { margin: 0; padding: 1px 3px; background: #1e4237; color: #fff5db; font-size: 10px; font-weight: 650; line-height: 1.5; }
+.advisor-trigger:hover { border-color: #7a6334; box-shadow: 0 0 0 3px #b9a16b40; }
+.advisor-trigger:hover img { transform: translateY(-1px); }
+.briefing-advisor { position: relative; float: right; width: 37%; margin: 0 0 12px 22px; padding: 12px 8px 0; overflow: hidden; border: 1px solid #c5bb96; border-radius: 90px 90px 8px 8px; background: radial-gradient(ellipse at 50% 38%, #f5e9bd, #d8dfc6); color: var(--green); }
+.briefing-advisor img { display: block; width: 100%; height: auto; max-height: 290px; object-fit: contain; transform-origin: 50% 100%; animation: companion-greet .9s ease-out both; }
+.briefing-advisor > span { display: block; margin: 0 -8px; padding: 9px 5px; background: #244b40; color: #fff5df; font-size: 14px; font-weight: 650; }
+.briefing-advisor small { color: #dbceaa; font-size: 11px; }
+.briefing-advisor:hover { box-shadow: 0 5px 18px #233f3220; }
+@media (min-width: 521px) {
+  .briefing .play-loop { clear: none; grid-template-columns: minmax(0, 1fr); gap: 7px; margin-right: calc(37% + 22px); }
+  .briefing .play-loop li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 0 8px; padding: 9px 11px; border-top: 0; border-left: 2px solid #b8a16c; }
+  .briefing .play-loop li::before { grid-row: 1 / 3; margin: 0; align-self: center; }
+  .briefing .play-loop span { margin-top: 2px; }
+  .briefing > .inline-help { clear: both; padding-top: 10px; }
+}
+.advisor-dialog { width: min(800px, calc(100% - 32px)); max-height: min(88dvh, 760px); padding: 0; overflow-y: auto; border-radius: 12px; background: #fbf8ed; }
+.advisor-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 24px 14px; border-bottom: 1px solid #d9cfb6; background: #f3edda; }
+.advisor-header h2 { margin: 0; font-size: 26px; }
+.advisor-header h2 small { margin-left: 9px; font-family: inherit; font-size: 13px; font-weight: 400; color: var(--muted); }
+.advisor-header .button { min-height: 44px; }
+.advisor-conversation { display: grid; grid-template-columns: 220px minmax(0, 1fr); }
+.advisor-portrait { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; align-self: stretch; min-height: 380px; padding: 24px 8px 25px; overflow: hidden; background: linear-gradient(145deg, #d7dfc8, #f4ead0 65%, #ded8bd); isolation: isolate; }
+.portrait-halo { position: absolute; z-index: -1; width: 250px; height: 250px; border-radius: 50%; top: 35px; left: -15px; border: 1px solid #b4a77c; box-shadow: 0 0 0 14px #ffffff30, 0 0 0 15px #b4a77c40; }
+.advisor-portrait img { width: 240px; max-width: none; height: auto; margin: 0 -20px 10px; transform-origin: 50% 90%; animation: companion-greet .6s ease-out both; }
+.advisor-mood { display: block; position: relative; margin-top: -3px; padding: 5px 12px; border-radius: 20px; background: #315947; color: #fff4d9; font-size: 12px; }
+.advisor-portrait[data-mood="concerned"] .advisor-mood { background: #825b36; }
+.advisor-portrait[data-mood="pleased"] .advisor-mood { background: #3e6f4c; }
+.advisor-portrait > small { margin-top: 7px; color: #6d684e; font-size: 10px; }
+.advisor-chat { display: flex; flex-direction: column; min-width: 0; padding: 20px; }
+.conversation-log { max-height: 265px; min-height: 110px; overflow-y: auto; overscroll-behavior: contain; padding: 3px 8px 3px 3px; scrollbar-width: thin; }
+.speech-bubble { margin-bottom: 12px; padding: 12px 14px; border: 1px solid #d6d6bd; border-radius: 0 12px 12px; background: #fffef7; }
+.speech-bubble > span { color: #74815d; font-size: 10px; font-weight: 650; }
+.speech-bubble p { margin: 5px 0 0; font-size: 14px; line-height: 1.8; white-space: pre-line; overflow-wrap: anywhere; }
+.speech-bubble.player { margin-left: 38px; border-color: #c4d3b7; border-radius: 12px 0 12px 12px; background: #eaf0e1; }
+.speech-bubble.player p { font-size: 12px; }
+.speech-bubble:last-child { margin-bottom: 3px; animation: dialogue-arrive .25s ease-out both; }
+.dialogue-choices { display: grid; gap: 7px; margin-top: 15px; }
+.dialogue-choices .button { justify-content: space-between; min-height: 44px; padding: 10px 12px; text-align: left; font-size: 13px; }
+.dialogue-choices .button span { color: #8b764a; }
+.advisor-link { margin-top: 9px; min-height: 44px; }
+.advisor-topics { display: flex; flex-wrap: wrap; gap: 2px 16px; margin-top: 11px; }
+.advisor-topics button { min-height: 36px; padding: 3px 0; border: 0; background: none; color: #61734f; text-decoration: underline; text-underline-offset: 4px; font-size: 11px; }
+.advisor-note { margin: 8px 0 0; color: #85856e; font-size: 10px; }
+.advisor-context-note { margin: 0 0 9px; padding: 8px 10px; border-left: 2px solid #b58c50; background: #f2ead5; color: #75603d; font-size: 11px; }
+.just-settled .outcome-heading { animation: outcome-arrive .45s ease-out both; }
+.just-settled .effect-card { animation: metric-arrive .6s ease-out both; }
+.just-settled .effect-card:nth-child(2) { animation-delay: .08s; }
+.just-settled .effect-card:nth-child(3) { animation-delay: .16s; }
+.just-settled .effect-card:nth-child(4) { animation-delay: .24s; }
+.just-settled .basket-meter > div { transform-origin: left; animation: basket-fill .8s cubic-bezier(.22,.61,.36,1) both; }
+.just-settled .stat-value { animation: metric-glow .95s ease-out both; }
+@keyframes companion-greet { from { transform: translateY(9px) rotate(-1deg); opacity: .5; } to { transform: translateY(0) rotate(0); opacity: 1; } }
+@keyframes dialogue-arrive { from { transform: translateY(5px); opacity: .6; } to { transform: translateY(0); opacity: 1; } }
+@keyframes outcome-arrive { from { transform: translateY(5px); } to { transform: translateY(0); } }
+@keyframes metric-arrive { from { transform: translateY(7px); background: #efe4c8; } to { transform: translateY(0); } }
+@keyframes basket-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes metric-glow { 0%, 60% { color: #ae792b; } 100% { color: var(--green); } }
+.app-shell[data-motion="off"] *, .app-shell[data-motion="off"] *::before, .app-shell[data-motion="off"] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+@media (max-width: 900px) { .advisor-dialog { width: min(720px, calc(100% - 24px)); } .advisor-conversation { grid-template-columns: 175px minmax(0, 1fr); } .advisor-portrait img { width: 200px; } }
+@media (max-width: 520px) {
+  .topbar { grid-template-columns: minmax(0, 1fr); }
+  .top-actions { grid-column: 1; grid-row: 3; justify-content: flex-start; margin-top: 6px; }
+  .app-shell { padding-bottom: 180px; }
+  html { scroll-padding-bottom: 180px; }
+  .dock-context { gap: 9px; }
+  .advisor-trigger { flex-basis: 46px; width: 46px; min-height: 48px; }
+  .advisor-trigger img { width: 44px; height: 34px; }
+  .dock-context .advisor-trigger span { font-size: 9px; }
+  .briefing-advisor { width: 42%; margin-left: 12px; padding-top: 8px; }
+  .briefing-advisor > span { font-size: 11px; padding: 6px 3px; }
+  .briefing-advisor small { font-size: 9px; }
+  .advisor-dialog { width: calc(100% - 20px); max-height: 92dvh; }
+  .advisor-header { padding: 12px 14px; }
+  .advisor-header .eyebrow { font-size: 8px; }
+  .advisor-header h2 { font-size: 22px; }
+  .advisor-header h2 small { font-size: 11px; }
+  .advisor-header .button { font-size: 11px; padding-inline: 9px; }
+  .advisor-conversation { grid-template-columns: minmax(0, 1fr); }
+  .advisor-portrait { min-height: 106px; height: 106px; align-items: flex-start; justify-content: center; padding: 14px 10px 14px 125px; }
+  .advisor-portrait img { position: absolute; width: 120px; height: auto; left: 14px; top: 3px; margin: 0; }
+  .portrait-halo { width: 140px; height: 140px; top: 2px; left: 5px; }
+  .advisor-mood { font-size: 11px; padding: 4px 8px; }
+  .advisor-portrait > small { font-size: 9px; }
+  .advisor-chat { padding: 12px 13px; }
+  .conversation-log { max-height: 190px; min-height: 70px; }
+  .speech-bubble { padding: 9px 11px; }
+  .speech-bubble p { font-size: 13px; line-height: 1.7; }
+  .dialogue-choices { margin-top: 10px; }
+  .dialogue-choices .button { font-size: 12px; }
+  .advisor-topics button { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .app-shell *, .app-shell *::before, .app-shell *::after { animation: none !important; transition: none !important; } }
