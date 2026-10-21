@@ -71,7 +71,14 @@ async function top() {
 }
 const actions = {
   welcome: async () => { await showPointer(1030, 690); },
-  goals: async () => { await pointAt('.briefing-rules'); await wait(1600); await pointAt('.mission-strip'); },
+  goals: async () => {
+    await pointAt('.resource-status');
+    await click('#menu-button');
+    await click('#help-button');
+    await pointAt('.mission-grid');
+    await wait(1600);
+    await click(page.locator('[data-action="close-dialog"]').first());
+  },
   baseline: async () => {
     await click(page.getByRole('button', { name: '查看正常市场', exact: true }));
     await scrollTo('.effect-grid');
@@ -82,10 +89,10 @@ const actions = {
     await scrollTo('.situation');
     await wait(1800);
     await click('#strategy-1');
-    await pointAt('.decision-note');
+    await pointAt('.selected-plan');
   },
   prediction: async () => {
-    await click('[data-action="guide-prediction"]');
+    await click('#prediction-next');
     await click('#prediction-price-same');
     await click('#prediction-purchases-up');
     await click('#reason-1');
@@ -128,6 +135,7 @@ const actions = {
   pilot: async () => {
     await click(page.locator('[data-action="close-dialog"]').first());
     await top();
+    await click('#menu-button');
     await click('#pilot-button');
     await page.locator('#game-dialog').getByRole('heading', { name: '学生试玩', exact: true }).waitFor();
     await showPointer(1260, 635);
