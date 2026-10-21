@@ -25,22 +25,9 @@ async function savedState(page) {
   return JSON.parse(text);
 }
 
-async function writeReason(page, reason) {
-  const details = page.locator('details').filter({ has: page.locator('#prediction-reason') });
-  if (await details.getAttribute('open') === null) {
-    await details.locator('summary').click();
-  }
-  await page.locator('#prediction-reason').fill(reason);
-}
-
-async function predict(page, reason) {
-  if (await page.locator('#prediction-next').count()) await page.locator('#prediction-next').click();
-  if (await page.locator('#prediction-price-down').count()) {
-    await page.locator('#prediction-price-down').click();
-    await page.locator('#prediction-purchases-up').click();
-    if (reason === undefined) await page.locator('#reason-0').click();
-    else await writeReason(page, reason);
-  }
+async function assertNoRequiredQuestions(page) {
+  assert.equal(await page.locator('#prediction-next, #prediction-section, #prediction-reason, [data-action="predict"], [data-action="reason"], textarea[data-report]').count(), 0,
+    'Playing the campaign must not show prediction questions or written-report fields.');
 }
 
 async function openMenuAction(page, id) {
@@ -116,7 +103,7 @@ async function settlePolicy(page, policy = {}) {
   for (const [key, value] of Object.entries(policy)) {
     await customize(page, key, value);
   }
-  await predict(page);
+  await assertNoRequiredQuestions(page);
   assert.equal(await page.locator('#settle-button').isDisabled(), false);
   await page.locator('#settle-button').click();
 }
@@ -143,39 +130,25 @@ async function isolated(name, check) {
 }
 
 try {
-  await isolated('基期、必填预测、限价结果、刷新恢复与独立回放', async page => {
+  await isolated('无需预测直接执行、限价结果、刷新恢复与独立回放', async page => {
     await baseline(page);
     await advance(page);
-    assert.equal(await page.locator('#settle-button').count(), 0, 'Policy selection has only the next-step action.');
-    await page.locator('#prediction-next').click();
-    assert.equal(await page.locator('#settle-button').isDisabled(), true);
-    await page.locator('#prediction-price-down').click();
-    await page.locator('#prediction-purchases-up').click();
-    assert.equal(await page.locator('#settle-button').isDisabled(), true, 'Two directions alone are insufficient.');
-    await writeReason(page, '   ');
-    assert.equal(await page.locator('#settle-button').isDisabled(), true, 'Whitespace is not a reason.');
-    const partialPrediction = await savedState(page);
-    await page.reload({ waitUntil: 'networkidle' });
-    assert.deepEqual(await savedState(page), partialPrediction);
-    assert.equal(await page.locator('#prediction-price-down').getAttribute('aria-pressed'), 'true');
-    assert.equal(await page.locator('#settle-button').isDisabled(), true, 'A partial restored forecast stays in the prediction step and cannot execute.');
-    await writeReason(page, '较低的限价可能使生产者减少供给。');
+    await assertNoRequiredQuestions(page);
     assert.equal(await page.locator('#settle-button').isDisabled(), false);
-
-    await page.locator('[data-action="guide-policy"]').click();
+    const legacyDecision = { ...await savedState(page), prediction: { price: 'down', purchases: '', reason: '旧版预测草稿' } };
+    await page.evaluate(({ key, state }) => localStorage.setItem(key, JSON.stringify(state)), { key: saveKey, state: legacyDecision });
+    await page.reload({ waitUntil: 'networkidle' });
+    assert.deepEqual(await savedState(page), legacyDecision, 'A partial prediction from an older version remains readable.');
+    await assertNoRequiredQuestions(page);
+    assert.equal(await page.locator('#settle-button').isDisabled(), false, 'An old unfinished prediction cannot block playing.');
     await customize(page, 'cap', 5);
     assert.deepEqual((await savedState(page)).prediction, { price: '', purchases: '', reason: '' });
-    await page.locator('#prediction-next').click();
-    assert.equal(await page.locator('#settle-button').isDisabled(), true);
-    await predict(page, '限价降低生产者所得，可能减少实际供给与购粮。');
     const decision = await savedState(page);
     assert.equal(decision.version, 1, 'The previous save format remains supported.');
     await page.reload({ waitUntil: 'networkidle' });
     assert.deepEqual(await savedState(page), decision);
-    assert.equal(await page.locator('[data-context="draft"]').count(), 0, 'Restored predictions open their own focused step.');
-    assert.equal(await page.locator('#prediction-price-down').getAttribute('aria-pressed'), 'true');
-    assert.equal(await page.locator('#prediction-purchases-up').getAttribute('aria-pressed'), 'true');
-    assert.equal(await page.locator('#prediction-reason').inputValue(), decision.prediction.reason);
+    assert.equal(await page.locator('#strategy-1').getAttribute('aria-pressed'), 'true');
+    await assertNoRequiredQuestions(page);
     assert.equal(await page.locator('#settle-button').isDisabled(), false);
     await page.locator('#settle-button').click();
     const original = await savedState(page);
@@ -208,7 +181,7 @@ try {
     assert.deepEqual(await savedState(page), original, 'Replay must leave the original campaign untouched.');
   });
 
-  await isolated('六季成功路径、报告保存与下载、弹窗焦点、375px布局', async page => {
+  await isolated('无题目六季成功路径、任期结局与自动记录、弹窗焦点、375px布局', async page => {
     await openMenuAction(page, 'help-button');
     await page.locator('#game-dialog[open]').waitFor();
     await page.keyboard.press('Escape');
@@ -231,36 +204,45 @@ try {
     const completedState = await savedState(page);
     assert.equal(completedState.phase, 'complete');
     assert.equal(completedState.records.length, 6);
+    assert.ok(completedState.records.every(row => Object.values(row.prediction).every(value => value === '')),
+      'All six seasons can finish without answering a prediction.');
     assert.equal(completedState.records.filter(row => row.result.coverageLow >= 0.95).length, 6);
     near(completedState.records[5].result.after.cash, 4645 / 18, 'Successful path final cash');
     near(completedState.records[5].result.after.reserves, 20, 'Successful path final reserves');
-    assert.match(await page.locator('#active-view').innerText(), /任期目标已达成/);
+    assert.equal(await page.locator('#ending-title').innerText(), '你守住了小镇的口粮');
+    await assertNoRequiredQuestions(page);
+    assert.equal(await page.locator('#tab-command').getAttribute('aria-current'), 'page', 'Completion opens the ending, not an assignment.');
+    const endingAction = page.locator('.action-dock .primary[data-action="reset"]');
+    assert.match(await endingAction.innerText(), /再玩一局/);
+    await endingAction.click();
+    await page.getByRole('button', { name: '继续当前游戏', exact: true }).click();
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'ending-restart', 'Cancelling a restart returns focus to the ending action.');
+    assert.deepEqual(await savedState(page), completedState, 'Cancelling a new game preserves the completed term.');
+    await page.reload({ waitUntil: 'networkidle' });
+    assert.deepEqual(await savedState(page), completedState, 'A six-season save with blank predictions restores fully.');
+    assert.equal(await page.locator('#tab-command').getAttribute('aria-current'), 'page');
 
+    // Existing student writing remains compatible, but no writing is required to finish.
     const reportText = '</textarea><img data-smoke-injection src=x onerror="window.__smokeXss=true">我在第2、3季释放储备。';
-    await page.locator('textarea[data-report="action"]').fill(reportText);
-    await page.locator('textarea[data-report="evidence"]').fill('第2季低收入组实际购粮35单位，期末保留20单位储备。');
-    await page.locator('textarea[data-report="explanation"]').fill('公共投放增加当季可售量，恢复期补贴带来更多私人生产。');
-    await page.locator('textarea[data-report="conditions"]').fill('原料约束、财政空间与未来储备需求改变时，应重新比较政策。');
-    await selectView(page, 'history');
+    const legacyState = { ...completedState, report: { ...completedState.report, action: reportText } };
+    await page.evaluate(({ key, state }) => localStorage.setItem(key, JSON.stringify(state)), { key: saveKey, state: legacyState });
+    await page.reload({ waitUntil: 'networkidle' });
+    assert.deepEqual(await savedState(page), legacyState, 'Old report fields remain compatible with the save format.');
     await selectView(page, 'report');
-    assert.equal(await page.locator('textarea[data-report="action"]').inputValue(), reportText);
+    assert.match(await page.locator('#tab-report').innerText(), /任期记录/);
+    await assertNoRequiredQuestions(page);
     assert.equal(await page.locator('[data-smoke-injection]').count(), 0);
     assert.equal(await page.evaluate(() => window.__smokeXss), undefined);
-    const reportState = await savedState(page);
-    await page.reload({ waitUntil: 'networkidle' });
-    assert.deepEqual(await savedState(page), reportState);
-    assert.equal(await page.locator('textarea[data-report="action"]').inputValue(), reportText);
-    assert.equal(await page.locator('[data-smoke-injection]').count(), 0);
 
     const [download] = await Promise.all([
       page.waitForEvent('download'),
       page.locator('[data-action="download-report"]').click(),
     ]);
-    assert.equal(download.suggestedFilename(), '面包危机-本局学习报告.md');
+    assert.equal(download.suggestedFilename(), '面包危机-任期记录.md');
     const downloadPath = await download.path();
     assert.ok(downloadPath);
     const downloaded = await readFile(downloadPath, 'utf8');
-    assert.ok(downloaded.includes(reportText), 'The report preserves student writing as editable source.');
+    assert.ok(downloaded.includes(reportText), 'Automatic records retain writing from an older save as editable source.');
     assert.match(downloaded, /达标季度：6\/6/);
     assert.match(downloaded, /期末储备：20\.00/);
     assert.match(downloaded, /\| 6 \| 无干预 \|/);
@@ -275,6 +257,23 @@ try {
     }
     await page.locator('#tab-town').click();
     await page.screenshot({ path: '.qa/browser-smoke-mobile.png', fullPage: true });
+    for (const width of [375, 320]) {
+      await page.setViewportSize({ width, height: 812 });
+      await selectView(page, 'command');
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await assertNoHorizontalOverflow(page, `${width}px ending`);
+      await assertDockReachable(page, 'reset');
+      await page.screenshot({ path: `.qa/game-ending-${width}.png`, fullPage: true });
+      await page.locator('#ending-restart').click();
+      await page.keyboard.press('Escape');
+      assert.equal(await page.evaluate(() => document.activeElement?.id), 'ending-restart');
+      assert.deepEqual(await savedState(page), legacyState, 'Cancelling replay on a phone preserves the full original record.');
+    }
+    await page.locator('#ending-restart').click();
+    await page.locator('[data-action="confirm-reset"]').click();
+    assert.equal((await savedState(page)).phase, 'briefing');
+    assert.deepEqual((await savedState(page)).records, []);
+    await assertDockReachable(page);
   });
 
   await isolated('预算不足时拒绝整组政策并保留历史', async page => {
@@ -325,13 +324,13 @@ try {
     ['mobile', { width: 375, height: 812 }],
     ['small-mobile', { width: 320, height: 812 }],
   ]) {
-    await isolated(`${device} 操作可达、三次点击预测、即时结算反馈与无损试算`, async page => {
+    await isolated(`${device} 直接决策、即时结算反馈与无损试算`, async page => {
       await page.setViewportSize(viewport);
       await assertDockReachable(page);
       await baseline(page);
       await assertDockReachable(page, 'next');
       await advance(page);
-      await assertDockReachable(page, 'guide-prediction');
+      await assertDockReachable(page);
       assert.equal(await page.locator('.action-dock .primary').count(), 1, 'Each step has one primary action.');
       assert.equal(await page.locator('.stats-grid, .policy-panel').count(), 0, 'Repeated global statistics and the policy sidebar are removed.');
       assert.equal(await page.locator('.top-actions button').count(), 1, 'Utilities are collected in one menu.');
@@ -339,33 +338,20 @@ try {
       assert.doesNotMatch(await page.locator('.resource-status').innerText(), /售价|价格|购粮|5\.00|40\.00/, 'Global status must not present prior outcomes as current predictions.');
       assert.equal(await page.locator('.economy-scene').count(), 0, 'The decision step focuses on the policy choice.');
       assert.equal(await page.locator('.secondary-tabs').count(), 0, 'Detailed data navigation is tucked away by default.');
-      assert.equal(await page.locator('#prediction-price-down').count(), 0, 'Predictions belong to the next step.');
+      await assertNoRequiredQuestions(page);
       assert.equal(await page.locator('#policy-custom').getAttribute('open'), null, 'Fine-tuning starts collapsed.');
       await page.locator('#strategy-1').click();
       assert.deepEqual((await savedState(page)).draft, { cap: 5, subsidy: 0, release: 0 });
       await page.screenshot({ path: `.qa/ux-${device}-policy.png` });
-      await page.locator('#prediction-next').click();
-      assert.equal(await page.locator('[data-context="draft"], [data-action="strategy"]').count(), 0, 'The prediction step does not also show policy inputs.');
       assert.equal(await page.locator('.action-dock .primary').count(), 1);
       await assertDockReachable(page);
-      await page.locator('#prediction-price-down').click();
-      await page.locator('#prediction-purchases-up').click();
-      assert.equal(await page.locator('#settle-button').isDisabled(), true);
-      await page.locator('#reason-1').click();
-      assert.equal(await page.locator('#settle-button').isDisabled(), false, 'Three clicks complete the prediction without typing.');
-      const selectedPrediction = (await savedState(page)).prediction;
-      assert.ok(selectedPrediction.reason.trim());
-      await page.locator('[data-action="guide-policy"]').click();
-      assert.deepEqual((await savedState(page)).prediction, selectedPrediction, 'Going back alone keeps the prediction.');
+      assert.equal(await page.locator('#settle-button').isDisabled(), false, 'A valid policy is immediately playable without questions.');
       await page.locator('#strategy-1').click();
-      assert.deepEqual((await savedState(page)).prediction, selectedPrediction, 'Re-selecting a strategy preserves the prediction.');
       await customize(page, 'cap', 5);
-      assert.deepEqual((await savedState(page)).prediction, selectedPrediction, 'Re-selecting the same policy preserves the prediction.');
       await page.locator('#strategy-2').click();
       assert.deepEqual((await savedState(page)).prediction, { price: '', purchases: '', reason: '' });
-      assert.equal(await page.locator('#settle-button').count(), 0, 'Changing policy returns to the policy step.');
+      assert.equal(await page.locator('#settle-button').isDisabled(), false, 'Switching to another affordable policy does not introduce a quiz gate.');
       await page.locator('#strategy-1').click();
-      await predict(page);
       await page.evaluate(() => window.scrollTo(0, 0));
       await assertDockReachable(page);
       await assertNoHorizontalOverflow(page, `${device} decision`);
@@ -376,11 +362,12 @@ try {
       assert.equal(await page.evaluate(() => document.activeElement?.id), 'outcome-title', 'Settlement focuses the new outcome.');
       const titleBox = await title.boundingBox();
       assert.ok(titleBox && titleBox.y >= 0 && titleBox.y + titleBox.height <= viewport.height, 'The outcome headline should be immediately in view.');
-      assert.match(await title.innerText(), /未达标.*少买 1 篮/);
+      assert.match(await title.innerText(), /标价.*货架/);
       const effect = page.locator('.effect-card').filter({ hasText: '低收入组实际购粮' });
       assert.match(await effect.innerText(), /24\.00.*无干预 25\.00 → 政策影响 −1\.00/s);
       assert.equal(await page.locator('.effect-card').count(), 2);
-      assert.equal(await page.locator('#forecast-review').getAttribute('open'), null, 'Prediction checking is available without overwhelming the main outcome.');
+      assert.equal(await page.locator('#forecast-review').count(), 0, 'Feedback must not become a prediction grading exercise.');
+      assert.equal(await page.locator('.street-reaction').isVisible(), true, 'The settlement immediately shows an in-world reaction.');
       assert.match(await page.locator('.resource-impact').innerText(), /国库|储备/);
       await assertDockReachable(page, 'next');
       await assertNoHorizontalOverflow(page, `${device} result`);
@@ -395,11 +382,9 @@ try {
       assert.deepEqual(await savedState(page), original);
       await page.reload({ waitUntil: 'networkidle' });
       assert.deepEqual(await savedState(page), original);
-      assert.match(await page.locator('#outcome-title').innerText(), /未达标/);
+      assert.match(await page.locator('#outcome-title').innerText(), /标价.*货架/);
       await advance(page);
-      assert.match(await page.locator('.stage-track').innerText(), /确认资源/);
-      assert.doesNotMatch(await page.locator('.stage-track').innerText(), /作预测/, 'The third season must not inherit the prior season’s prediction step.');
-      assert.equal(await page.locator('#prediction-next').count(), 0, 'The third season can execute without an unnecessary prediction step.');
+      await assertNoRequiredQuestions(page);
       assert.equal(await page.locator('#settle-button').isDisabled(), false);
       await assertDockReachable(page);
       await page.locator('#settle-button').click();
@@ -417,18 +402,17 @@ try {
     await page.locator('.advisor-portrait img').evaluate(image => image.decode());
     assert.ok(await page.locator('.advisor-portrait img').evaluate(image => image.naturalWidth > 0), 'The adviser portrait must load.');
     assert.match(await page.locator('#advisor-reply').innerText(), /林岚.*六季/s);
-    await page.locator('.dialogue-choices [data-topic="challenge"]').click();
-    const challenge = await page.locator('#advisor-reply').innerText();
-    assert.match(challenge, /便宜.*买得更多/);
-    await page.locator('.dialogue-choices [data-topic="answer-price"]').click();
-    const priceAnswer = await page.locator('#advisor-reply').innerText();
-    assert.notEqual(priceAnswer, challenge, 'Selecting an answer must advance the conversation.');
-    assert.match(priceAnswer, /配给|供给|货架/);
-    await page.locator('.dialogue-choices [data-topic="answer-access"]').click();
+    assert.equal(await page.locator('[data-topic="challenge"], [data-topic^="answer-"]').count(), 0, 'The adviser explains the world instead of quizzing the player.');
+    await page.locator('.dialogue-choices [data-topic="access"]').click();
     const accessAnswer = await page.locator('#advisor-reply').innerText();
-    assert.notEqual(accessAnswer, priceAnswer);
-    assert.match(accessAnswer, /想买多少.*实际买到多少/s);
-    assert.equal(await page.locator('.speech-bubble.player').count(), 3, 'The player can see their three replies.');
+    assert.match(accessAnswer, /配给|供给|货架|分粮/);
+    await page.locator('.dialogue-choices [data-topic="reserves"]').click();
+    const reservesAnswer = await page.locator('#advisor-reply').innerText();
+    assert.notEqual(reservesAnswer, accessAnswer, 'Following a topic must advance the conversation.');
+    assert.match(reservesAnswer, /粮仓.*60/s);
+    await page.locator('.dialogue-choices [data-topic="opportunity"]').click();
+    assert.match(await page.locator('#advisor-reply').innerText(), /代价|机会成本|以后|未来/);
+    assert.equal(await page.locator('.speech-bubble.player').count(), 3, 'The player can see their three follow-up topics.');
     assert.deepEqual(await page.evaluate(() => ({ ...localStorage })), initialStorage, 'A conversation cannot create or mutate a campaign or settings.');
     await mkdir('.qa', { recursive: true });
     await page.screenshot({ path: '.qa/advisor-desktop.png' });
@@ -458,7 +442,7 @@ try {
 
     await page.setViewportSize({ width: 375, height: 812 });
     await page.evaluate(() => window.scrollTo(0, 0));
-    await assertDockReachable(page, 'guide-prediction');
+    await assertDockReachable(page);
     await page.locator('#advisor-open').click();
     await assertNoHorizontalOverflow(page, 'mobile adviser');
     const dialogSize = await page.locator('#game-dialog').evaluate(element => ({
@@ -467,13 +451,13 @@ try {
       client: element.clientWidth,
     }));
     assert.ok(dialogSize.width <= 375 && dialogSize.scroll <= dialogSize.client + 1, 'The dialogue content must fit the phone width.');
-    await page.locator('.dialogue-choices [data-topic="challenge"]').click();
-    await page.locator('.dialogue-choices [data-topic="answer-access"]').click();
-    assert.match(await page.locator('#advisor-reply').innerText(), /想买多少.*实际买到多少/s);
+    await page.locator('.dialogue-choices [data-topic="access"]').click();
+    assert.match(await page.locator('#advisor-reply').innerText(), /配给|供给|货架|分粮/);
+    assert.equal(await page.locator('[data-topic="challenge"], [data-topic^="answer-"]').count(), 0);
     await page.screenshot({ path: '.qa/advisor-mobile.png' });
     await page.getByRole('button', { name: '关闭顾问对话', exact: true }).click();
     assert.equal(await page.evaluate(() => document.activeElement?.id), 'advisor-open');
-    await assertDockReachable(page, 'guide-prediction');
+    await assertDockReachable(page);
     assert.deepEqual(await savedState(page), revisedDraft, 'Closing the mobile dialogue returns to the same campaign.');
   });
 

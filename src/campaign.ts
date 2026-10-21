@@ -16,8 +16,6 @@ export type GameState = {
 };
 
 export const emptyPrediction = (): Prediction => ({ price: '', purchases: '', reason: '' });
-export const predictionComplete = (prediction: Prediction): boolean =>
-  Boolean(prediction.price && prediction.purchases && prediction.reason.trim());
 export function newGame(): GameState {
   return {
     version: 1, phase: 'briefing', seasonIndex: 0,
@@ -25,8 +23,6 @@ export function newGame(): GameState {
     report: { action: '', evidence: '', explanation: '', conditions: '' },
   };
 }
-export const needsPrediction = (state: GameState): boolean =>
-  state.phase === 'decision' && [1, 3].includes(state.seasonIndex);
 export function currentResources(state: GameState): Resources {
   return { ...(state.records.at(-1)?.result.after ?? INITIAL_RESOURCES) };
 }
@@ -38,9 +34,6 @@ export function choosePolicy(state: GameState, draft: Policy): GameState {
 export function settleTurn(state: GameState): { ok: true; state: GameState } | { ok: false; message: string } {
   if (!['briefing', 'decision'].includes(state.phase)) {
     return { ok: false, message: '本季已经结算。请进入下一季，或在回放中比较其他政策。' };
-  }
-  if (needsPrediction(state) && !predictionComplete(state.prediction)) {
-    return { ok: false, message: '请先点选价格与实际购粮的变化方向，再选择或填写一个理由。' };
   }
   const policy = state.seasonIndex === 0 ? DEFAULT_POLICY : state.draft;
   const evaluation = evaluate(SEASONS[state.seasonIndex], policy, currentResources(state));
@@ -109,7 +102,7 @@ export function restoreGame(text: string): GameState | null {
       const p = row.result.policy;
       if (index === 0 && (p.cap !== null || p.subsidy !== 0 || p.release !== 0)) return null;
       const priorPrediction = readPrediction(row.prediction);
-      if (!priorPrediction || ([1, 3].includes(index) && !predictionComplete(priorPrediction))) return null;
+      if (!priorPrediction) return null;
       const evaluation = evaluate(SEASONS[index], row.result.policy, resources);
       if (!evaluation.valid) return null;
       records.push({ result: evaluation.result, prediction: priorPrediction });

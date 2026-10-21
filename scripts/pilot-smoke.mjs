@@ -19,7 +19,7 @@ let completed = 0;
 
 const feedback = {
   code: 'P01', ease: '3', fun: '4',
-  stuck: '</textarea><img data-pilot-xss src=x onerror="window.__pilotXss=true">第2季找预测按钮时停了一下。',
+  stuck: '</textarea><img data-pilot-xss src=x onerror="window.__pilotXss=true">第2季比较政策时停了一下。',
   learned: '第2季限价5后，低收入组购粮24；同季不干预是25。便宜不一定买得更多。',
   suggestion: '<script>window.__pilotXss=true</script>希望更快找到政策比较。',
 };
@@ -60,10 +60,8 @@ async function twoSeasons(page) {
   await page.getByRole('button', { name: '查看正常市场', exact: true }).click();
   await page.locator('[data-action="next"]').click();
   await page.locator('#strategy-1').click();
-  await page.locator('#prediction-next').click();
-  await page.locator('#prediction-price-down').click();
-  await page.locator('#prediction-purchases-up').click();
-  await page.locator('#reason-1').click();
+  assert.equal(await page.locator('#prediction-next, [data-action="predict"], [data-action="reason"]').count(), 0, 'A playtest never requires answering questions.');
+  assert.equal(await page.locator('#settle-button').isDisabled(), false);
   await page.locator('#settle-button').click();
   const state = JSON.parse(await storage(page, saveKey));
   assert.equal(state.records.length, 2);
@@ -179,6 +177,8 @@ try {
     assert.match(report, /^\|\s*1\s*\|[^\n]*5\.00[^\n]*40\.00/m, 'The report must include the real baseline data.');
     assert.match(report, /^\|\s*2\s*\|[^\n]*5\.00[^\n]*24\.00/m, 'The report must include the real second-season data.');
     assert.doesNotMatch(report, /^\|\s*[3-6]\s*\|/m, 'Unplayed seasons must not acquire fabricated outcomes.');
+    assert.doesNotMatch(report, /^#{2,3} (?:本季预测|各季预测与理由|已填写的学习复盘|旧版本季预测记录|旧版预测记录|旧版留存笔记)/m,
+      'A new game must not export empty prediction or written-assignment sections.');
     assert.match(report, /试玩版本：\S+/);
     assert.match(report, /操作是否清楚：3\/5/);
     assert.match(report, /是否愿意继续玩：4\/5/);

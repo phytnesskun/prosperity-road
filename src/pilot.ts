@@ -85,7 +85,7 @@ export function pilotFeedbackReport(state: GameState, feedback: PilotFeedback): 
     '',
     literal(feedback.stuck),
     '',
-    '### 发现的经济规律或仍有的疑问',
+    '### 最意外的选择或结果',
     '',
     literal(feedback.learned),
     '',
@@ -103,10 +103,8 @@ export function pilotFeedbackReport(state: GameState, feedback: PilotFeedback): 
     '',
     policyText(policy),
     '',
-    '### 本季预测',
-    '',
-    predictionText(current?.prediction ?? state.prediction),
-    '',
+    ...(Object.values(current?.prediction ?? state.prediction).some(Boolean)
+      ? ['### 旧版本季预测记录', '', predictionText(current?.prediction ?? state.prediction), ''] : []),
     '## 已结算季度记录',
     '',
     '仅列正式结算结果；未执行的草案和免费试算不会计入。价格与资金以游戏信用点计，购粮与储备以篮计。',
@@ -121,16 +119,16 @@ export function pilotFeedbackReport(state: GameState, feedback: PilotFeedback): 
       ...state.records.map(({ result: r }) =>
         `| ${r.season} | ${r.policy.cap === null ? '无' : r.policy.cap} | ${r.policy.subsidy} | ${r.policy.release} | ${number(r.price)} | ${number(r.purchasesLow)} | ${number(r.coverageLow * 100)}% | ${number(r.excessDemand)} | ${number(r.after.cash)} | ${number(r.after.reserves)} |`),
       '',
-      '### 各季预测与理由',
-      '',
     );
-    for (const record of state.records) {
+    const legacyPredictions = state.records.filter(record => Object.values(record.prediction).some(Boolean));
+    if (legacyPredictions.length) lines.push('### 旧版预测记录', '');
+    for (const record of legacyPredictions) {
       lines.push(`#### 第 ${record.result.season} 季 · ${SEASONS[record.result.season - 1]?.title ?? '已结算'}`, '', predictionText(record.prediction), '');
     }
   }
-  lines.push('', '## 已填写的学习复盘', '', '未填写的部分保持空白，不代替学生作答。', '');
+  if (Object.values(state.report).some(Boolean)) lines.push('', '## 旧版留存笔记', '');
   for (const [key, label] of [['action', '采取的行动'], ['evidence', '数字证据'], ['explanation', '经济解释'], ['conditions', '成立条件与局限']] as const) {
-    lines.push(`### ${label}`, '', literal(state.report[key]), '');
+    if (state.report[key]) lines.push(`### ${label}`, '', literal(state.report[key]), '');
   }
   return `${lines.join('\n').trimEnd()}\n`;
 }

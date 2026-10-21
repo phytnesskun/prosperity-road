@@ -82,3 +82,10 @@
   .scene-policy-note { flex-basis: 100%; margin: 0 0 4px; font-size: 9px; }
   .scene-caption { font-size: 9px; }
 }
+
+.scene-reaction-label { margin-top: 4px; padding: 2px 6px; border-radius: 9px; background: #dbe8cc; color: #3f6439; font-size: 10px; }
+.economy-scene[data-shortage="true"] #scene-market,
+.economy-scene[data-provision="short"] #scene-homes { background: #f6e5c8; border-color: #d3ad76; }
+.economy-scene[data-shortage="true"] #scene-market .scene-reaction-label,
+.economy-scene[data-provision="short"] #scene-homes .scene-reaction-label { background: #ead0a7; color: #7a492a; }
+.economy-scene[data-provision="met"] #scene-homes { background: #edf4dc; border-color: #b8c7a0; }

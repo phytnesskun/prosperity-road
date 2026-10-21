@@ -43,6 +43,7 @@ test('an unfinished session exports progress without inventing results or final 
   assert.match(report, /尚无已结算季度/);
   assert.match(report, /试玩尚未结束/);
   assert.doesNotMatch(report, /期末|最终成绩|\| 1 \|/);
+  assert.doesNotMatch(report, /预测|学习复盘|作答|数字证据/, 'A new game export has no empty exercise prompts.');
 });
 
 test('the export contains actual settled policies and results without mutating inputs', () => {

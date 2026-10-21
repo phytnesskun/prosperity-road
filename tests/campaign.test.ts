@@ -18,8 +18,8 @@ test('baseline is fixed; double settlement is rejected and a new season expires 
   assert.equal(baseline.records.length, 1);
   const decision = nextSeason(baseline);
   assert.deepEqual(decision.draft, { cap: null, subsidy: 0, release: 0 });
-  assert.equal(settleTurn(decision).ok, false);
-  assert.equal(settleTurn({ ...decision, prediction: { price: 'up', purchases: 'down', reason: '   ' } }).ok, false);
+  assert.equal(settleTurn(decision).ok, true);
+  assert.equal(settleTurn({ ...decision, prediction: { price: 'up', purchases: 'down', reason: '   ' } }).ok, true);
 });
 test('changing policy clears predictions; invalid policies preserve resources and history', () => {
   const decision = predict(nextSeason(settle(newGame())));
@@ -33,21 +33,39 @@ test('changing policy clears predictions; invalid policies preserve resources an
   assert.equal(settleTurn(poor).ok, false);
   assert.equal(JSON.stringify(poor), before);
 });
-test('six seasons, save reload, final goals, and reports survive a complete campaign', () => {
+test('all six seasons can be played and restored without answering questions', () => {
   let state = settle(newGame());
+  assert.deepEqual(restoreGame(JSON.stringify(state)), state);
   const releases = [20, 20, 0, 0, 0] as const;
   for (let i = 0; i < releases.length; i++) {
     state = nextSeason(state);
-    state = predict(choosePolicy(state, { cap: null, subsidy: i === 2 ? 1 : 0, release: releases[i] }));
+    state = choosePolicy(state, { cap: null, subsidy: i === 2 ? 1 : 0, release: releases[i] });
+    assert.deepEqual(restoreGame(JSON.stringify(state)), state);
     state = settle(state);
     const restored = restoreGame(JSON.stringify(state));
     assert.deepEqual(restored, state);
   }
   state = nextSeason(state);
-  state.report.evidence = '第2季实际购粮35，保障率97.22%。';
   assert.equal(state.phase, 'complete');
   assert.equal(goals(state.records).passed, true);
   assert.equal(currentResources(state).reserves, 20);
+  assert.ok(state.records.every(record =>
+    record.prediction.price === '' && record.prediction.purchases === '' && record.prediction.reason === ''));
+  assert.deepEqual(state.report, { action: '', evidence: '', explanation: '', conditions: '' });
+  assert.deepEqual(restoreGame(JSON.stringify(state)), state);
+});
+test('legacy saves retain completed and partial predictions plus report text', () => {
+  const decision = nextSeason(settle(newGame()));
+  const partial = { ...decision, prediction: { ...decision.prediction, price: 'down' as const } };
+  const restoredPartial = restoreGame(JSON.stringify(partial));
+  assert.deepEqual(restoredPartial, partial);
+  assert.ok(restoredPartial);
+  const partialResult = settle(restoredPartial);
+  assert.deepEqual(partialResult.records[1].prediction, partial.prediction);
+  assert.deepEqual(restoreGame(JSON.stringify(partialResult)), partialResult);
+
+  const state = settle(predict(choosePolicy(decision, { cap: null, subsidy: 0, release: 20 })));
+  state.report.evidence = '第2季实际购粮35，保障率97.22%。';
   assert.deepEqual(restoreGame(JSON.stringify(state)), state);
 });
 test('saved numeric results are recomputed, malformed state is rejected', () => {
@@ -59,4 +77,8 @@ test('saved numeric results are recomputed, malformed state is rejected', () => 
   assert.equal(restoreGame(JSON.stringify({ ...state, seasonIndex: 9 })), null);
   assert.equal(restoreGame(JSON.stringify({ ...state, phase: 'complete' })), null);
   assert.equal(restoreGame(JSON.stringify({ ...state, draft: { cap: 1, subsidy: 0, release: 0 } })), null);
+  assert.equal(restoreGame(JSON.stringify({ ...state, prediction: { price: 'invalid', purchases: '', reason: '' } })), null);
+  const badRecord = structuredClone(state);
+  Object.assign(badRecord.records[0].prediction, { reason: 123 });
+  assert.equal(restoreGame(JSON.stringify(badRecord)), null);
 });

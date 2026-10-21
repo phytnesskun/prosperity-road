@@ -3,7 +3,7 @@ import type { GameState } from './campaign.ts';
 import { SEASONS, evaluate } from './economy.ts';
 import { outcomeFeedback } from './feedback.ts';
 
-export type AdvisorTopic = 'briefing' | 'policy' | 'why' | 'reserves' | 'lesson' | 'challenge' | 'answer-price' | 'answer-access' | 'farm' | 'production' | 'market' | 'opportunity';
+export type AdvisorTopic = 'briefing' | 'policy' | 'why' | 'reserves' | 'lesson' | 'access' | 'farm' | 'production' | 'market' | 'opportunity';
 export type AdvisorReply = {
   text: string;
   mood: 'welcoming' | 'thinking' | 'concerned' | 'pleased';
@@ -21,7 +21,7 @@ export function advisorReply(state: GameState, topic: AdvisorTopic): AdvisorRepl
   const choices: AdvisorReply['choices'] = [
     result ? { topic: 'why', label: '为什么会这样？' } : { topic: 'policy', label: '帮我看看方案' },
     { topic: 'reserves', label: '粮仓还撑得住吗？' },
-    { topic: 'challenge', label: '考考我的直觉' },
+    { topic: 'access', label: '为什么便宜了也可能买不到？' },
   ];
   const action: AdvisorReply['action'] = state.phase === 'decision'
     ? { kind: 'policy', label: '去调整政策' }
@@ -62,7 +62,7 @@ export function advisorReply(state: GameState, topic: AdvisorTopic): AdvisorRepl
         '生产条件恢复正常，也该给下一年留一些储备',
       ][state.seasonIndex];
       return {
-        text: `第 ${state.seasonIndex + 1} 季到了，${context}。先选一个方案，想想居民最终能买到多少，再执行它。`,
+        text: `第 ${state.seasonIndex + 1} 季到了，${context}。选好方案就可以执行，看看镇上的变化。`,
         mood: state.seasonIndex <= 2 ? 'concerned' : 'thinking', choices, action,
       };
     }
@@ -74,7 +74,7 @@ export function advisorReply(state: GameState, topic: AdvisorTopic): AdvisorRepl
               ? '这季方案已经执行了，先用实际购粮和财政变化判断效果。想换一种政策，我们可以在回放里比较，不会改动原来的结果。'
               : '正常市场已经观察过了，这是之后比较政策效果的起点。进入下一季，就可以选择自己的方案。'
             : '第一季先观察没有干预的市场，建立一个比较起点。进入下一季后，你就可以调整限价、补贴和粮仓投放。',
-          mood: 'thinking', choices: [{ topic: 'lesson', label: '先讲一个经济原理' }, ...choices.slice(1)], action,
+          mood: 'thinking', choices: [{ topic: 'production', label: '工坊能多做一些吗？' }, ...choices.slice(1)], action,
         };
       }
       const feasibility = evaluate(SEASONS[state.seasonIndex]!, state.draft, resources);
@@ -83,7 +83,7 @@ export function advisorReply(state: GameState, topic: AdvisorTopic): AdvisorRepl
           text: feasibility.reason === 'reserves'
             ? `粮仓现有 ${number(resources.reserves)} 篮，草案却要投放 ${state.draft.release} 篮，还不能执行。先减少投放，再判断是否需要其他措施。`
             : '这份草案的预计期末现金不足，还不能执行。先降低补贴，或调整政策组合，保住国库再谈效果。',
-          mood: 'concerned', choices: [{ topic: 'reserves', label: '看看手上的资源' }, { topic: 'lesson', label: '为什么不能只看价格？' }], action,
+          mood: 'concerned', choices: [{ topic: 'reserves', label: '看看手上的资源' }, { topic: 'access', label: '居民能买够面包吗？' }], action,
         };
       }
       const mechanisms = [state.draft.cap === null ? '你让售价随市场调整' : `你把售价上限设为 ${state.draft.cap}`];
@@ -99,20 +99,20 @@ export function advisorReply(state: GameState, topic: AdvisorTopic): AdvisorRepl
       }
       return {
         text: `${mechanisms.join('，')}。${risks.length ? `${risks.join('；')}，先想想哪种代价值得承担。` : '市场会通过价格协调供求，但不保证每组居民都买得起基本口粮。'}`,
-        mood: 'thinking', choices: [{ topic: 'challenge', label: '便宜了就能多买吗？' }, { topic: 'reserves', label: '看看储备的取舍' }, { topic: 'lesson', label: '对应哪个经济原理？' }], action,
+        mood: 'thinking', choices: [{ topic: 'access', label: '为什么便宜了也可能买不到？' }, { topic: 'reserves', label: '看看储备的取舍' }, { topic: 'lesson', label: '这套方案怎么起作用？' }], action,
       };
     }
     case 'why': {
       if (!result) {
         return {
-          text: '本季还没结算，我现在不能把预测当作实际结果。先判断政策如何影响供给和购买意愿，执行后我们再用同样收成下的无干预情况来比较。',
-          mood: 'thinking', choices: [{ topic: 'policy', label: '先讨论我的方案' }, { topic: 'challenge', label: '考考我的直觉' }], action,
+          text: '本季还没结算，居民还没有买到这一季的面包。执行后就能看到他们的收获，再和同样收成下的无干预情况比较。',
+          mood: 'thinking', choices: [{ topic: 'policy', label: '先讨论我的方案' }, { topic: 'access', label: '为什么便宜了也可能买不到？' }], action,
         };
       }
       return {
         text: outcomeFeedback(result).explanation,
         mood: result.coverageLow >= 0.95 ? 'pleased' : 'concerned',
-        choices: [{ topic: 'lesson', label: '这是什么经济原理？' }, { topic: 'reserves', label: '付出了什么代价？' }, { topic: 'challenge', label: '我来判断一次' }], action,
+        choices: [{ topic: 'lesson', label: '这套方案怎么起作用？' }, { topic: 'reserves', label: '付出了什么代价？' }, { topic: 'access', label: '买不起和买不到有何区别？' }], action,
       };
     }
     case 'reserves': {
@@ -120,13 +120,13 @@ export function advisorReply(state: GameState, topic: AdvisorTopic): AdvisorRepl
       if (release > resources.reserves) {
         return {
           text: `手上只有 ${number(resources.reserves)} 篮储备，草案要投放 ${release} 篮，粮仓不够。先减少投放量；最后一季结束时还需要留足 20 篮。`,
-          mood: 'concerned', choices: [{ topic: 'policy', label: '帮我重新看看方案' }, { topic: 'opportunity', label: '这就是机会成本吗？' }], action,
+          mood: 'concerned', choices: [{ topic: 'policy', label: '帮我重新看看方案' }, { topic: 'opportunity', label: '开仓会留下什么代价？' }], action,
         };
       }
       return {
         text: `现在国库有 ${number(resources.cash)}，粮仓有 ${number(resources.reserves)} 篮。${release > 0 ? `草案计划投放 ${release} 篮，这部分以后不能再用，最终还要留足 20 篮。` : result ? `这是结算后的资源；${result.policy.release > 0 ? '已用掉的粮食不能再投一次，留下的储备才是未来的余地。' : '这季没有动用粮仓，留下的储备可以应对未来的风险。'}` : '粮仓可以缓解眼前的供给压力，但今天用掉的粮食以后不能再用，最终还要留足 20 篮。'}`,
         mood: resources.reserves - release < 20 ? 'concerned' : 'thinking',
-        choices: [{ topic: 'opportunity', label: '说说机会成本' }, { topic: 'policy', label: '回到政策方案' }], action,
+        choices: [{ topic: 'opportunity', label: '开仓会留下什么代价？' }, { topic: 'policy', label: '回到政策方案' }], action,
       };
     }
     case 'farm':
@@ -154,7 +154,7 @@ export function advisorReply(state: GameState, topic: AdvisorTopic): AdvisorRepl
         return {
           text: `这季实际成交价是 ${number(result.price)}，超额需求是 ${number(result.excessDemand)} 篮。${result.capBinding ? '限价导致想买的数量超过供给，模型按两组的需求比例配给；超额需求不是已经买到的数量。' : '市场已经出清，但这不代表每组居民都买够基本口粮，还要看他们实际买到了多少。'}`,
           mood: result.capBinding ? 'concerned' : 'thinking',
-          choices: [{ topic: 'why', label: '居民实际买到了多少？' }, { topic: 'challenge', label: '试试我的直觉' }],
+          choices: [{ topic: 'why', label: '居民实际买到了多少？' }, { topic: 'access', label: '买不起和买不到有何区别？' }],
           action: { kind: 'market', label: '打开这季供需图' },
         };
       }
@@ -164,45 +164,37 @@ export function advisorReply(state: GameState, topic: AdvisorTopic): AdvisorRepl
           ? '当前没有售价上限，价格会随供需调整。市场能出清，也不保证每组居民都买得起基本口粮；本季成交情况还要等结算。'
           : `草案把售价上限设为 ${cap}，只有低于本季均衡价格时才会起作用。届时想买的数量可能超过供给，需要配给；本季是否如此，还要等结算。`,
         mood: 'thinking',
-        choices: [{ topic: 'challenge', label: '便宜就能买得更多吗？' }, { topic: 'production', label: '市场上能供应多少？' }], action,
+        choices: [{ topic: 'access', label: '为什么便宜了也可能买不到？' }, { topic: 'production', label: '市场上能供应多少？' }], action,
       };
     }
     case 'opportunity':
       return {
-        text: `机会成本是放弃的下一最佳用途：现在粮仓有 ${number(resources.reserves)} 篮，用来救急就会减少未来可用的储备。${state.phase === 'decision' && state.draft.release > 0 ? `草案计划投放 ${state.draft.release} 篮，值得比较眼前购粮需求和未来应急需求。` : '保留储备也有取舍，因为这些粮食本可以缓解眼前的供应压力。'}公共粮仓按市场价格售粮，不是免费赠送；售粮是库存换现金，也不能当作净福利增加。`,
+        text: `现在粮仓有 ${number(resources.reserves)} 篮，用来救急就会减少未来可用的储备。${state.phase === 'decision' && state.draft.release > 0 ? `草案计划投放 ${state.draft.release} 篮，值得比较眼前购粮需求和未来应急需求。` : '保留储备也有取舍，因为这些粮食本可以缓解眼前的供应压力。'}公共粮仓按市场价格售粮，不是免费赠送；售粮是库存换现金，也不能当作净福利增加。`,
         mood: 'thinking',
         choices: [{ topic: 'reserves', label: '看看当前还能用多少' }, { topic: 'policy', label: '重新考虑政策取舍' }], action,
       };
     case 'lesson': {
       const policy = result?.policy ?? state.draft;
       const text = policy.cap !== null
-        ? '这对应 IAL 第一单元的最高限价：只有低于均衡价格时，限价才会改变交易。此时需求量可能超过供给量，需要配给，所以要区分想买多少和实际买到多少。'
+        ? '限价只有压在市场原本的成交价之下才会起作用。便宜后大家想买更多，工坊却可能不愿多做，货架不够时只能分着买。最终要看居民带回家多少面包。'
         : policy.subsidy > 0
-          ? '这对应 IAL 第一单元的补贴与供给价格弹性：补贴提高生产者每篮的收入，但增产还需要原料。若生产已经受原料上限约束，补贴可能只是增加支出，并不带来更多面包。'
-          : '这对应 IAL 第一单元的机会成本：选择一种用途，就放弃了资源的下一最佳用途。今天用粮仓救急，代价之一就是未来少了一份应急选择。';
+          ? '补贴让工坊每做一篮赚得更多，但增产还需要原料。原料用尽后，再给补贴也做不出更多面包，钱却照样花出去。'
+          : '开仓能把储备送进市场，缓解眼前的供应压力。今天用掉的粮食不能再用一次，后面的季度就少了一份余地。';
       return {
         text, mood: 'thinking',
-        choices: [{ topic: 'challenge', label: '让我试着判断' }, result ? { topic: 'why', label: '用这季结果解释' } : { topic: 'policy', label: '用我的草案解释' }],
+        choices: [{ topic: 'production', label: '工坊现在能多做一些吗？' }, result ? { topic: 'why', label: '用这季结果解释' } : { topic: 'policy', label: '用我的草案解释' }],
         action: state.records.length > 0 ? { kind: 'market', label: '结合供需图看看' } : undefined,
       };
     }
-    case 'challenge':
+    case 'access':
       return {
-        text: '我想考考你的直觉：面包便宜，就一定买得更多吗？想想货架上的数量和排队的人，再选一个答案。',
-        mood: 'thinking',
-        choices: [{ topic: 'answer-price', label: '一定，便宜就能多买' }, { topic: 'answer-access', label: '不一定，还要看供给和配给' }],
-      };
-    case 'answer-price':
-      return {
-        text: '还差一步：在其他条件相同时，降价会让人希望买得更多，但不保证货架上有足够的面包。限价若造成短缺，就要配给，实际购粮反而可能减少。',
-        mood: 'thinking',
-        choices: [{ topic: 'answer-access', label: '明白了，还要看能否买到' }, { topic: 'lesson', label: '再讲一个经济原理' }], action,
-      };
-    case 'answer-access':
-      return {
-        text: `对，想买多少和实际买到多少是两回事。${result?.capBinding ? `这季就是一个例子：限价后低收入居民实际买到 ${number(result.purchasesLow)} 篮，还得结合配给和供给判断政策效果。` : '限价若造成短缺，就要配给；评估政策时，除了标价，还要看居民最终拿到多少面包。'}`,
-        mood: 'pleased',
-        choices: [result ? { topic: 'why', label: '看看这季的证据' } : { topic: 'policy', label: '回头看看我的方案' }, { topic: 'lesson', label: '记住这个经济原理' }], action,
+        text: result
+          ? result.capBinding
+            ? `这季虽然每篮只要 ${number(result.price)}，但想买的数量超过供给 ${number(result.excessDemand)} 篮，只能按比例分粮。低收入居民实际买到 ${number(result.purchasesLow)} 篮；压低标价没有让货架自动变满。`
+            : `这季每篮 ${number(result.price)}，低收入居民实际买到 ${number(result.purchasesLow)} 篮。${result.purchasesLow >= 36 ? '他们带回家的面包够基本口粮了。' : '市场有成交，不代表每家都买得起足够的面包。'}价格和货架上的数量，都影响他们能带多少回家。`
+          : '降价会让人希望买得更多，但不保证货架上有足够的面包。限价若造成短缺，就要按比例分粮，实际购粮反而可能减少。执行方案后，我们就能看到居民到底带回家多少。',
+        mood: result && result.coverageLow < 0.95 ? 'concerned' : 'thinking',
+        choices: [{ topic: 'production', label: '工坊能多做一些吗？' }, { topic: 'reserves', label: '粮仓能帮上忙吗？' }, result ? { topic: 'why', label: '看看这一季的变化' } : { topic: 'policy', label: '回头看看我的方案' }], action,
       };
   }
 }

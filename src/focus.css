@@ -27,12 +27,6 @@
 .focus-layout .season-heading .eyebrow { font-size: 10px; letter-spacing: .12em; }
 .focus-layout .season-badge { padding: 4px 10px; border-color: #ddd6c4; border-radius: 16px; background: #f5f2e8; color: #786c51; font-size: 11px; }
 .focus-layout .command-view { padding: 20px 30px 30px; }
-.focus-layout .stage-track { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; margin: 0 30px 0; padding: 0; list-style: none; color: #7c8072; font-size: 12px; }
-.focus-layout .stage-track > span, .focus-layout .stage-track > li { display: inline-flex; align-items: center; gap: 7px; min-height: 25px; }
-.focus-layout .stage-track .active, .focus-layout .stage-track [aria-current="step"] { color: var(--green); font-weight: 650; }
-.focus-layout .stage-track .complete { color: #68815c; }
-.focus-layout .stage-track b { display: inline-grid; place-items: center; width: 22px; height: 22px; border: 1px solid #d2d3c5; border-radius: 50%; font-size: 11px; font-weight: 500; }
-.focus-layout .stage-track .active b, .focus-layout .stage-track [aria-current="step"] b { border-color: var(--green); background: var(--green); color: #fffdf6; }
 .focus-layout .section-heading { margin: 22px 0 12px; gap: 6px 14px; }
 .focus-layout .section-heading h3 { font-size: 18px; font-weight: 600; }
 .focus-layout .section-heading > span { font-size: 12px; }
@@ -62,19 +56,6 @@
 .focus-layout .policy-help { font-size: 12px; }
 .focus-layout .resource-check { margin: 12px 0 0; padding: 10px 13px; border: 0; border-radius: 5px; background: #edf2e6; font-size: 12px; }
 .focus-layout .resource-check.error { border: 1px solid #e2b6a6; background: #f9eae2; }
-.focus-layout .focused-prediction { max-width: 760px; margin-inline: auto; }
-.focus-layout .focused-prediction .selected-plan { margin: 0 0 22px; padding: 12px 16px; border: 1px solid #d8decb; border-radius: 6px; background: #f1f4e9; }
-.focus-layout .focused-prediction .prediction-form { margin: 0; padding: 0; border: 0; }
-.focus-layout .prediction-form h3 { font-size: 21px; }
-.focus-layout .prediction-form > .inline-help { margin: 7px 0 18px; font-size: 13px; }
-.focus-layout .prediction-options { margin: 18px 0; gap: 9px; }
-.focus-layout .prediction-options > span { font-size: 14px; font-weight: 600; }
-.focus-layout .prediction-options > div { gap: 10px; }
-.focus-layout .prediction-options button { min-height: 46px; padding: 9px; font-size: 14px; }
-.focus-layout .reason-chips { gap: 9px; margin: 10px 0 14px; }
-.focus-layout .reason-chips button { min-height: 46px; padding: 10px 12px; font-size: 12px; }
-.focus-layout .prediction-form summary { min-height: 44px; padding: 10px 13px; font-size: 13px; }
-.focus-layout .prediction-form .detail-body { padding: 3px 13px 13px; }
 .focus-layout .outcome-heading { padding: 20px 22px; border-radius: 7px; }
 .focus-layout .outcome-heading h3 { margin: 4px 0 14px; font-size: 27px; }
 .focus-layout .outcome-heading p { font-size: 13px; }
@@ -159,9 +140,6 @@
   .focus-layout .season-title { font-size: 24px; }
   .focus-layout .season-badge { flex: 0 0 auto; margin-top: 3px; padding: 4px 7px; font-size: 10px; }
   .focus-layout .command-view { padding: 14px 16px 22px; }
-  .focus-layout .stage-track { gap: 7px 13px; margin-inline: 17px; font-size: 11px; }
-  .focus-layout .stage-track > span, .focus-layout .stage-track > li { gap: 5px; }
-  .focus-layout .stage-track b { width: 20px; height: 20px; font-size: 10px; }
   .focus-layout .section-heading { margin: 19px 0 11px; }
   .focus-layout .section-heading h3 { font-size: 17px; }
   .focus-layout .section-heading > span { font-size: 11px; }
@@ -177,13 +155,6 @@
   .focus-layout .selected-plan { margin-top: 15px; padding-top: 13px; font-size: 12px; }
   .focus-layout .custom-policy-grid { padding: 15px 12px 6px; gap: 14px; }
   .focus-layout .policy-custom .reuse-button { margin-inline: 12px; }
-  .focus-layout .focused-prediction .selected-plan { margin-bottom: 19px; padding: 11px 12px; }
-  .focus-layout .prediction-form h3 { font-size: 20px; }
-  .focus-layout .prediction-form > .inline-help { font-size: 12px; }
-  .focus-layout .prediction-options > div { gap: 7px; }
-  .focus-layout .prediction-options button { padding-inline: 5px; font-size: 13px; }
-  .focus-layout .reason-chips { gap: 7px; }
-  .focus-layout .reason-chips button { padding: 9px 10px; font-size: 12px; }
   .focus-layout .outcome-heading { padding: 16px; }
   .focus-layout .outcome-heading h3 { font-size: 24px; }
   .focus-layout .outcome-heading p { font-size: 12px; }
@@ -224,9 +195,30 @@
   .focus-layout .resource-status strong { margin-left: 3px; font-size: 14px; }
   .focus-layout .goal-status { font-size: 11px; }
   .focus-layout .strategy-card > strong { font-size: 15px; }
-  .focus-layout .stage-track { gap: 7px 10px; }
   .focus-layout .effect-card { padding-inline: 10px; }
   .focus-layout .effect-card > strong { font-size: 23px; }
   .focus-layout .briefing-advisor { width: 100px; margin-left: 12px; }
   .focus-layout .briefing h3 { font-size: 23px; }
+}
+
+/* The town reacts first; its accounts remain available on demand. */
+.focus-layout .street-reaction { margin: 14px 0; padding: 10px 15px; border-left: 3px solid #b69961; background: #f8f1df; color: #594b34; font-size: 15px; line-height: 1.7; }
+.focus-layout .street-reaction > span { margin-right: 12px; color: #887144; font-size: 11px; }
+.focus-layout .ending { padding-block: 35px 42px; text-align: center; }
+.focus-layout .ending-mark { display: block; color: #b38b39; font-size: 48px; line-height: 1.4; }
+.focus-layout .ending h3 { margin: 8px 0 14px; color: var(--green); font-size: 32px; }
+.focus-layout .ending > p { max-width: 650px; margin: 14px auto 22px; color: var(--muted); line-height: 1.8; }
+.focus-layout .ending-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 28px 0; }
+.focus-layout .ending-stats > div { display: grid; gap: 7px; padding: 21px 12px; border: 1px solid var(--line); border-radius: 8px; background: #f7f5e9; }
+.focus-layout .ending-stats span, .focus-layout .ending-stats small { color: var(--muted); font-size: 12px; }
+.focus-layout .ending-stats strong { color: var(--green); font-size: 25px; font-variant-numeric: tabular-nums; }
+.focus-layout .ending > button { min-height: 44px; margin: 4px; }
+@media (max-width: 520px) {
+  .focus-layout .street-reaction { padding: 9px 12px; font-size: 13px; }
+  .focus-layout .street-reaction > span { display: block; margin-bottom: 3px; }
+  .focus-layout .ending h3 { font-size: 27px; }
+  .focus-layout .ending-stats { grid-template-columns: 1fr; gap: 8px; margin: 20px 0; }
+  .focus-layout .ending-stats > div { grid-template-columns: 1fr auto; align-items: center; padding: 13px 16px; text-align: left; }
+  .focus-layout .ending-stats small { grid-column: 1 / -1; }
+  .focus-layout .ending-stats strong { font-size: 23px; }
 }

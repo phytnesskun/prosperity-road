@@ -17,7 +17,7 @@ function decision(policy: Partial<Policy> = {}): GameState {
   return choosePolicy(state, { ...state.draft, ...policy });
 }
 
-const topics: AdvisorTopic[] = ['briefing', 'policy', 'why', 'reserves', 'lesson', 'challenge', 'answer-price', 'answer-access', 'farm', 'production', 'market', 'opportunity'];
+const topics: AdvisorTopic[] = ['briefing', 'policy', 'why', 'reserves', 'lesson', 'access', 'farm', 'production', 'market', 'opportunity'];
 
 test('a new player meets Lin Lan without an unearned result or unavailable chart action', () => {
   const state = newGame();
@@ -78,17 +78,20 @@ test('resource advice uses current holdings and rejects unfunded or oversized pl
   assert.doesNotMatch(advisorReply(next, 'reserves').text, /粮仓有 60 篮/);
 });
 
-test('the challenge corrects the cheaper-means-more misconception with follow-up choices', () => {
+test('access dialogue explains outcomes directly and offers follow-up conversations without a quiz', () => {
   const state = decision({ cap: 5 });
-  const challenge = advisorReply(state, 'challenge');
-  assert.match(challenge.text, /面包便宜，就一定买得更多吗/);
-  assert.deepEqual(challenge.choices.map(choice => choice.topic), ['answer-price', 'answer-access']);
-  assert.match(advisorReply(state, 'answer-price').text, /希望买得更多.*不保证.*配给.*可能减少/);
-  const correct = advisorReply(state, 'answer-access');
-  assert.equal(correct.mood, 'pleased');
-  assert.match(correct.text, /想买多少和实际买到多少是两回事/);
-  assert.ok(correct.choices.length > 0);
-  assert.match(advisorReply(settle(state), 'answer-access').text, /实际买到 24 篮/);
+  const pending = advisorReply(state, 'access');
+  assert.match(pending.text, /希望买得更多.*不保证.*按比例分粮.*可能减少/);
+  assert.deepEqual(pending.choices.map(choice => choice.topic), ['production', 'reserves', 'policy']);
+  assert.doesNotMatch(pending.text, /实际买到 24|只要 5|超过供给 40/);
+  const capped = advisorReply(settle(state), 'access');
+  assert.equal(capped.mood, 'concerned');
+  assert.match(capped.text, /每篮只要 5.*超过供给 40 篮.*实际买到 24 篮/);
+  assert.deepEqual(capped.choices.map(choice => choice.topic), ['production', 'reserves', 'why']);
+  const normal = advisorReply(settle(newGame()), 'access');
+  assert.match(normal.text, /每篮 5.*买到 40 篮.*够基本口粮/);
+  const noIntervention = advisorReply(settle(decision()), 'access');
+  assert.match(noIntervention.text, /每篮 6.9.*买到 25 篮.*不代表每家都买得起/);
 });
 
 test('building conversations describe current conditions before settlement and actual production afterward', () => {
@@ -116,19 +119,19 @@ test('market conversations distinguish draft conditions, settled price, shortage
   assert.match(advisorReply(settle(decision()), 'market').text, /超额需求是 0 篮.*出清.*不代表.*买够基本口粮/);
 });
 
-test('opportunity-cost follow-ups stay on resources even when the draft includes a cap', () => {
+test('reserve trade-off follow-ups stay on resources even when the draft includes a cap', () => {
   const state = decision({ cap: 5, release: 20 });
-  const followup = advisorReply(state, 'reserves').choices.find(choice => choice.label.includes('机会成本'));
+  const followup = advisorReply(state, 'reserves').choices.find(choice => choice.label.includes('开仓'));
   assert.equal(followup?.topic, 'opportunity');
   const reply = advisorReply(state, followup!.topic);
-  assert.match(reply.text, /机会成本.*下一最佳用途.*粮仓有 60 篮.*计划投放 20 篮/);
+  assert.match(reply.text, /粮仓有 60 篮.*减少未来可用的储备.*计划投放 20 篮/);
   assert.match(reply.text, /按市场价格售粮.*不是免费赠送.*库存换现金.*不能当作净福利/);
   assert.doesNotMatch(reply.text, /这对应.*最高限价/);
   const after = advisorReply(settle(state), 'opportunity');
   assert.match(after.text, /粮仓有 40 篮/);
   assert.doesNotMatch(after.text, /草案计划投放/);
   const short = { ...state, records: [{ ...state.records[0]!, result: { ...state.records[0]!.result, after: { cash: 160, reserves: 10 } } }] };
-  assert.equal(advisorReply(short, 'reserves').choices.find(choice => choice.label.includes('机会成本'))?.topic, 'opportunity');
+  assert.equal(advisorReply(short, 'reserves').choices.find(choice => choice.label.includes('开仓'))?.topic, 'opportunity');
 });
 
 test('a finished campaign discusses achieved goals and offers replay', () => {
@@ -154,6 +157,8 @@ test('all dialogue topics preserve the campaign, bound choices, and guard replay
       const reply = advisorReply(state, topic);
       assert.ok(reply.choices.length > 0 && reply.choices.length <= 3);
       assert.ok(reply.choices.every(choice => topics.includes(choice.topic)));
+      assert.equal(new Set(reply.choices.map(choice => choice.topic)).size, reply.choices.length);
+      assert.doesNotMatch([reply.text, ...reply.choices.map(choice => choice.label)].join(' '), /考考|直觉|选一个答案|答对|答错|IAL|第一单元/);
       assert.doesNotMatch(reply.text, /<[^>]*>/);
       if (state.records.length < 2) assert.notEqual(reply.action?.kind, 'replay');
       assert.deepEqual(state, before);
