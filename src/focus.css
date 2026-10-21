@@ -1,0 +1,232 @@
+/* Keep each turn centred on one decision; reference views open on demand. */
+.app-shell.focus-layout { max-width: 1160px; padding: 0 28px 116px; }
+.focus-layout .topbar { min-height: 80px; margin: 0 -28px 22px; padding: 14px 28px; gap: 24px; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); }
+.focus-layout .brand { gap: 10px; }
+.focus-layout .brand-mark { width: 30px; height: 36px; color: #84673e; border-color: #b6a27b; font-size: 21px; }
+.focus-layout .brand-kicker { color: #827353; font-size: 8px; letter-spacing: .14em; }
+.focus-layout .brand h1 { color: var(--green); font-size: 22px; }
+.focus-layout .topbar .button { min-height: 44px; padding-inline: 15px; border-color: #c5bfac; color: var(--green); background: #faf7ee; }
+.focus-layout .topbar .button:hover { border-color: #8b9e7e; background: #e9eddf; }
+.focus-layout .top-actions { display: flex; flex: 0 0 auto; justify-content: flex-end; }
+.focus-layout .resource-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px 24px; margin-left: auto; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.focus-layout .resource-status > span { white-space: nowrap; }
+.focus-layout .resource-status strong { margin-left: 6px; color: var(--green); font-size: 17px; font-weight: 600; }
+.focus-layout .resource-status small { margin-left: 3px; color: var(--muted); font-size: 11px; }
+.focus-layout .goal-status { min-height: 44px; padding: 6px 0; border: 0; background: transparent; color: #627354; font-size: 12px; white-space: nowrap; text-decoration: underline; text-decoration-color: #bbc4ac; text-underline-offset: 4px; }
+.focus-layout .goal-status:hover { color: var(--green); text-decoration-color: var(--green); }
+.focus-layout .workspace { display: block; max-width: 1060px; margin-inline: auto; }
+.focus-layout .main-panel { border-radius: 10px; box-shadow: 0 5px 22px #27392d05; }
+.focus-layout .view-tabs.primary-tabs { max-width: 1060px; gap: 12px; margin: 0 auto 17px; padding: 0 12px; }
+.focus-layout .primary-tabs .tab-button { min-height: 50px; padding: 11px 16px; font-size: 14px; }
+.focus-layout .primary-tabs .tab-button[aria-current="page"] { border-bottom-color: var(--green); color: var(--green); font-weight: 700; }
+.focus-layout .view-tabs.secondary-tabs { max-width: 1060px; gap: 5px; margin: -8px auto 17px; padding: 7px 12px; background: #f6f3e9; }
+.focus-layout .secondary-tabs .tab-button { min-height: 44px; padding: 8px 12px; border: 1px solid transparent; border-radius: 5px; font-size: 12px; }
+.focus-layout .secondary-tabs .tab-button[aria-current="page"] { border-color: #c5d0b7; background: #e8eddf; color: var(--green); }
+.focus-layout .season-heading { padding: 25px 30px 12px; }
+.focus-layout .season-title { font-size: 28px; letter-spacing: .02em; }
+.focus-layout .season-heading .eyebrow { font-size: 10px; letter-spacing: .12em; }
+.focus-layout .season-badge { padding: 4px 10px; border-color: #ddd6c4; border-radius: 16px; background: #f5f2e8; color: #786c51; font-size: 11px; }
+.focus-layout .command-view { padding: 20px 30px 30px; }
+.focus-layout .stage-track { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; margin: 0 30px 0; padding: 0; list-style: none; color: #7c8072; font-size: 12px; }
+.focus-layout .stage-track > span, .focus-layout .stage-track > li { display: inline-flex; align-items: center; gap: 7px; min-height: 25px; }
+.focus-layout .stage-track .active, .focus-layout .stage-track [aria-current="step"] { color: var(--green); font-weight: 650; }
+.focus-layout .stage-track .complete { color: #68815c; }
+.focus-layout .stage-track b { display: inline-grid; place-items: center; width: 22px; height: 22px; border: 1px solid #d2d3c5; border-radius: 50%; font-size: 11px; font-weight: 500; }
+.focus-layout .stage-track .active b, .focus-layout .stage-track [aria-current="step"] b { border-color: var(--green); background: var(--green); color: #fffdf6; }
+.focus-layout .section-heading { margin: 22px 0 12px; gap: 6px 14px; }
+.focus-layout .section-heading h3 { font-size: 18px; font-weight: 600; }
+.focus-layout .section-heading > span { font-size: 12px; }
+.focus-layout .situation { grid-template-columns: repeat(2, auto) minmax(0, 1fr); gap: 20px; padding: 15px 18px; border-color: #e0dbcc; border-radius: 7px; background: #f5f2e8; }
+.focus-layout .situation > div { padding-right: 20px; border-right: 1px solid #ddd6c3; }
+.focus-layout .situation span { font-size: 12px; }
+.focus-layout .situation strong { margin-top: 3px; font-size: 21px; font-weight: 600; }
+.focus-layout .situation p { grid-column: auto; padding-top: 0; border-top: 0; font-size: 13px; line-height: 1.7; }
+.focus-layout .strategy-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.focus-layout .strategy-card { gap: 7px; min-height: 106px; padding: 16px 14px; border-radius: 7px; border-width: 1px; box-shadow: none; }
+.focus-layout .strategy-card.selected { padding: 15px 13px; border-width: 2px; background: #edf2e6; box-shadow: none; }
+.focus-layout .strategy-card > strong { font-size: 17px; font-weight: 600; }
+.focus-layout .strategy-card > span:not(.strategy-number) { color: #727663; font-size: 12px; line-height: 1.55; }
+.focus-layout .strategy-card.selected > span:not(.strategy-number) { color: #4d6447; }
+.focus-layout .selected-plan { margin: 16px 0 0; padding: 14px 0 3px; border-top: 1px solid #e2ded1; color: #58624f; font-size: 13px; }
+.focus-layout .selected-plan > strong { color: var(--green); font-weight: 600; }
+.focus-layout .selected-plan p { margin: 6px 0 0; line-height: 1.7; }
+.focus-layout .selected-plan .inline-help { margin-top: 5px; }
+.focus-layout .policy-custom { margin: 15px 0 12px; border-color: #ddd7c8; border-radius: 6px; background: #fcfaf3; }
+.focus-layout .policy-custom > summary { min-height: 46px; padding: 11px 14px; color: #5b6651; font-size: 13px; }
+.focus-layout .policy-custom[open] > summary { border-bottom: 1px solid #e2dccd; }
+.focus-layout .custom-policy-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; padding: 18px 16px 7px; }
+.focus-layout .custom-policy-grid .policy-group { margin-bottom: 10px; }
+.focus-layout .custom-policy-grid .choice-button { min-height: 44px; }
+.focus-layout .policy-custom .reuse-button { width: auto; min-height: 44px; margin: 0 16px 15px; }
+.focus-layout .policy-title { gap: 3px 8px; margin-bottom: 8px; }
+.focus-layout .policy-help { font-size: 12px; }
+.focus-layout .resource-check { margin: 12px 0 0; padding: 10px 13px; border: 0; border-radius: 5px; background: #edf2e6; font-size: 12px; }
+.focus-layout .resource-check.error { border: 1px solid #e2b6a6; background: #f9eae2; }
+.focus-layout .focused-prediction { max-width: 760px; margin-inline: auto; }
+.focus-layout .focused-prediction .selected-plan { margin: 0 0 22px; padding: 12px 16px; border: 1px solid #d8decb; border-radius: 6px; background: #f1f4e9; }
+.focus-layout .focused-prediction .prediction-form { margin: 0; padding: 0; border: 0; }
+.focus-layout .prediction-form h3 { font-size: 21px; }
+.focus-layout .prediction-form > .inline-help { margin: 7px 0 18px; font-size: 13px; }
+.focus-layout .prediction-options { margin: 18px 0; gap: 9px; }
+.focus-layout .prediction-options > span { font-size: 14px; font-weight: 600; }
+.focus-layout .prediction-options > div { gap: 10px; }
+.focus-layout .prediction-options button { min-height: 46px; padding: 9px; font-size: 14px; }
+.focus-layout .reason-chips { gap: 9px; margin: 10px 0 14px; }
+.focus-layout .reason-chips button { min-height: 46px; padding: 10px 12px; font-size: 12px; }
+.focus-layout .prediction-form summary { min-height: 44px; padding: 10px 13px; font-size: 13px; }
+.focus-layout .prediction-form .detail-body { padding: 3px 13px 13px; }
+.focus-layout .outcome-heading { padding: 20px 22px; border-radius: 7px; }
+.focus-layout .outcome-heading h3 { margin: 4px 0 14px; font-size: 27px; }
+.focus-layout .outcome-heading p { font-size: 13px; }
+.focus-layout .comparison-label { margin: 17px 0 0; color: var(--muted); font-size: 12px; }
+.focus-layout .effect-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+.focus-layout .effect-card { padding: 17px 20px; border-color: #e1ddcf; border-radius: 6px; background: #fcfaf3; }
+.focus-layout .effect-card > span:first-child { font-size: 12px; }
+.focus-layout .effect-card > strong { margin: 5px 0; font-size: 30px; font-weight: 600; }
+.focus-layout .effect-delta { font-size: 12px; }
+.focus-layout .resource-impact { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 25px; margin: 12px 0; padding: 0 2px; color: #74715f; font-size: 12px; font-variant-numeric: tabular-nums; }
+.focus-layout .resource-impact strong { color: #4f5f48; font-weight: 600; }
+.focus-layout .causal-feedback { margin: 18px 0; padding: 14px 17px; border-radius: 0 5px 5px 0; background: #f0f3e8; }
+.focus-layout .causal-feedback p { margin: 5px 0 0; font-size: 14px; line-height: 1.8; }
+.focus-layout .result-details { margin-top: 18px; border-radius: 6px; }
+.focus-layout .result-details > summary { min-height: 46px; padding: 12px 15px; color: #58664e; font-size: 13px; }
+.focus-layout .result-details > .detail-body { padding: 0 16px 17px; }
+.focus-layout .result-details > :not(summary) { margin: 8px 16px 15px; }
+.focus-layout .result-details .resident-feedback { margin-top: 6px; }
+.focus-layout .result-details .forecast-feedback { font-size: 13px; }
+.focus-layout .briefing-advisor { width: 240px; margin: 0 0 18px 34px; padding-top: 14px; border-radius: 90px 90px 8px 8px; }
+.focus-layout .briefing-advisor img { max-height: 245px; }
+.focus-layout .briefing h3 { margin-top: 4px; max-width: 600px; font-size: 30px; }
+.focus-layout .briefing > p { max-width: 660px; font-size: 15px; }
+.focus-layout .briefing .play-loop { grid-template-columns: minmax(0, 1fr); clear: none; gap: 9px; margin: 22px 274px 20px 0; }
+.focus-layout .briefing .play-loop li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 2px 10px; padding: 10px 13px; border-top: 0; border-left: 2px solid #b8a16c; background: #f5f2e8; }
+.focus-layout .briefing .play-loop li::before { grid-row: 1 / 3; align-self: center; margin: 0; }
+.focus-layout .briefing .play-loop span { margin: 0; font-size: 12px; }
+.focus-layout .footer-note { max-width: 1060px; margin: 16px auto 0; color: #818172; font-size: 11px; }
+.focus-layout .action-dock { width: min(1060px, calc(100% - 56px)); gap: 18px; padding: 10px 17px calc(10px + env(safe-area-inset-bottom, 0px)); border-radius: 8px 8px 0 0; }
+.focus-layout .dock-context { gap: 12px; }
+.focus-layout .dock-context strong { font-size: 13px; font-weight: 600; }
+.focus-layout .dock-context > div > span { margin-top: 4px; font-size: 11px; }
+.focus-layout .advisor-trigger { flex-basis: 46px; width: 46px; min-height: 48px; border-radius: 6px; }
+.focus-layout .advisor-trigger img { width: 44px; height: 34px; }
+.focus-layout .dock-context .advisor-trigger span { font-size: 9px; }
+.focus-layout .dock-buttons { gap: 10px; }
+.focus-layout .action-dock .button { min-height: 46px; padding: 9px 17px; font-size: 14px; }
+.focus-layout .action-dock .primary { min-width: 175px; }
+.focus-layout .menu-dialog { width: min(450px, calc(100% - 28px)); padding: 25px; border-radius: 10px; }
+.focus-layout .menu-dialog h2 { margin-bottom: 5px; font-size: 26px; }
+.focus-layout .menu-options { display: grid; gap: 10px; margin: 20px 0 0; }
+.focus-layout .menu-options .button { justify-content: flex-start; min-height: 48px; padding: 11px 14px; text-align: left; font-size: 14px; }
+.focus-layout .menu-options .button small { margin-left: auto; color: var(--muted); font-size: 11px; }
+
+@media (max-width: 760px) {
+  .app-shell.focus-layout { padding-inline: 18px; }
+  .focus-layout .topbar { margin-inline: -18px; padding-inline: 18px; gap: 14px; }
+  .focus-layout .resource-status { gap: 5px 14px; font-size: 12px; }
+  .focus-layout .resource-status strong { margin-left: 4px; font-size: 15px; }
+  .focus-layout .brand-mark { display: none; }
+  .focus-layout .strategy-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .focus-layout .strategy-card { min-height: 92px; }
+  .focus-layout .situation { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .focus-layout .situation > div { padding: 0; border: 0; }
+  .focus-layout .situation p { grid-column: 1 / -1; padding-top: 10px; border-top: 1px solid #ddd6c3; }
+  .focus-layout .custom-policy-grid { grid-template-columns: minmax(0, 1fr); gap: 13px; }
+  .focus-layout .policy-title { flex-wrap: nowrap; }
+  .focus-layout .briefing-advisor { width: 185px; margin-left: 24px; }
+  .focus-layout .briefing .play-loop { margin-right: 209px; }
+  .focus-layout .briefing h3 { font-size: 27px; }
+  .focus-layout .action-dock { width: calc(100% - 36px); gap: 12px; padding-inline: 12px; }
+  .focus-layout .action-dock .button { padding-inline: 12px; font-size: 13px; }
+  .focus-layout .action-dock .primary { min-width: 145px; }
+}
+
+@media (max-width: 520px) {
+  .app-shell.focus-layout { padding: 0 10px calc(158px + env(safe-area-inset-bottom, 0px)); }
+  .focus-layout .topbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px 12px; margin: 0 -10px 12px; padding: 12px 15px; }
+  .focus-layout .brand { grid-column: 1; grid-row: 1; }
+  .focus-layout .brand h1 { font-size: 22px; }
+  .focus-layout .brand-kicker { display: none; }
+  .focus-layout .top-actions { grid-column: 2; grid-row: 1; margin: 0; }
+  .focus-layout .topbar .button { min-height: 44px; padding: 7px 13px; font-size: 13px; }
+  .focus-layout .resource-status { grid-column: 1 / -1; grid-row: 2; justify-content: space-between; gap: 6px 10px; width: 100%; margin: 0; font-size: 12px; }
+  .focus-layout .resource-status strong { font-size: 15px; }
+  .focus-layout .resource-status small { font-size: 10px; }
+  .focus-layout .view-tabs.primary-tabs { gap: 4px; margin-bottom: 12px; padding-inline: 10px; }
+  .focus-layout .primary-tabs .tab-button { flex: 1; min-height: 46px; padding: 10px 6px; font-size: 13px; }
+  .focus-layout .view-tabs.secondary-tabs { gap: 4px; padding: 8px 10px; }
+  .focus-layout .secondary-tabs .tab-button { padding-inline: 9px; }
+  .focus-layout .season-heading { align-items: flex-start; gap: 9px; padding: 19px 17px 10px; }
+  .focus-layout .season-title { font-size: 24px; }
+  .focus-layout .season-badge { flex: 0 0 auto; margin-top: 3px; padding: 4px 7px; font-size: 10px; }
+  .focus-layout .command-view { padding: 14px 16px 22px; }
+  .focus-layout .stage-track { gap: 7px 13px; margin-inline: 17px; font-size: 11px; }
+  .focus-layout .stage-track > span, .focus-layout .stage-track > li { gap: 5px; }
+  .focus-layout .stage-track b { width: 20px; height: 20px; font-size: 10px; }
+  .focus-layout .section-heading { margin: 19px 0 11px; }
+  .focus-layout .section-heading h3 { font-size: 17px; }
+  .focus-layout .section-heading > span { font-size: 11px; }
+  .focus-layout .situation { gap: 10px; padding: 12px 13px; }
+  .focus-layout .situation span { font-size: 11px; }
+  .focus-layout .situation strong { font-size: 20px; }
+  .focus-layout .situation p { padding-top: 9px; font-size: 12px; }
+  .focus-layout .strategy-grid { gap: 9px; }
+  .focus-layout .strategy-card { min-height: 91px; gap: 6px; padding: 13px 11px; }
+  .focus-layout .strategy-card.selected { padding: 12px 10px; }
+  .focus-layout .strategy-card > strong { font-size: 16px; }
+  .focus-layout .strategy-card > span:not(.strategy-number) { font-size: 12px; }
+  .focus-layout .selected-plan { margin-top: 15px; padding-top: 13px; font-size: 12px; }
+  .focus-layout .custom-policy-grid { padding: 15px 12px 6px; gap: 14px; }
+  .focus-layout .policy-custom .reuse-button { margin-inline: 12px; }
+  .focus-layout .focused-prediction .selected-plan { margin-bottom: 19px; padding: 11px 12px; }
+  .focus-layout .prediction-form h3 { font-size: 20px; }
+  .focus-layout .prediction-form > .inline-help { font-size: 12px; }
+  .focus-layout .prediction-options > div { gap: 7px; }
+  .focus-layout .prediction-options button { padding-inline: 5px; font-size: 13px; }
+  .focus-layout .reason-chips { gap: 7px; }
+  .focus-layout .reason-chips button { padding: 9px 10px; font-size: 12px; }
+  .focus-layout .outcome-heading { padding: 16px; }
+  .focus-layout .outcome-heading h3 { font-size: 24px; }
+  .focus-layout .outcome-heading p { font-size: 12px; }
+  .focus-layout .effect-grid { gap: 9px; margin-top: 13px; }
+  .focus-layout .effect-card { padding: 13px 12px; }
+  .focus-layout .effect-card > strong { font-size: 26px; }
+  .focus-layout .effect-card > span:first-child, .focus-layout .effect-delta { font-size: 11px; }
+  .focus-layout .effect-card small { display: block; margin-left: 0; }
+  .focus-layout .resource-impact { gap: 6px 14px; font-size: 11px; }
+  .focus-layout .causal-feedback { margin: 15px 0; padding: 12px 13px; }
+  .focus-layout .causal-feedback p { font-size: 13px; }
+  .focus-layout .briefing-advisor { width: 115px; margin: 0 0 13px 15px; padding-top: 7px; border-radius: 55px 55px 7px 7px; }
+  .focus-layout .briefing-advisor img { max-height: 151px; }
+  .focus-layout .briefing-advisor > span { padding: 6px 3px; font-size: 11px; }
+  .focus-layout .briefing-advisor small { display: block; font-size: 10px; }
+  .focus-layout .briefing h3 { margin-top: 2px; font-size: 25px; }
+  .focus-layout .briefing > p { font-size: 13px; }
+  .focus-layout .briefing .play-loop { clear: both; margin: 20px 0 17px; gap: 8px; }
+  .focus-layout .briefing .play-loop li { padding: 10px 11px; }
+  .focus-layout .briefing .play-loop strong { font-size: 14px; }
+  .focus-layout .briefing .play-loop span { font-size: 12px; }
+  .focus-layout .action-dock { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; width: 100%; padding: 9px 14px calc(10px + env(safe-area-inset-bottom, 0px)); border-inline: 0; border-radius: 0; }
+  .focus-layout .dock-context { grid-column: 1; gap: 10px; }
+  .focus-layout .dock-context strong { font-size: 12px; }
+  .focus-layout .dock-context > div > span { margin-top: 2px; font-size: 11px; }
+  .focus-layout .dock-buttons { grid-column: 1; gap: 8px; }
+  .focus-layout .action-dock .button { min-height: 44px; padding: 8px 10px; font-size: 13px; }
+  .focus-layout .action-dock .primary { flex: 1.25; min-width: 0; }
+  .focus-layout .footer-note { margin-inline: 5px; font-size: 10px; }
+  .focus-layout .menu-dialog { padding: 21px; }
+}
+
+@media (max-width: 360px) {
+  .focus-layout .command-view { padding-inline: 13px; }
+  .focus-layout .season-heading { padding-inline: 14px; }
+  .focus-layout .season-title { font-size: 22px; }
+  .focus-layout .resource-status { gap: 6px; font-size: 11px; }
+  .focus-layout .resource-status strong { margin-left: 3px; font-size: 14px; }
+  .focus-layout .goal-status { font-size: 11px; }
+  .focus-layout .strategy-card > strong { font-size: 15px; }
+  .focus-layout .stage-track { gap: 7px 10px; }
+  .focus-layout .effect-card { padding-inline: 10px; }
+  .focus-layout .effect-card > strong { font-size: 23px; }
+  .focus-layout .briefing-advisor { width: 100px; margin-left: 12px; }
+  .focus-layout .briefing h3 { font-size: 23px; }
+}

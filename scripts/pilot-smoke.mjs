@@ -29,9 +29,15 @@ async function storage(page, key) {
 }
 
 async function openPilot(page, id = 'pilot-button') {
+  if (id === 'pilot-button' && !await page.locator('#pilot-button').isVisible()) await page.locator('#menu-button').click();
   await page.locator(`#${id}`).click();
   await page.locator('#game-dialog[open]').waitFor();
   assert.equal(await page.locator('#dialog-title').innerText(), '学生试玩');
+}
+
+async function openReset(page) {
+  await page.locator('#menu-button').click();
+  await page.locator('#reset-button').click();
 }
 
 async function fillFeedback(page) {
@@ -53,7 +59,8 @@ async function assertFeedback(page, expected = feedback) {
 async function twoSeasons(page) {
   await page.getByRole('button', { name: '查看正常市场', exact: true }).click();
   await page.locator('[data-action="next"]').click();
-  await page.locator('#draft-cap-5').click();
+  await page.locator('#strategy-1').click();
+  await page.locator('#prediction-next').click();
   await page.locator('#prediction-price-down').click();
   await page.locator('#prediction-purchases-up').click();
   await page.locator('#reason-1').click();
@@ -124,7 +131,7 @@ try {
       await openPilot(page, entry);
       await page.keyboard.press('Escape');
       assert.equal(await page.locator('#game-dialog').count(), 0);
-      assert.equal(await page.evaluate(() => document.activeElement?.id), entry, 'Escape should return focus to the original entry.');
+      assert.equal(await page.evaluate(() => document.activeElement?.id), entry === 'pilot-button' ? 'menu-button' : entry, 'Escape should return focus to the visible entry.');
     }
     await openPilot(page);
     assert.match(await page.locator('.pilot-feedback').innerText(), /不会自动上传/);
@@ -135,7 +142,7 @@ try {
     await openPilot(page);
     await assertFeedback(page);
     await page.getByRole('button', { name: '返回游戏 ×', exact: true }).click();
-    assert.equal(await page.evaluate(() => document.activeElement?.id), 'pilot-button');
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'menu-button');
     await page.reload({ waitUntil: 'networkidle' });
     await openPilot(page);
     await assertFeedback(page);
@@ -197,12 +204,12 @@ try {
     await page.keyboard.press('Escape');
     const originalGame = await storage(page, saveKey);
     const originalFeedback = await storage(page, feedbackKey);
-    await page.locator('#reset-button').click();
+    await openReset(page);
     assert.match(await page.locator('#game-dialog').innerText(), /清空.*试玩反馈|试玩反馈.*清空/, 'Reset must disclose that it also clears the feedback draft.');
     await page.getByRole('button', { name: '继续当前游戏', exact: true }).click();
     assert.equal(await storage(page, saveKey), originalGame);
     assert.equal(await storage(page, feedbackKey), originalFeedback);
-    await page.locator('#reset-button').click();
+    await openReset(page);
     await page.locator('[data-action="confirm-reset"]').click();
     const fresh = JSON.parse(await storage(page, saveKey));
     assert.equal(fresh.phase, 'briefing');
@@ -280,7 +287,7 @@ try {
     await page.evaluate(() => {
       Storage.prototype.removeItem = function () { throw new DOMException('Deletion blocked for this test', 'SecurityError'); };
     });
-    await page.locator('#reset-button').click();
+    await openReset(page);
     await page.locator('[data-action="confirm-reset"]').click();
     const fresh = JSON.parse(await storage(page, saveKey));
     assert.equal(fresh.phase, 'briefing');
@@ -301,7 +308,10 @@ try {
       await page.setViewportSize({ width, height: 812 });
       await assertNoHorizontalOverflow(page, `${width}px introduction`);
       await assertReachable(page, page.locator('.action-dock [data-action="settle"]'), 'The bottom main action');
-      await page.locator('#pilot-button').scrollIntoViewIfNeeded();
+      await page.locator('#menu-button').scrollIntoViewIfNeeded();
+      await assertReachable(page, page.locator('#menu-button'), 'The menu entry');
+      await page.locator('#menu-button').click();
+      await assertNoHorizontalOverflow(page, `${width}px menu`);
       await assertReachable(page, page.locator('#pilot-button'), 'The playtest entry');
       await openPilot(page);
       await assertNoHorizontalOverflow(page, `${width}px feedback`);

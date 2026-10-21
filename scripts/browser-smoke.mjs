@@ -9,7 +9,10 @@ const saveKey = 'prosperity-road.bread-crisis.v1';
 const macChrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const executablePath = process.env.BROWSER_EXECUTABLE ||
   (existsSync(macChrome) ? macChrome : undefined);
-const browser = await chromium.launch({ headless: true, executablePath });
+const browser = await chromium.launch({
+  headless: true, executablePath,
+  ...(process.env.BROWSER_PROXY ? { proxy: { server: process.env.BROWSER_PROXY } } : {}),
+});
 let completed = 0;
 
 function near(actual, expected, label) {
@@ -31,12 +34,32 @@ async function writeReason(page, reason) {
 }
 
 async function predict(page, reason) {
+  if (await page.locator('#prediction-next').count()) await page.locator('#prediction-next').click();
   if (await page.locator('#prediction-price-down').count()) {
     await page.locator('#prediction-price-down').click();
     await page.locator('#prediction-purchases-up').click();
     if (reason === undefined) await page.locator('#reason-0').click();
     else await writeReason(page, reason);
   }
+}
+
+async function openMenuAction(page, id) {
+  await page.locator('#menu-button').click();
+  await page.locator(`#${id}`).click();
+}
+
+async function selectView(page, view) {
+  if (!['command', 'town'].includes(view) && !await page.locator(`#tab-${view}`).isVisible()) {
+    await page.locator('#tab-data').click();
+  }
+  await page.locator(`#tab-${view}`).click();
+}
+
+async function customize(page, key, value) {
+  const custom = page.locator('#policy-custom');
+  if (await custom.getAttribute('open') === null) await custom.locator('summary').click();
+  await page.locator(`#draft-${key}-${value ?? 'none'}`).click();
+  assert.notEqual(await custom.getAttribute('open'), null, 'Custom controls remain open while adjusting a combination.');
 }
 
 async function assertDockReachable(page, action = 'settle') {
@@ -80,7 +103,8 @@ async function baseline(page) {
   near(state.records[0].result.price, 5, 'Baseline price');
   near(state.records[0].result.purchasesLow, 40, 'Baseline low-income purchases');
   near(state.records[0].result.after.cash, 160, 'Baseline cash');
-  assert.match(await page.locator('.stats-grid').innerText(), /5\.00/);
+  assert.match(await page.locator('.effect-grid').innerText(), /5\.00/);
+  assert.equal(await page.locator('.effect-card').count(), 2, 'The outcome leads with only price and actual purchases.');
 }
 
 async function advance(page) {
@@ -90,7 +114,7 @@ async function advance(page) {
 
 async function settlePolicy(page, policy = {}) {
   for (const [key, value] of Object.entries(policy)) {
-    await page.locator(`#draft-${key}-${value ?? 'none'}`).click();
+    await customize(page, key, value);
   }
   await predict(page);
   assert.equal(await page.locator('#settle-button').isDisabled(), false);
@@ -122,25 +146,33 @@ try {
   await isolated('基期、必填预测、限价结果、刷新恢复与独立回放', async page => {
     await baseline(page);
     await advance(page);
+    assert.equal(await page.locator('#settle-button').count(), 0, 'Policy selection has only the next-step action.');
+    await page.locator('#prediction-next').click();
     assert.equal(await page.locator('#settle-button').isDisabled(), true);
     await page.locator('#prediction-price-down').click();
     await page.locator('#prediction-purchases-up').click();
     assert.equal(await page.locator('#settle-button').isDisabled(), true, 'Two directions alone are insufficient.');
     await writeReason(page, '   ');
     assert.equal(await page.locator('#settle-button').isDisabled(), true, 'Whitespace is not a reason.');
+    const partialPrediction = await savedState(page);
+    await page.reload({ waitUntil: 'networkidle' });
+    assert.deepEqual(await savedState(page), partialPrediction);
+    assert.equal(await page.locator('#prediction-price-down').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('#settle-button').isDisabled(), true, 'A partial restored forecast stays in the prediction step and cannot execute.');
     await writeReason(page, '较低的限价可能使生产者减少供给。');
     assert.equal(await page.locator('#settle-button').isDisabled(), false);
 
-    await page.locator('#draft-cap-5').click();
-    assert.equal(await page.locator('[data-action="predict"][aria-pressed="true"]').count(), 0);
-    assert.equal(await page.locator('#prediction-reason').inputValue(), '');
+    await page.locator('[data-action="guide-policy"]').click();
+    await customize(page, 'cap', 5);
+    assert.deepEqual((await savedState(page)).prediction, { price: '', purchases: '', reason: '' });
+    await page.locator('#prediction-next').click();
     assert.equal(await page.locator('#settle-button').isDisabled(), true);
     await predict(page, '限价降低生产者所得，可能减少实际供给与购粮。');
     const decision = await savedState(page);
     assert.equal(decision.version, 1, 'The previous save format remains supported.');
     await page.reload({ waitUntil: 'networkidle' });
     assert.deepEqual(await savedState(page), decision);
-    assert.equal(await page.locator('#draft-cap-5').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('[data-context="draft"]').count(), 0, 'Restored predictions open their own focused step.');
     assert.equal(await page.locator('#prediction-price-down').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('#prediction-purchases-up').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('#prediction-reason').inputValue(), decision.prediction.reason);
@@ -154,10 +186,10 @@ try {
     await page.locator('#outcome-title').waitFor({ state: 'visible' });
     const effect = page.locator('.effect-card').filter({ hasText: '低收入组实际购粮' });
     assert.match(await effect.innerText(), /24\.00.*无干预 25\.00 → 政策影响 −1\.00/s);
-    await page.locator('#tab-people').click();
+    await selectView(page, 'people');
     const residentRow = page.locator('tbody tr').filter({ hasText: '低收入组' });
     assert.equal(await residentRow.locator('td').nth(2).innerText(), '24.00');
-    await page.locator('#tab-market').click();
+    await selectView(page, 'market');
     assert.match(await page.locator('#market-chart svg').getAttribute('aria-label'), /实际成交60\.00，超额需求40\.00/);
 
     await page.reload({ waitUntil: 'networkidle' });
@@ -177,17 +209,17 @@ try {
   });
 
   await isolated('六季成功路径、报告保存与下载、弹窗焦点、375px布局', async page => {
-    await page.locator('#help-button').click();
+    await openMenuAction(page, 'help-button');
     await page.locator('#game-dialog[open]').waitFor();
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('#game-dialog').count(), 0);
-    assert.equal(await page.evaluate(() => document.activeElement?.id), 'help-button');
-    await page.locator('#help-button').click();
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'menu-button');
+    await openMenuAction(page, 'help-button');
     await page.getByRole('button', { name: '返回游戏', exact: true }).click();
-    assert.equal(await page.evaluate(() => document.activeElement?.id), 'help-button');
-    await page.locator('#reset-button').click();
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'menu-button');
+    await openMenuAction(page, 'reset-button');
     await page.getByRole('button', { name: '继续当前游戏', exact: true }).click();
-    assert.equal(await page.evaluate(() => document.activeElement?.id), 'reset-button');
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'menu-button');
 
     await baseline(page);
     for (const policy of [{ release: 20 }, { release: 20 }, { subsidy: 1 }, {}, {}]) {
@@ -209,8 +241,8 @@ try {
     await page.locator('textarea[data-report="evidence"]').fill('第2季低收入组实际购粮35单位，期末保留20单位储备。');
     await page.locator('textarea[data-report="explanation"]').fill('公共投放增加当季可售量，恢复期补贴带来更多私人生产。');
     await page.locator('textarea[data-report="conditions"]').fill('原料约束、财政空间与未来储备需求改变时，应重新比较政策。');
-    await page.locator('#tab-history').click();
-    await page.locator('#tab-report').click();
+    await selectView(page, 'history');
+    await selectView(page, 'report');
     assert.equal(await page.locator('textarea[data-report="action"]').inputValue(), reportText);
     assert.equal(await page.locator('[data-smoke-injection]').count(), 0);
     assert.equal(await page.evaluate(() => window.__smokeXss), undefined);
@@ -237,7 +269,7 @@ try {
     await page.screenshot({ path: '.qa/browser-smoke-desktop.png', fullPage: true });
     await page.setViewportSize({ width: 375, height: 812 });
     for (const view of ['command', 'town', 'market', 'people', 'accounts', 'history', 'replay', 'report']) {
-      await page.locator(`#tab-${view}`).click();
+      await selectView(page, view);
       if (view === 'replay') await page.locator('[data-action="run-replay"]').click();
       await assertNoHorizontalOverflow(page, view);
     }
@@ -251,7 +283,7 @@ try {
     await settlePolicy(page, { subsidy: 2 });
     near((await savedState(page)).records[1].result.after.cash, 20, 'Cash available after subsidy');
     await advance(page);
-    await page.locator('#draft-subsidy-1').click();
+    await customize(page, 'subsidy', 1);
     assert.match(await page.locator('.resource-check').innerText(), /现金不足/);
     assert.equal(await page.locator('#settle-button').isDisabled(), true);
     const before = await savedState(page);
@@ -274,7 +306,7 @@ try {
     }
     near((await savedState(page)).records[3].result.after.reserves, 0, 'Reserves after three releases');
     await advance(page);
-    await page.locator('#draft-release-10').click();
+    await customize(page, 'release', 10);
     assert.match(await page.locator('.resource-check').innerText(), /公共储备不足/);
     assert.equal(await page.locator('#settle-button').isDisabled(), true);
     const before = await savedState(page);
@@ -291,6 +323,7 @@ try {
   for (const [device, viewport] of [
     ['desktop', { width: 1280, height: 800 }],
     ['mobile', { width: 375, height: 812 }],
+    ['small-mobile', { width: 320, height: 812 }],
   ]) {
     await isolated(`${device} 操作可达、三次点击预测、即时结算反馈与无损试算`, async page => {
       await page.setViewportSize(viewport);
@@ -298,9 +331,23 @@ try {
       await baseline(page);
       await assertDockReachable(page, 'next');
       await advance(page);
-      await assertDockReachable(page);
+      await assertDockReachable(page, 'guide-prediction');
+      assert.equal(await page.locator('.action-dock .primary').count(), 1, 'Each step has one primary action.');
+      assert.equal(await page.locator('.stats-grid, .policy-panel').count(), 0, 'Repeated global statistics and the policy sidebar are removed.');
+      assert.equal(await page.locator('.top-actions button').count(), 1, 'Utilities are collected in one menu.');
+      assert.equal(await page.locator('.resource-status').count(), 1);
+      assert.doesNotMatch(await page.locator('.resource-status').innerText(), /售价|价格|购粮|5\.00|40\.00/, 'Global status must not present prior outcomes as current predictions.');
+      assert.equal(await page.locator('.economy-scene').count(), 0, 'The decision step focuses on the policy choice.');
+      assert.equal(await page.locator('.secondary-tabs').count(), 0, 'Detailed data navigation is tucked away by default.');
+      assert.equal(await page.locator('#prediction-price-down').count(), 0, 'Predictions belong to the next step.');
+      assert.equal(await page.locator('#policy-custom').getAttribute('open'), null, 'Fine-tuning starts collapsed.');
       await page.locator('#strategy-1').click();
       assert.deepEqual((await savedState(page)).draft, { cap: 5, subsidy: 0, release: 0 });
+      await page.screenshot({ path: `.qa/ux-${device}-policy.png` });
+      await page.locator('#prediction-next').click();
+      assert.equal(await page.locator('[data-context="draft"], [data-action="strategy"]').count(), 0, 'The prediction step does not also show policy inputs.');
+      assert.equal(await page.locator('.action-dock .primary').count(), 1);
+      await assertDockReachable(page);
       await page.locator('#prediction-price-down').click();
       await page.locator('#prediction-purchases-up').click();
       assert.equal(await page.locator('#settle-button').isDisabled(), true);
@@ -308,13 +355,15 @@ try {
       assert.equal(await page.locator('#settle-button').isDisabled(), false, 'Three clicks complete the prediction without typing.');
       const selectedPrediction = (await savedState(page)).prediction;
       assert.ok(selectedPrediction.reason.trim());
+      await page.locator('[data-action="guide-policy"]').click();
+      assert.deepEqual((await savedState(page)).prediction, selectedPrediction, 'Going back alone keeps the prediction.');
       await page.locator('#strategy-1').click();
       assert.deepEqual((await savedState(page)).prediction, selectedPrediction, 'Re-selecting a strategy preserves the prediction.');
-      await page.locator('#draft-cap-5').click();
+      await customize(page, 'cap', 5);
       assert.deepEqual((await savedState(page)).prediction, selectedPrediction, 'Re-selecting the same policy preserves the prediction.');
       await page.locator('#strategy-2').click();
       assert.deepEqual((await savedState(page)).prediction, { price: '', purchases: '', reason: '' });
-      assert.equal(await page.locator('#settle-button').isDisabled(), true);
+      assert.equal(await page.locator('#settle-button').count(), 0, 'Changing policy returns to the policy step.');
       await page.locator('#strategy-1').click();
       await predict(page);
       await page.evaluate(() => window.scrollTo(0, 0));
@@ -330,6 +379,9 @@ try {
       assert.match(await title.innerText(), /未达标.*少买 1 篮/);
       const effect = page.locator('.effect-card').filter({ hasText: '低收入组实际购粮' });
       assert.match(await effect.innerText(), /24\.00.*无干预 25\.00 → 政策影响 −1\.00/s);
+      assert.equal(await page.locator('.effect-card').count(), 2);
+      assert.equal(await page.locator('#forecast-review').getAttribute('open'), null, 'Prediction checking is available without overwhelming the main outcome.');
+      assert.match(await page.locator('.resource-impact').innerText(), /国库|储备/);
       await assertDockReachable(page, 'next');
       await assertNoHorizontalOverflow(page, `${device} result`);
       await page.screenshot({ path: `.qa/ux-${device}-result.png` });
@@ -344,6 +396,14 @@ try {
       await page.reload({ waitUntil: 'networkidle' });
       assert.deepEqual(await savedState(page), original);
       assert.match(await page.locator('#outcome-title').innerText(), /未达标/);
+      await advance(page);
+      assert.match(await page.locator('.stage-track').innerText(), /确认资源/);
+      assert.doesNotMatch(await page.locator('.stage-track').innerText(), /作预测/, 'The third season must not inherit the prior season’s prediction step.');
+      assert.equal(await page.locator('#prediction-next').count(), 0, 'The third season can execute without an unnecessary prediction step.');
+      assert.equal(await page.locator('#settle-button').isDisabled(), false);
+      await assertDockReachable(page);
+      await page.locator('#settle-button').click();
+      assert.equal((await savedState(page)).records.length, 3);
     });
   }
 
@@ -378,14 +438,14 @@ try {
 
     await baseline(page);
     await advance(page);
-    await page.locator('#draft-cap-5').click();
+    await customize(page, 'cap', 5);
     const firstDraft = await savedState(page);
     await page.locator('#advisor-open').click();
     await page.locator('.dialogue-choices [data-topic="policy"]').click();
     assert.match(await page.locator('#advisor-reply').innerText(), /售价上限设为 5/);
     assert.deepEqual(await savedState(page), firstDraft);
     await page.getByRole('button', { name: '关闭顾问对话', exact: true }).click();
-    await page.locator('#draft-cap-6').click();
+    await customize(page, 'cap', 6);
     const revisedDraft = await savedState(page);
     await page.locator('#advisor-open').click();
     assert.equal(await page.locator('.speech-bubble').count(), 1, 'Changing the draft resets stale adviser dialogue.');
@@ -398,7 +458,7 @@ try {
 
     await page.setViewportSize({ width: 375, height: 812 });
     await page.evaluate(() => window.scrollTo(0, 0));
-    await assertDockReachable(page);
+    await assertDockReachable(page, 'guide-prediction');
     await page.locator('#advisor-open').click();
     await assertNoHorizontalOverflow(page, 'mobile adviser');
     const dialogSize = await page.locator('#game-dialog').evaluate(element => ({
@@ -413,7 +473,7 @@ try {
     await page.screenshot({ path: '.qa/advisor-mobile.png' });
     await page.getByRole('button', { name: '关闭顾问对话', exact: true }).click();
     assert.equal(await page.evaluate(() => document.activeElement?.id), 'advisor-open');
-    await assertDockReachable(page);
+    await assertDockReachable(page, 'guide-prediction');
     assert.deepEqual(await savedState(page), revisedDraft, 'Closing the mobile dialogue returns to the same campaign.');
   });
 
@@ -421,7 +481,8 @@ try {
     await baseline(page);
     assert.equal(await page.locator('.scene-reserve-cargo').count(), 0, 'A season without a reserve release must not show reserve cargo.');
     await advance(page);
-    await page.locator('#draft-release-20').click();
+    await customize(page, 'release', 20);
+    await selectView(page, 'town');
     assert.equal(await page.locator('.scene-reserve-cargo').count(), 0, 'A draft is not an executed reserve release.');
     const draft = await savedState(page);
     for (const [place, expected] of [
@@ -437,6 +498,7 @@ try {
       assert.equal(await page.evaluate(() => document.activeElement?.id), `scene-${place}`, 'Closing the adviser returns to the building that opened the conversation.');
       assert.deepEqual(await savedState(page), draft, 'Visiting buildings must not execute or change policy.');
     }
+    await selectView(page, 'command');
     await settlePolicy(page);
     const settled = await savedState(page);
     near(settled.records[1].result.policy.release, 20, 'Reserve release in the executed policy');
@@ -449,18 +511,22 @@ try {
     assert.deepEqual(await savedState(page), settled, 'Replaying the flow must not settle another turn or spend resources.');
     await page.screenshot({ path: '.qa/animated-flow.png' });
 
-    await page.locator('#motion-button').click();
+    await openMenuAction(page, 'motion-button');
+    await page.keyboard.press('Escape');
     assert.equal(await page.locator('.app-shell').getAttribute('data-motion'), 'off');
     assert.equal(await page.locator('.economy-scene').evaluate(element => element.getAnimations({ subtree: true }).filter(animation => animation.playState === 'running').length), 0, 'Turning motion off must stop every scene animation.');
     assert.equal(await page.locator('#scene-replay-button').isDisabled(), true);
     await page.reload({ waitUntil: 'networkidle' });
     assert.equal(await page.locator('.app-shell').getAttribute('data-motion'), 'off', 'The animation preference must survive reload.');
     assert.deepEqual(await savedState(page), settled);
-    await page.locator('#motion-button').click();
+    await openMenuAction(page, 'motion-button');
+    await page.keyboard.press('Escape');
     assert.equal(await page.locator('.app-shell').getAttribute('data-motion'), 'on');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.locator('.app-shell[data-motion="off"]').waitFor();
+    await page.locator('#menu-button').click();
     assert.equal(await page.locator('#motion-button').isDisabled(), true, 'The app must respect the system reduced-motion preference.');
+    await page.keyboard.press('Escape');
     assert.equal(await page.locator('#scene-replay-button').isDisabled(), true);
     assert.equal(await page.locator('.economy-scene').evaluate(element => element.getAnimations({ subtree: true }).filter(animation => animation.playState === 'running').length), 0);
     assert.deepEqual(await savedState(page), settled, 'Animation settings must not alter the campaign.');
