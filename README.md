@@ -24,6 +24,17 @@
 
 人物素材与完整生成提示词见 [制作记录](docs/assets/advisor-lin-lan.md)。
 
+## 学生试玩
+
+[公开游戏链接](https://prosperity-road-ial.bingkunq.chatgpt.site/)无需学生登录。首轮建议3–5人、每人15–20分钟；[教师试玩包](docs/student-pilot.md)包含可转发通知、活动安排、观察表与学习检验题。
+
+- 点击顶部「试玩与反馈」或开场入口，查看三步任务与中文操作演示。视频按需播放，也可下载到教室电脑。
+- 学生可随时填写匿名代号、操作与兴趣评分、卡点、经济发现和改进建议；即使没有完成六季，也能下载包含实际游戏记录的Markdown反馈文件。
+- 反馈草稿只保存在当前浏览器。网站不会自动向教师上传；学生需自行交回下载文件。游戏没有新增账号、埋点或数据收集后端。
+- 共享设备换人前，先下载需要的报告与反馈，再点击「新任期」。确认后同时清空游戏和反馈；既有游戏存档格式保持兼容。
+
+视频与可编辑制作脚本见 `docs/demo/`、`scripts/record-demo.mjs`。
+
 ## 本地运行
 
 环境：Node.js 24.12 或更高版本、npm、现代浏览器。
@@ -51,6 +62,7 @@ npm run build
 
 ```bash
 npm run test:browser
+node scripts/pilot-smoke.mjs
 ```
 
 macOS 优先使用已安装的 Google Chrome。其他环境可先运行 `npx playwright install chromium`，或通过 `BROWSER_EXECUTABLE` 指定浏览器可执行文件。检查使用独立临时浏览器上下文，不读取个人浏览器资料。截图及测试下载保存在被 Git 忽略的 `.qa/`。
@@ -87,7 +99,7 @@ macOS 优先使用已安装的 Google Chrome。其他环境可先运行 `npx pla
 
 ## 发布与下一步
 
-部署配置为 `.openai/hosting.json`，静态产物位于 `dist/`。Sites 发布版本保持私有，GitHub `origin` 保持为本仓库。发布时使用已验证并推送的同一源代码状态。
+部署配置为 `.openai/hosting.json`，静态产物位于 `dist/`。按照教师授权，Sites 已开放公开访问，学生无需登录；GitHub `origin` 保持为本仓库。发布时使用已验证并推送的同一源代码状态。
 
 下一步建议进行3–5名学生的小范围试教，观察独立完成情况、因果解释和陌生情境迁移，再调整引导与难度。《烟囱与河流》可在规则审阅后接入相同的界面流程。
 

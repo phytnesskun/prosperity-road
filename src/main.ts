@@ -1,5 +1,6 @@
 import './style.css';
 import './companion.css';
+import './pilot.css';
 import { DEFAULT_POLICY, SEASONS, evaluate } from './economy.ts';
 import type { Policy, Result } from './economy.ts';
 import { choosePolicy, currentResources, goals, needsPrediction, newGame, nextSeason, predictionComplete, restoreGame, settleTurn } from './campaign.ts';
@@ -9,9 +10,12 @@ import { outcomeFeedback } from './feedback.ts';
 import { advisorReply } from './advisor.ts';
 import type { AdvisorTopic } from './advisor.ts';
 import { renderEconomyScene } from './scene.ts';
+import { PILOT_VERSION, emptyPilotFeedback, restorePilotFeedback, pilotFeedbackReport } from './pilot.ts';
+import type { PilotFeedback } from './pilot.ts';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const SAVE_KEY = 'prosperity-road.bread-crisis.v1';
+const FEEDBACK_KEY = 'prosperity-road.pilot-feedback.v1';
 const fmt = (value: number): string => value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct = (value: number): string => `${fmt(value * 100)}%`;
 const escape = (value: string): string => value.replace(/[&<>"']/g, char =>
@@ -22,7 +26,10 @@ type View = 'command' | 'town' | 'market' | 'people' | 'accounts' | 'history' | 
 let view: View = state.phase === 'complete' ? 'report' : 'command';
 let district = 'farm';
 let notice = '';
-let dialog: 'help' | 'reset' | 'advisor' | null = null;
+let dialog: 'help' | 'reset' | 'advisor' | 'pilot' | null = null;
+let pilotReturnFocus = 'pilot-button';
+let pilotFeedback = loadPilotFeedback();
+let feedbackMessage = '';
 let replaySeason = state.records.find(r => r.result.season > 1)?.result.season ?? 2;
 let replayPolicy: Policy = { ...DEFAULT_POLICY };
 let replayResult: Result | null = null;
@@ -36,6 +43,32 @@ let advisorTopic: AdvisorTopic = 'briefing';
 let advisorReturnFocus = 'advisor-open';
 let conversationContext = '';
 let conversation: { speaker: 'player' | 'advisor'; text: string }[] = [];
+
+function loadPilotFeedback(): PilotFeedback {
+  try { return restorePilotFeedback(localStorage.getItem(FEEDBACK_KEY)); }
+  catch { return emptyPilotFeedback(); }
+}
+function savePilotFeedback(): void {
+  try {
+    localStorage.setItem(FEEDBACK_KEY, JSON.stringify(pilotFeedback));
+    feedbackMessage = '反馈草稿已保存在此浏览器；下载后请交给老师。';
+  } catch {
+    feedbackMessage = '此浏览器无法保存反馈草稿，请在关闭页面前下载。';
+  }
+  const status = document.getElementById('feedback-status');
+  if (status && status.textContent !== feedbackMessage) status.textContent = feedbackMessage;
+}
+function clearPilotFeedback(): boolean {
+  pilotFeedback = emptyPilotFeedback();
+  try {
+    localStorage.removeItem(FEEDBACK_KEY);
+    feedbackMessage = '反馈草稿已清空，游戏进度保持不变。';
+    return true;
+  } catch {
+    feedbackMessage = '当前页面的反馈已清空，但浏览器未能删除旧草稿，刷新可能恢复。共享设备换人前，请清除本站浏览器数据或使用独立浏览器。';
+    return false;
+  }
+}
 
 function loadMotion(): boolean {
   try { return localStorage.getItem('prosperity-road.motion.v1') !== 'off'; }
@@ -132,7 +165,7 @@ function commandView(): string {
     <ol class="play-loop"><li><strong>选方案</strong><span>限价、补贴、开仓，也可以自由组合。</span></li>
       <li><strong>看后果</strong><span>实际买到多少，比标价更重要。</span></li>
       <li><strong>试另一招</strong><span>结算后对比政策，再决定下一季。</span></li></ol>
-    <p class="inline-help">先观察一次正常市场。需要帮助时，随时点底部的「问林岚」。</p>${renderEconomyScene(state)}</section>`;
+    <p class="inline-help">先观察一次正常市场。需要帮助时，随时点底部的「问林岚」。</p><button class="button secondary" id="intro-pilot" type="button" data-action="pilot">首次试玩？查看任务与演示 →</button>${renderEconomyScene(state)}</section>`;
   const season = SEASONS[state.seasonIndex];
   const prior = SEASONS[state.seasonIndex - 1];
   const hints = [
@@ -346,7 +379,7 @@ function reportView(): string {
   return `<div class="notice ${progress.passed ? 'success' : ''}"><strong>${progress.passed ? '任期目标已达成' : '任期结束，仍有值得追问的取舍'}</strong><p>任务结果与学习评价分别记录。达成目标不代表某种政策在所有环境下最优。</p></div>
     ${missionMarkup()}<p class="evaluation-question">Evaluate whether a maximum price was the most effective response to the food shortage in your country.</p>
     <div class="report-form">${labels.map(([key, label, prompt]) => `<label>${label}<textarea data-report="${key}" maxlength="3000" rows="3" placeholder="${prompt}">${escape(state.report[key])}</textarea></label>`).join('')}</div>
-    <div class="report-actions"><button class="button primary" type="button" data-action="download-report">下载本局报告</button><button class="button secondary" type="button" data-action="view" data-view="replay">先回放一项政策</button></div>
+    <div class="report-actions"><button class="button primary" type="button" data-action="download-report">下载本局报告</button><button class="button secondary" type="button" data-action="view" data-view="replay">先回放一项政策</button><button class="button secondary" id="report-pilot" type="button" data-action="pilot">完成试玩反馈</button></div>
     <details><summary>数量练习 · Price elasticity of demand</summary><div class="detail-body"><p>使用两组固定的无干预参考数据：基期价格5、成交100；歉收价格6.875、成交70。以基期为百分比基准，计算PED，并解释结果。</p>
     <details><summary>完成后查看参考解释</summary><p>PED = [(70−100)/100] ÷ [(6.875−5)/5] = −0.80。按这个区间与基准计算，需求缺乏价格弹性。需求曲线不变，供给变化产生两个均衡点；不能据此估算同一条供给曲线的PES，也不能用限价后被配给的成交量冒充需求量。</p></details></div></details>
     <details><summary>教师评价与迁移任务</summary><div class="detail-body"><p>AO1：概念准确；AO2：引用本局证据；AO3：解释完整因果链；AO4：结合条件比较方案。教师可按每项0、1、2级记录；这是课堂量表，不是Pearson官方分数或考试等级。</p>
@@ -416,8 +449,9 @@ function news(): string {
 }
 function dialogMarkup(): string {
   if (!dialog) return '';
+  if (dialog === 'pilot') return pilotMarkup();
   if (dialog === 'advisor') return advisorMarkup();
-  if (dialog === 'reset') return `<dialog class="dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">开始新任期？</h2><p>这会替换此浏览器中的当前进度。已完成的复盘可以先下载保存。</p><div class="dialog-actions"><button class="button secondary" type="button" data-action="close-dialog">继续当前游戏</button><button class="button danger" type="button" data-action="confirm-reset">开始新一局</button></div></dialog>`;
+  if (dialog === 'reset') return `<dialog class="dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">开始新任期？</h2><p>这会替换此浏览器中的当前进度，并清空试玩反馈草稿。请先下载需要保留的报告与反馈；共享设备换人时，再开始新一局。</p><div class="dialog-actions"><button class="button secondary" type="button" data-action="close-dialog">继续当前游戏</button><button class="button danger" type="button" data-action="confirm-reset">开始新一局</button></div></dialog>`;
   return `<dialog class="dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">你的任期与模型规则</h2>
     <p>第1季认识正常市场，第2–6季管理政策。第2、4季先预测，再执行。三个任务分别检查：</p>${missionMarkup()}
     <p>最高价格可选不设、4、5、6；单位补贴可选0、1、2；公共投放可选0、10、20。政策每季到期。</p>
@@ -426,6 +460,24 @@ function dialogMarkup(): string {
     <p>国库现金 = 期初现金 + 售粮收入 − 配送费 − 补贴。库存是跨季资源，不足时整组政策不执行。</p>
     <p>所有数值为课堂模型假设。<a href="https://qualifications.pearson.com/content/dam/pdf/International%20Advanced%20Level/Economics/2018/Specification-and-Sample-Assessment/International-A-Level-Economics-spec.pdf" target="_blank" rel="noopener noreferrer">Pearson IAL Economics 考纲</a></p>
     <div class="dialog-actions"><button class="button primary" type="button" data-action="close-dialog">返回游戏</button></div></dialog>`;
+}
+function pilotMarkup(): string {
+  const rating = (key: 'ease' | 'fun', label: string, ends: string): string => `<label for="feedback-${key}">${label}<select id="feedback-${key}" data-feedback="${key}"><option value="">尚未评价</option>${[1, 2, 3, 4, 5].map(value => `<option value="${value}" ${pilotFeedback[key] === String(value) ? 'selected' : ''}>${value}</option>`).join('')}</select><small>${ends}</small></label>`;
+  return `<dialog class="dialog pilot-dialog" id="game-dialog" aria-labelledby="dialog-title">
+    <div class="pilot-intro"><div><span class="eyebrow">CLASSROOM PLAYTEST · ${PILOT_VERSION}</span><h2 id="dialog-title">学生试玩</h2></div><button class="button secondary" type="button" data-action="close-dialog">返回游戏 ×</button></div>
+    <p>给自己15–20分钟，试着做出选择、解释后果。第一次不必通关，发现哪里不清楚也很有价值。</p>
+    <ol class="pilot-steps"><li><strong>观察 → 决策</strong><span>查看正常市场，再应对歉收。第2、4季需要点选两项预测和一个理由，才可执行。</span></li><li><strong>比较 → 解释</strong><span>结算后点击「免费试算」，只改一项政策，比较实际购粮。找林岚讨论原因。</span></li><li><strong>复盘 → 反馈</strong><span>尽量完成六季，用一组数字解释一次取舍。即使中途卡住，也能在这里下载反馈。</span></li></ol>
+    <p class="pilot-meta">本局已结算 ${state.records.length}/6 季 · 进度保存在当前浏览器。共享设备换人前，请先下载报告，再点「新任期」。</p>
+    <details class="pilot-video"><summary>观看操作演示 · 中文旁白与字幕</summary><video id="pilot-demo" controls playsinline preload="none" poster="/prosperity-road-demo-poster.jpg" aria-label="繁荣之路学生试玩操作演示"><source src="/prosperity-road-demo.mp4" type="video/mp4" /></video><p class="pilot-note" id="demo-status">演示展示一种决策与比较方法，不是通关答案。<a href="/prosperity-road-demo.mp4" download>下载视频</a></p></details>
+    <section class="pilot-feedback" aria-labelledby="feedback-title"><h3 id="feedback-title">把试玩体验交给老师</h3><p class="pilot-note">无需填写姓名、邮箱或联系方式。下方内容和本局记录只保存在此浏览器；点击下载后，请自行把文件交给老师，不会自动上传。</p>
+      <label for="feedback-code">试玩代号（选填，使用老师给的编号）<input id="feedback-code" data-feedback="code" maxlength="40" autocomplete="off" placeholder="例如 P01" value="${escape(pilotFeedback.code)}" /></label>
+      <div class="pilot-ratings">${rating('ease', '操作是否清楚？', '1 很难上手 → 5 很容易')}${rating('fun', '是否愿意继续玩？', '1 不太愿意 → 5 很愿意')}</div>
+      <label for="feedback-stuck">哪里卡住或不符合预期？<textarea id="feedback-stuck" data-feedback="stuck" rows="3" maxlength="1000" placeholder="我在第几季点了什么？期待发生什么，实际发生了什么？">${escape(pilotFeedback.stuck)}</textarea></label>
+      <label for="feedback-learned">你发现了什么经济规律？<textarea id="feedback-learned" data-feedback="learned" rows="3" maxlength="1000" placeholder="引用一组数字，解释政策如何影响生产或实际购粮。也可以写仍没理解的问题。">${escape(pilotFeedback.learned)}</textarea></label>
+      <label for="feedback-suggestion">最希望改进的一件事（选填）<textarea id="feedback-suggestion" data-feedback="suggestion" rows="2" maxlength="1000">${escape(pilotFeedback.suggestion)}</textarea></label>
+      <p class="pilot-note" id="feedback-status" role="status">${escape(feedbackMessage || '可随时下载，包括还没完成一局的时候。反馈文件会包含已填写的学习复盘。')}</p>
+      <div class="pilot-actions"><button class="button primary" id="download-feedback" type="button" data-action="download-feedback">下载试玩反馈与记录</button><button class="button secondary" type="button" data-action="clear-feedback">清空反馈草稿</button><button class="button secondary" type="button" data-action="close-dialog">返回游戏</button></div>
+    </section></dialog>`;
 }
 function advisorMarkup(): string {
   const reply = advisorReply(state, advisorTopic);
@@ -462,7 +514,7 @@ function render(focusId?: string): void {
   app.innerHTML = `<div class="app-shell" data-phase="${state.phase}" data-motion="${motionEnabled() ? 'on' : 'off'}">
     <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true">P</span><div><span class="brand-kicker">PROSPERITY ROAD</span><h1>繁荣之路</h1></div></div>
     <div class="chapter-title">面包危机 <span>THE BREAD CRISIS · IAL UNIT 1</span></div>
-    <div class="top-actions"><button class="button ghost" id="motion-button" type="button" data-action="motion" aria-pressed="${motionEnabled()}" ${motionQuery.matches ? 'disabled title="已遵循系统减少动态效果设置"' : ''}>动画：${motionEnabled() ? '开' : '关'}</button><button class="button ghost" id="help-button" type="button" data-action="help">玩法与规则</button><button class="button ghost" id="reset-button" type="button" data-action="reset">新任期</button></div></header>
+    <div class="top-actions"><button class="button ghost" id="pilot-button" type="button" data-action="pilot">试玩与反馈</button><button class="button ghost" id="motion-button" type="button" data-action="motion" aria-pressed="${motionEnabled()}" ${motionQuery.matches ? 'disabled title="已遵循系统减少动态效果设置"' : ''}>动画：${motionEnabled() ? '开' : '关'}</button><button class="button ghost" id="help-button" type="button" data-action="help">玩法与规则</button><button class="button ghost" id="reset-button" type="button" data-action="reset">新任期</button></div></header>
     <section class="stats-grid" aria-label="关键指标">
       ${stat('BREAD PRICE · 面包价格', r ? `${fmt(r.price)} <small>credits</small>` : '—', stamp)}
       ${stat('BASIC BASKET · 低收入保障', r ? pct(r.coverageLow) : '—', `${stamp} · 目标 ≥95%`)}
@@ -501,8 +553,12 @@ function render(focusId?: string): void {
     element.showModal();
     element.addEventListener('cancel', event => {
       event.preventDefault();
-      const trigger = dialog === 'help' ? 'help-button' : dialog === 'advisor' ? advisorReturnFocus : 'reset-button';
+      const trigger = dialog === 'help' ? 'help-button' : dialog === 'advisor' ? advisorReturnFocus : dialog === 'pilot' ? pilotReturnFocus : 'reset-button';
       dialog = null; render(trigger);
+    });
+    element.querySelector('#pilot-demo source')?.addEventListener('error', () => {
+      const status = document.getElementById('demo-status');
+      if (status) status.textContent = '视频暂时无法加载，可继续按上面的三个步骤试玩，或请老师播放下载的视频。';
     });
     if (dialog === 'advisor') {
       const log = element.querySelector('.conversation-log');
@@ -547,7 +603,22 @@ app.addEventListener('click', event => {
   let focusId = button.id || undefined;
   let animateSettlement = false;
   notice = '';
-  if (action === 'motion') {
+  if (action === 'pilot') {
+    pilotReturnFocus = button.id || 'pilot-button';
+    dialog = 'pilot';
+  } else if (action === 'download-feedback') {
+    const text = pilotFeedbackReport(state, pilotFeedback);
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/markdown;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url; link.download = '繁荣之路-试玩反馈.md'; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    feedbackMessage = '反馈文件已生成。请在下载目录找到文件并交给老师；尚未自动发送。';
+    document.getElementById('feedback-status')!.textContent = feedbackMessage;
+    return;
+  } else if (action === 'clear-feedback') {
+    clearPilotFeedback();
+    focusId = 'feedback-code';
+  } else if (action === 'motion') {
     motionRequested = !motionRequested;
     try { localStorage.setItem('prosperity-road.motion.v1', motionRequested ? 'on' : 'off'); } catch { /* Keep the setting for this visit. */ }
   } else if (action === 'advisor-open') {
@@ -652,12 +723,14 @@ app.addEventListener('click', event => {
   else if (action === 'help') dialog = 'help';
   else if (action === 'reset') dialog = 'reset';
   else if (action === 'close-dialog') {
-    focusId = dialog === 'help' ? 'help-button' : dialog === 'advisor' ? advisorReturnFocus : 'reset-button';
+    focusId = dialog === 'help' ? 'help-button' : dialog === 'advisor' ? advisorReturnFocus : dialog === 'pilot' ? pilotReturnFocus : 'reset-button';
     dialog = null;
   }
   else if (action === 'confirm-reset') {
     state = newGame(); view = 'command'; dialog = null;
     conversation = []; conversationContext = ''; advisorTopic = 'briefing';
+    if (clearPilotFeedback()) feedbackMessage = '';
+    else notice = feedbackMessage;
     focusId = 'season-title';
     replaySeason = 2; replayPolicy = { ...DEFAULT_POLICY }; replayResult = null; replayError = '';
     save();
@@ -679,7 +752,13 @@ app.addEventListener('change', event => {
   if (target.id === 'replay-season') { beginReplay(Number(target.value)); render('replay-season'); return; }
 });
 app.addEventListener('input', event => {
-  const target = event.target as HTMLTextAreaElement;
+  const target = event.target as HTMLTextAreaElement | HTMLInputElement | HTMLSelectElement;
+  if (target.dataset.feedback && Object.hasOwn(pilotFeedback, target.dataset.feedback)) {
+    const key = target.dataset.feedback as keyof PilotFeedback;
+    pilotFeedback[key] = target.value.slice(0, key === 'code' ? 40 : 1000);
+    savePilotFeedback();
+    return;
+  }
   if (target.dataset.prediction === 'reason') {
     state.prediction.reason = target.value.slice(0, 3000);
     refreshPredictionStatus();
