@@ -46,6 +46,51 @@ let advisorTopic: AdvisorTopic = 'briefing';
 let advisorReturnFocus = 'advisor-open';
 let conversationContext = '';
 let conversation: { speaker: 'player' | 'advisor'; text: string }[] = [];
+const music = new Audio('/audio/town-theme.mp3');
+music.id = 'town-music';
+music.loop = true;
+music.preload = 'none';
+music.volume = 0.24;
+document.body.append(music);
+let musicRequested = true;
+try { musicRequested = localStorage.getItem('prosperity-road.music.v1') !== 'off'; } catch { /* Use the default for this visit. */ }
+let musicStarted = false;
+let musicPending = false;
+let musicUnavailable = false;
+
+function updateMusicButton(): void {
+  const button = document.getElementById('music-button');
+  if (!button) return;
+  button.textContent = musicUnavailable ? '♫ 重试' : !musicRequested ? '♫ 静音' : musicStarted ? '♫ 配乐开' : '♫ 配乐';
+  button.setAttribute('aria-pressed', String(musicRequested && musicStarted && !musicUnavailable));
+  const label = musicUnavailable ? '配乐暂时无法播放，点击重试' : !musicRequested ? '打开背景配乐' : musicStarted ? '关闭背景配乐' : '播放背景配乐；开始游戏后也会自动播放';
+  button.setAttribute('aria-label', label);
+  button.title = label;
+}
+function syncMusic(): void {
+  // Keep one audio element across renders; the demo already has its own soundtrack.
+  const shouldPlay = musicRequested && musicStarted && !document.hidden && dialog !== 'pilot';
+  if (!shouldPlay) music.pause();
+  else if (music.paused && !musicPending && !musicUnavailable) {
+    musicPending = true;
+    void music.play().then(() => {
+      musicPending = false;
+      if (!musicRequested || document.hidden || dialog === 'pilot') music.pause();
+      updateMusicButton();
+    }).catch(error => {
+      musicPending = false;
+      if (error instanceof DOMException && error.name === 'AbortError') { syncMusic(); return; }
+      musicUnavailable = true;
+      updateMusicButton();
+    });
+  }
+  updateMusicButton();
+}
+music.addEventListener('error', () => {
+  musicUnavailable = true;
+  updateMusicButton();
+});
+document.addEventListener('visibilitychange', syncMusic);
 
 function loadPilotFeedback(): PilotFeedback {
   try { return restorePilotFeedback(localStorage.getItem(FEEDBACK_KEY)); }
@@ -479,7 +524,7 @@ function render(focusId?: string): void {
   app.innerHTML = `<div class="app-shell focus-layout" data-phase="${state.phase}" data-motion="${motionEnabled() ? 'on' : 'off'}">
     <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true">P</span><div><span class="brand-kicker">PROSPERITY ROAD</span><h1>繁荣之路</h1></div></div>
     <div class="resource-status" aria-label="当前资源与任期进度"><span>国库 <strong>${fmt(resources.cash)}</strong></span><span>储备 <strong>${fmt(resources.reserves)}</strong></span><button class="goal-status" id="goals-button" type="button" data-action="help" aria-label="查看任期目标：当前${progress.metSeasons}季达标，共需5季">达标 ${progress.metSeasons}/5季</button></div>
-    <div class="top-actions"><button class="button ghost" id="menu-button" type="button" data-action="menu" aria-haspopup="dialog">菜单</button></div></header>
+    <div class="top-actions"><button class="button ghost" id="music-button" type="button" data-action="music">♫ 配乐</button><button class="button ghost" id="menu-button" type="button" data-action="menu" aria-haspopup="dialog">菜单</button></div></header>
     ${storageMessage ? `<p class="notice warning" role="status">${escape(storageMessage)}</p>` : ''}
     ${tabs()}<div class="workspace"><main class="main-panel">
       <div class="season-heading"><div><span class="eyebrow">面包危机 · 第 ${season.id} / 6 季</span><h2 class="season-title" id="season-title" tabindex="-1">${state.phase === 'complete' ? '任期结束' : season.title}</h2></div><span class="season-badge">${{ briefing: '开始你的任期', decision: '政策尚未执行', result: '本季已结算', complete: '任期战报' }[state.phase]}</span></div>
@@ -488,6 +533,7 @@ function render(focusId?: string): void {
     </main></div>
     <div class="footer-note"><span>经济模拟 · 游戏数值</span><span id="save-status">${escape(storageMessage || '进度自动保存在此浏览器')}</span></div>
     ${actionDock()}${dialogMarkup()}</div>`;
+  syncMusic();
   document.querySelector<HTMLDetailsElement>('#policy-custom')?.addEventListener('toggle', event => {
     customPolicyOpen = (event.currentTarget as HTMLDetailsElement).open;
   });
@@ -560,6 +606,18 @@ app.addEventListener('click', event => {
   const button = (event.target as Element).closest<HTMLButtonElement>('button[data-action]');
   if (!button || button.disabled) return;
   const action = button.dataset.action;
+  if (action === 'music') {
+    musicRequested = !musicStarted || musicUnavailable || !musicRequested;
+    musicStarted = true;
+    if (musicUnavailable) { musicUnavailable = false; music.load(); }
+    try { localStorage.setItem('prosperity-road.music.v1', musicRequested ? 'on' : 'off'); } catch { /* Keep the setting for this visit. */ }
+    syncMusic();
+    return;
+  }
+  if (['settle', 'strategy', 'next', 'replay-season', 'scene-place', 'scene-replay'].includes(action ?? '')) {
+    musicStarted = true;
+    syncMusic();
+  }
   let focusId = button.id || undefined;
   let animateSettlement = false;
   notice = '';

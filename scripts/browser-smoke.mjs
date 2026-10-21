@@ -333,7 +333,7 @@ try {
       await assertDockReachable(page);
       assert.equal(await page.locator('.action-dock .primary').count(), 1, 'Each step has one primary action.');
       assert.equal(await page.locator('.stats-grid, .policy-panel').count(), 0, 'Repeated global statistics and the policy sidebar are removed.');
-      assert.equal(await page.locator('.top-actions button').count(), 1, 'Utilities are collected in one menu.');
+      assert.deepEqual(await page.locator('.top-actions button').evaluateAll(buttons => buttons.map(button => button.id)), ['music-button', 'menu-button'], 'The header exposes only music and the utility menu.');
       assert.equal(await page.locator('.resource-status').count(), 1);
       assert.doesNotMatch(await page.locator('.resource-status').innerText(), /售价|价格|购粮|5\.00|40\.00/, 'Global status must not present prior outcomes as current predictions.');
       assert.equal(await page.locator('.economy-scene').count(), 0, 'The decision step focuses on the policy choice.');
