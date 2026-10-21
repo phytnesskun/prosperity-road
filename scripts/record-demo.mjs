@@ -71,14 +71,6 @@ async function top() {
 }
 const actions = {
   welcome: async () => { await showPointer(1030, 690); },
-  goals: async () => {
-    await pointAt('.resource-status');
-    await click('#menu-button');
-    await click('#help-button');
-    await pointAt('.mission-grid');
-    await wait(1600);
-    await click(page.locator('[data-action="close-dialog"]').first());
-  },
   baseline: async () => {
     await click(page.getByRole('button', { name: '查看正常市场', exact: true }));
     await scrollTo('.effect-grid');
@@ -91,16 +83,19 @@ const actions = {
     await click('#strategy-1');
     await pointAt('.selected-plan');
   },
-  prediction: async () => {
-    await click('#prediction-next');
-    await click('#prediction-price-same');
-    await click('#prediction-purchases-up');
-    await click('#reason-1');
+  policy: async () => {
+    await click('#policy-custom > summary');
+    await pointAt('#policy-controls');
+    await wait(1200);
+    await click('#policy-custom > summary');
     assert.equal(await page.locator('#settle-button').isDisabled(), false);
+    assert.equal(await page.locator('[id^="prediction-"]').count(), 0);
     await pointAt('#settle-button');
   },
   outcome: async () => {
     await click('#settle-button');
+    await scrollTo('.street-reaction', 'start');
+    await wait(1800);
     await scrollTo('.effect-grid');
     const state = JSON.parse(await page.evaluate(() => localStorage.getItem('prosperity-road.bread-crisis.v1')));
     assert.equal(state.records[1].result.price, 5);
@@ -112,7 +107,7 @@ const actions = {
     await wait(1600);
     await click('[data-action="advisor-topic"][data-topic="why"]');
     await wait(1800);
-    await click('[data-action="advisor-topic"][data-topic="challenge"]');
+    await click('[data-action="advisor-topic"][data-topic="access"]');
   },
   replay: async () => {
     await click(page.locator('[data-action="close-dialog"]').first());
