@@ -153,7 +153,9 @@ export async function verify({ root = projectRoot, release = false } = {}) {
       if (!files.length) throw new Error('No unit test files were found.');
       await runNode(['--test', ...files], nodeOptions);
     });
-    await step('typecheck', () => runNode([require.resolve('typescript/bin/tsc'), '--noEmit'], nodeOptions));
+    await step('typecheck', () => runNode([
+      path.join(path.dirname(require.resolve('typescript/package.json')), 'bin', 'tsc'), '--noEmit',
+    ], nodeOptions));
     await step('build', () => runNode([
       path.join(path.dirname(require.resolve('vite/package.json')), 'bin', 'vite.js'), 'build',
     ], nodeOptions));
