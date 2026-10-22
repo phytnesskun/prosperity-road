@@ -13,6 +13,7 @@ import { renderEconomyScene } from './scene.ts';
 import './focus.css';
 import { PILOT_VERSION, emptyPilotFeedback, restorePilotFeedback, pilotFeedbackReport } from './pilot.ts';
 import type { PilotFeedback } from './pilot.ts';
+import { SOUNDTRACKS, findSoundtrack } from './soundtracks.ts';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const SAVE_KEY = 'prosperity-road.bread-crisis.v1';
@@ -29,7 +30,7 @@ let district = 'farm';
 let customPolicyOpen = false;
 let utilityReturnFocus = 'menu-button';
 let notice = '';
-let dialog: 'help' | 'reset' | 'advisor' | 'pilot' | 'menu' | null = null;
+let dialog: 'help' | 'reset' | 'advisor' | 'pilot' | 'menu' | 'music-library' | null = null;
 let pilotReturnFocus = 'pilot-button';
 let pilotFeedback = loadPilotFeedback();
 let feedbackMessage = '';
@@ -46,7 +47,15 @@ let advisorTopic: AdvisorTopic = 'briefing';
 let advisorReturnFocus = 'advisor-open';
 let conversationContext = '';
 let conversation: { speaker: 'player' | 'advisor'; text: string }[] = [];
-const music = new Audio('/audio/town-theme.mp3');
+const originalMusic = { id: 'original', title: '小镇清晨（原创）', url: '/audio/town-theme.mp3' };
+type LocalTrack = { id: string; title: string; url: string; file: File; catalogId?: string };
+let localTracks: LocalTrack[] = [];
+let selectedMusic = 'original';
+let localTrackSequence = 0;
+let musicImportTarget: string | undefined;
+let musicImportMessage = '';
+let musicGeneration = 0;
+const music = new Audio(originalMusic.url);
 music.id = 'town-music';
 music.loop = true;
 music.preload = 'none';
@@ -66,6 +75,14 @@ function updateMusicButton(): void {
   const label = musicUnavailable ? '配乐暂时无法播放，点击重试' : !musicRequested ? '打开背景配乐' : musicStarted ? '关闭背景配乐' : '播放背景配乐；开始游戏后也会自动播放';
   button.setAttribute('aria-label', label);
   button.title = label;
+  const status = document.getElementById('music-library-status');
+  const track = localTracks.find(track => track.id === selectedMusic) ?? originalMusic;
+  if (status) status.textContent = `${musicUnavailable ? '无法播放，请换一首或重新选择文件' : !musicRequested ? '已静音' : musicStarted ? '当前曲目' : '准备播放'} · ${track.title}`;
+  document.querySelectorAll<HTMLButtonElement>('[data-action="music-select"]').forEach(control => {
+    const selected = control.dataset.trackId === selectedMusic;
+    control.setAttribute('aria-pressed', String(selected));
+    control.textContent = selected ? '重播' : '播放';
+  });
 }
 function syncMusic(): void {
   // Keep one audio element across renders; the demo already has its own soundtrack.
@@ -73,10 +90,13 @@ function syncMusic(): void {
   if (!shouldPlay) music.pause();
   else if (music.paused && !musicPending && !musicUnavailable) {
     musicPending = true;
+    const generation = musicGeneration;
     void music.play().then(() => {
+      if (generation !== musicGeneration) return;
       musicPending = false;
       syncMusic();
     }).catch(error => {
+      if (generation !== musicGeneration) return;
       musicPending = false;
       if (error instanceof DOMException && error.name === 'AbortError') { syncMusic(); return; }
       musicUnavailable = true;
@@ -86,10 +106,63 @@ function syncMusic(): void {
   updateMusicButton();
 }
 music.addEventListener('error', () => {
+  if (!music.error) return;
   musicUnavailable = true;
   updateMusicButton();
 });
+music.addEventListener('ended', () => {
+  if (music.ended && selectedMusic !== 'original') nextMusic(false);
+});
 document.addEventListener('visibilitychange', syncMusic);
+
+function selectMusic(id: string, start = true): void {
+  const track = id === 'original' ? originalMusic : localTracks.find(track => track.id === id);
+  if (!track) return;
+  musicGeneration += 1;
+  music.pause();
+  musicPending = false;
+  musicUnavailable = false;
+  selectedMusic = track.id;
+  music.src = track.url;
+  music.loop = id === 'original' || localTracks.length <= 1;
+  music.load();
+  if (start) {
+    musicRequested = true;
+    musicStarted = true;
+    try { localStorage.setItem('prosperity-road.music.v1', 'on'); } catch { /* Keep the setting for this visit. */ }
+  }
+  syncMusic();
+}
+function nextMusic(start = true): void {
+  if (!localTracks.length) return;
+  const index = localTracks.findIndex(track => track.id === selectedMusic);
+  selectMusic(localTracks[(index + 1) % localTracks.length].id, start);
+}
+function importMusic(files: FileList): void {
+  let imported = 0;
+  let skipped = 0;
+  const target = SOUNDTRACKS.find(track => track.id === musicImportTarget);
+  for (const file of Array.from(files)) {
+    if (!file.size || !(/\.(mp3|ogg|oga|wav|flac|m4a|aac|opus|webm)$/i.test(file.name) || file.type.startsWith('audio/'))) { skipped += 1; continue; }
+    const catalog = target ?? findSoundtrack(file.name);
+    const prior = localTracks.find(track => catalog ? track.catalogId === catalog.id : track.file.name === file.name && track.file.size === file.size && track.file.lastModified === file.lastModified);
+    const track: LocalTrack = {
+      id: prior?.id ?? `local-${++localTrackSequence}`,
+      title: catalog?.title ?? file.name,
+      url: URL.createObjectURL(file), file, catalogId: catalog?.id,
+    };
+    if (prior) localTracks.splice(localTracks.indexOf(prior), 1, track);
+    else localTracks.push(track);
+    if (selectedMusic === track.id) selectMusic(track.id, false);
+    if (prior) URL.revokeObjectURL(prior.url);
+    imported += 1;
+    if (target) break;
+  }
+  musicImportTarget = undefined;
+  music.loop = selectedMusic === 'original' || localTracks.length <= 1;
+  musicImportMessage = `已加入 ${imported} 个本地文件${skipped ? `；跳过 ${skipped} 个空文件或非音频文件` : ''}。点击曲目旁的“播放”开始。`;
+  render('music-import');
+}
 
 function loadPilotFeedback(): PilotFeedback {
   try { return restorePilotFeedback(localStorage.getItem(FEEDBACK_KEY)); }
@@ -451,14 +524,36 @@ function actionDock(): string {
 function dialogFocus(): string {
   return dialog === 'advisor' ? advisorReturnFocus : dialog === 'pilot' ? pilotReturnFocus : utilityReturnFocus;
 }
+function musicLibraryMarkup(): string {
+  const playButton = (track: LocalTrack): string => `<button class="button secondary" id="play-${track.id}" type="button" data-action="music-select" data-track-id="${track.id}">播放</button>`;
+  const groups = [...new Set(SOUNDTRACKS.map(track => track.game))];
+  const extras = localTracks.filter(track => !track.catalogId);
+  return `<dialog class="dialog music-library-dialog" id="game-dialog" aria-labelledby="dialog-title" aria-describedby="music-library-note">
+    <div class="music-library-heading"><h2 id="dialog-title">音乐库</h2><button class="button secondary" type="button" data-action="close-dialog">返回游戏 ×</button></div>
+    <p id="music-library-note">选择电脑上的音频，仅在当前页面播放，不会上传。刷新后需要重新选择文件。</p>
+    <p id="music-library-status" class="music-now-playing" role="status"></p>
+    <div class="music-library-controls"><button class="button primary" id="music-import" type="button" data-action="music-import">选择本地音频</button><button class="button secondary" id="music-next" type="button" data-action="music-next" ${localTracks.length ? '' : 'disabled'}>下一首</button><button class="button secondary" id="music-original" type="button" data-action="music-original">播放原创配乐</button></div>
+    <input id="music-files" type="file" accept="audio/*,.mp3,.ogg,.oga,.wav,.flac,.m4a,.aac,.opus,.webm" multiple hidden />
+    <p class="music-library-hint">已导入 ${localTracks.length} 首 · 本地曲目依次循环。支持批量选择，文件名相符时自动关联目录。</p>
+    ${musicImportMessage ? `<p class="music-library-hint" role="status">${escape(musicImportMessage)}</p>` : ''}
+    ${extras.length ? `<section><h3>其他本地曲目</h3><ul class="music-track-list">${extras.map(track => `<li><div><strong>${escape(track.title)}</strong><small>本次导入</small></div>${playButton(track)}</li>`).join('')}</ul></section>` : ''}
+    ${groups.map(game => `<details class="music-catalog" open><summary>${escape(game)}</summary><ul class="music-track-list">${SOUNDTRACKS.filter(track => track.game === game).map(item => {
+      const loaded = localTracks.find(track => track.catalogId === item.id);
+      return `<li data-catalog-id="${item.id}"><div><strong>${escape(item.title)}</strong><small>${escape(item.scene)} · ${loaded ? '已选择文件' : '待选择文件'}</small></div><div class="music-track-actions">${loaded ? playButton(loaded) : ''}<button class="button secondary" id="choose-${item.id}" type="button" data-action="music-choose" data-catalog-id="${item.id}">${loaded ? '更换文件' : '选择文件'}</button></div></li>`;
+    }).join('')}</ul></details>`).join('')}
+    <div class="dialog-actions"><button class="button secondary" id="music-clear" type="button" data-action="music-clear" ${localTracks.length ? '' : 'disabled'}>清除本次导入</button><button class="button primary" type="button" data-action="close-dialog">返回游戏</button></div>
+  </dialog>`;
+}
 function dialogMarkup(): string {
   if (!dialog) return '';
   if (dialog === 'menu') return `<dialog class="dialog menu-dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">游戏菜单</h2><div class="menu-options">
     <button class="button secondary" id="pilot-button" type="button" data-action="pilot">试玩与反馈</button>
     <button class="button secondary" id="help-button" type="button" data-action="help">玩法与规则</button>
+    <button class="button secondary" id="music-library-button" type="button" data-action="music-library">音乐库</button>
     <button class="button secondary" id="motion-button" type="button" data-action="motion" aria-pressed="${motionEnabled()}" ${motionQuery.matches ? 'disabled title="已遵循系统减少动态效果设置"' : ''}>动画：${motionEnabled() ? '开' : '关'}</button>
     <button class="button danger" id="reset-button" type="button" data-action="reset">新任期</button></div><div class="dialog-actions"><button class="button primary" type="button" data-action="close-dialog">返回游戏</button></div></dialog>`;
   if (dialog === 'pilot') return pilotMarkup();
+  if (dialog === 'music-library') return musicLibraryMarkup();
   if (dialog === 'advisor') return advisorMarkup();
   if (dialog === 'reset') return `<dialog class="dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">开始新任期？</h2><p>这会替换此浏览器中的当前进度，并清空试玩反馈草稿。请先下载需要保留的记录与反馈；共享设备换人时，再开始新一局。</p><div class="dialog-actions"><button class="button secondary" type="button" data-action="close-dialog">继续当前游戏</button><button class="button danger" type="button" data-action="confirm-reset">开始新一局</button></div></dialog>`;
   return `<dialog class="dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">你的任期与模型规则</h2>
@@ -608,9 +703,29 @@ app.addEventListener('click', event => {
   if (action === 'music') {
     musicRequested = !musicStarted || musicUnavailable || !musicRequested;
     musicStarted = true;
-    if (musicUnavailable) { musicUnavailable = false; music.load(); }
+    if (musicUnavailable) { musicGeneration += 1; musicPending = false; musicUnavailable = false; music.load(); }
     try { localStorage.setItem('prosperity-road.music.v1', musicRequested ? 'on' : 'off'); } catch { /* Keep the setting for this visit. */ }
     syncMusic();
+    return;
+  }
+  if (action === 'music-import' || action === 'music-choose') {
+    musicImportTarget = action === 'music-choose' ? button.dataset.catalogId : undefined;
+    const input = document.getElementById('music-files') as HTMLInputElement;
+    input.multiple = !musicImportTarget;
+    input.value = '';
+    input.click();
+    return;
+  }
+  if (action === 'music-select') { selectMusic(button.dataset.trackId!); return; }
+  if (action === 'music-next') { nextMusic(); return; }
+  if (action === 'music-original') { selectMusic('original'); return; }
+  if (action === 'music-clear') {
+    const removed = localTracks;
+    localTracks = [];
+    if (selectedMusic !== 'original') selectMusic('original', false);
+    for (const track of removed) URL.revokeObjectURL(track.url);
+    musicImportMessage = '本次导入已清除，电脑上的原文件保持不变。';
+    render('music-import');
     return;
   }
   if (['settle', 'strategy', 'next', 'replay-season', 'scene-place', 'scene-replay'].includes(action ?? '')) {
@@ -622,6 +737,8 @@ app.addEventListener('click', event => {
   notice = '';
   if (action === 'menu') {
     utilityReturnFocus = 'menu-button'; dialog = 'menu';
+  } else if (action === 'music-library') {
+    utilityReturnFocus = 'menu-button'; dialog = 'music-library'; focusId = 'music-import';
   } else if (action === 'pilot') {
     pilotReturnFocus = dialog === 'menu' ? 'menu-button' : button.id || 'menu-button';
     dialog = 'pilot';
@@ -750,7 +867,12 @@ app.addEventListener('click', event => {
   }
 });
 app.addEventListener('change', event => {
-  const target = event.target as HTMLSelectElement;
+  const target = event.target as HTMLInputElement | HTMLSelectElement;
+  if (target.id === 'music-files') {
+    const files = (target as HTMLInputElement).files;
+    if (files?.length) importMusic(files);
+    return;
+  }
   if (target.id === 'replay-season') { beginReplay(Number(target.value)); render('replay-season'); return; }
 });
 app.addEventListener('input', event => {

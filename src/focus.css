@@ -99,6 +99,29 @@
 .focus-layout .menu-options { display: grid; gap: 10px; margin: 20px 0 0; }
 .focus-layout .menu-options .button { justify-content: flex-start; min-height: 48px; padding: 11px 14px; text-align: left; font-size: 14px; }
 .focus-layout .menu-options .button small { margin-left: auto; color: var(--muted); font-size: 11px; }
+.music-library-dialog { width: min(760px, calc(100% - 28px)); }
+.music-library-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.music-library-heading h2 { margin: 0; }
+.music-library-dialog > p { line-height: 1.7; }
+.music-now-playing { padding: 12px 14px; border-left: 3px solid var(--green); background: #edf0e5; overflow-wrap: anywhere; }
+.music-library-controls, .music-track-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.music-library-hint { color: var(--muted); font-size: 12px; }
+.music-catalog { margin-top: 18px; border-top: 1px solid var(--line); }
+.music-catalog > summary { padding: 15px 0; color: var(--green); font-weight: 600; cursor: pointer; }
+.music-track-list { margin: 0; padding: 0; list-style: none; }
+.music-track-list > li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+.music-track-list > li > div:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.music-track-list strong { display: block; font-size: 14px; }
+.music-track-list small { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; }
+.music-library-dialog .button { min-height: 44px; }
+.music-track-list .button { flex-shrink: 0; padding: 8px 11px; font-size: 12px; }
+.music-track-list .button[aria-pressed="true"] { border-color: var(--green); background: #e4ead9; }
+@media (max-width: 520px) {
+  .music-library-dialog { padding: 20px 16px; }
+  .music-library-heading h2 { font-size: 25px; }
+  .music-track-list > li { align-items: flex-start; flex-direction: column; gap: 9px; }
+  .music-library-controls .button { flex: 1 1 auto; padding-inline: 10px; font-size: 13px; }
+}
 
 @media (max-width: 760px) {
   .app-shell.focus-layout { padding-inline: 18px; }
