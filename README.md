@@ -4,6 +4,12 @@
 
 当前《面包危机》可完成六个季度：观察正常市场、应对歉收、选择限价/补贴/公共投放、听取街头反应、尝试替代政策，最后查看自动生成的任期战报。经济概念决定世界如何响应玩家；所有数值是透明的模型假设，不是现实预测。
 
+## 当前操作入口
+
+- 修改、验收、发布和恢复统一按 [工作流](docs/WORKFLOW.md)；AI 协作约定见 [AGENTS.md](AGENTS.md)。
+- 本地完整检查：`npm run verify`；发布候选检查：`npm run verify:release`。安装和使用步骤见下文。
+- [公开游戏](https://prosperity-road-ial.bingkunq.chatgpt.site/)的当前线上提交尚未核验；本次工作流建设没有发布生产网站。发布后须记录网址、提交及线上核验结果。
+
 ## 怎么玩
 
 1. 点击底部“查看正常市场”，建立第一季基准。
@@ -52,25 +58,18 @@ npm run dev
 ## 检查与构建
 
 ```bash
-npm test
-npm run build
+npx playwright install chromium
+npm run verify
 ```
 
-- `npm test`：经济模型、季度状态、存档恢复、新剧本数值。
-- `npm run check`：TypeScript 类型检查。
-- `npm run build`：类型检查后生成 `dist/`。
-- `npm run preview`：预览生产构建。
+Linux/CI 安装浏览器时使用 `npx playwright install --with-deps chromium`。
 
-浏览器检查需要先在另一个终端运行 `npm run dev -- --port 5173 --strictPort`，然后执行：
+- `npm run verify`：模型测试、类型检查、生产构建及四组浏览器检查；自动启动本地临时服务，无需另开开发服务器。
+- `npm run verify:release`：要求 Git 工作区干净，完成同样检查并生成带提交与文件哈希的 `dist/release.json`。
+- 检查报告和截图、下载证据保存在被 Git 忽略的 `.qa/`；汇总为 `.qa/verification.json`。失败或未完成的检查不能作为可发布依据。
+- `npm run preview`：人工预览已生成的 `dist/`；`npm test`、`npm run check`、`npm run build` 仍可用于单项排查。
 
-```bash
-npm run test:browser
-node scripts/pilot-smoke.mjs
-node scripts/audio-smoke.mjs
-node scripts/music-library-smoke.mjs
-```
-
-macOS 优先使用已安装的 Google Chrome。其他环境可先运行 `npx playwright install chromium`，或通过 `BROWSER_EXECUTABLE` 指定浏览器可执行文件。检查使用独立临时浏览器上下文，不读取个人浏览器资料。截图及测试下载保存在被 Git 忽略的 `.qa/`。
+浏览器检查使用独立临时上下文，不读取个人浏览器资料；可通过 `BROWSER_EXECUTABLE` 指定浏览器可执行文件。GitHub Actions 执行相同的发布候选检查并保存检查产物，部署与线上核验步骤见 [工作流](docs/WORKFLOW.md)。
 
 ## 文件结构
 
@@ -104,7 +103,7 @@ macOS 优先使用已安装的 Google Chrome。其他环境可先运行 `npx pla
 
 ## 发布与下一步
 
-部署配置为 `.openai/hosting.json`，静态产物位于 `dist/`。按照教师授权，Sites 已开放公开访问，学生无需登录；GitHub `origin` 保持为本仓库。发布时使用已验证并推送的同一源代码状态。
+部署配置为 `.openai/hosting.json`，静态产物位于 `dist/`，公开游戏无需学生登录。仅发布成功通过检查且提交与哈希匹配的产物；保留该产物用于恢复，并按 [工作流](docs/WORKFLOW.md)核验线上版本。GitHub Actions 当前负责检查，不自动发布网站。
 
 下一步建议进行3–5名学生的小范围试玩，观察操作卡点、对世界反馈的理解、主动探索与再玩意愿，再调整引导与难度。《烟囱与河流》可在规则审阅后接入相同的界面流程。
 
