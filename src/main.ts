@@ -10,6 +10,9 @@ import { outcomeFeedback } from './feedback.ts';
 import { advisorReply } from './advisor.ts';
 import type { AdvisorTopic } from './advisor.ts';
 import { renderEconomyScene } from './scene.ts';
+import { TOWNSPEOPLE, townReactions } from './townspeople.ts';
+import type { TownPlace } from './townspeople.ts';
+import { visitMarkup } from './visits.ts';
 import './focus.css';
 import { PILOT_VERSION, emptyPilotFeedback, restorePilotFeedback, pilotFeedbackReport } from './pilot.ts';
 import type { PilotFeedback } from './pilot.ts';
@@ -30,7 +33,10 @@ let district = 'farm';
 let customPolicyOpen = false;
 let utilityReturnFocus = 'menu-button';
 let notice = '';
-let dialog: 'help' | 'reset' | 'advisor' | 'pilot' | 'menu' | 'music-library' | null = null;
+let dialog: 'help' | 'reset' | 'advisor' | 'visit' | 'pilot' | 'menu' | 'music-library' | null = null;
+let visitPlace: TownPlace = 'farm';
+let visitInspected = false;
+let visitReturnFocus = 'tab-town';
 let pilotReturnFocus = 'pilot-button';
 let pilotFeedback = loadPilotFeedback();
 let feedbackMessage = '';
@@ -317,9 +323,6 @@ function outcomeView(): string {
   const feedback = outcomeFeedback(r);
   const baseline = feedback.baseline;
   const met = r.coverageLow >= .95 - 1e-9;
-  const voice = r.capBinding
-    ? '面包限价了，可货架上的货还是不够分。'
-    : met ? '这季的口粮有着落了，先喘口气。' : '市场有面包，可我们的钱还买不够口粮。';
   const effect = (label: string, actual: number, reference: number, unit: string) =>
     `<div class="effect-card"><span>${label}</span><strong>${fmt(actual)}<small>${unit}</small></strong>
       <span class="effect-delta">${r.season === 1 ? '正常市场参考值' : `无干预 ${fmt(reference)} → 政策影响 ${signed(actual - reference)}`}</span></div>`;
@@ -328,7 +331,7 @@ function outcomeView(): string {
       <h3 id="outcome-title" tabindex="-1">${met ? '这一季，口粮守住了' : r.capBinding ? '标价压下来了，货架却更紧张' : '市场还有面包，居民却买不够'}</h3>
       <div class="basket-meter"><div style="width:${Math.min(100, r.coverageLow * 100)}%"></div><i></i></div>
       <p>低收入组保障 <strong>${pct(r.coverageLow)}</strong> · 目标 ≥95%${met ? '，已达标' : `，还差 ${fmt(Math.max(0, 34.2 - r.purchasesLow))} 单位面包`}</p></div>
-    <p class="street-reaction"><span>居民的声音</span>“${voice}”</p>
+    <div class="town-reactions" aria-label="街坊的反应">${townReactions(state).map(({ place, line }) => `<button class="town-reaction" id="reaction-${place}" type="button" data-action="scene-place" data-place="${place}"><img src="${TOWNSPEOPLE[place].image}" alt="" width="58" height="72" loading="lazy" decoding="async" /><span><strong>${TOWNSPEOPLE[place].name} · ${TOWNSPEOPLE[place].role} ↗</strong>“${line}”</span></button>`).join('')}</div>
     ${renderEconomyScene(state)}
     <p class="comparison-label">${r.season === 1 ? '正常市场 · 参考基准' : '这项决定改变了什么 · 与同季无干预相比'}</p>
     <div class="effect-grid">${effect('低收入组实际购粮', r.purchasesLow, baseline.purchasesLow, '单位')}${effect('面包价格', r.price, baseline.price, 'credits')}</div>
@@ -382,10 +385,10 @@ function town(): string {
   };
   return `<div class="town-map">
     <img src="/town.svg" alt="一条河穿过农业区、面包加工区、公共粮仓和居民区的示意城镇。" width="900" height="590" />
-    ${places.map(place => `<button type="button" class="map-hotspot ${district === place.id ? 'selected' : ''}" data-action="district" data-district="${place.id}" aria-pressed="${district === place.id}" style="left:${place.x}%;top:${place.y}%">
+    ${places.map(place => `<button type="button" id="map-${place.id}" class="map-hotspot ${district === place.id ? 'selected' : ''}" data-action="${place.id === 'granary' ? 'district' : 'scene-place'}" data-district="${place.id}" data-place="${place.id}" aria-pressed="${district === place.id}" style="left:${place.x}%;top:${place.y}%">
       <span class="hotspot-name">${place.name}</span><span class="hotspot-english">${place.english}</span><span class="hotspot-value">${place.value}</span></button>`).join('')}
   </div><div class="map-caption">同一面包市场 · 地区位置不产生额外价格差异 · 数量为面包篮单位</div>
-  <div class="district-detail" aria-live="polite"><strong>${detail[district][0]}</strong><p>${detail[district][1]}</p><button class="button secondary" id="district-advisor-${district}" type="button" data-action="scene-place" data-place="${district}">请林岚解释这个地区</button>${state.phase === 'decision' ? '<button class="button secondary" type="button" data-action="guide-policy">前往政策桌作出选择 →</button>' : ''}</div>
+  <div class="district-detail" aria-live="polite"><strong>${detail[district][0]}</strong><p>${detail[district][1]}</p><button class="button secondary" id="district-advisor-${district}" type="button" data-action="scene-place" data-place="${district}">${district === 'granary' ? '请林岚解释这个地区' : `与${TOWNSPEOPLE[district as TownPlace].name}聊聊`}</button>${state.phase === 'decision' ? '<button class="button secondary" type="button" data-action="view" data-view="command">前往政策桌作出选择 →</button>' : ''}</div>
   ${renderEconomyScene(state)}
   ${state.phase === 'briefing' ? `<div class="notice"><strong>部长，欢迎上任。</strong><p>先点击地图了解四个地区，再查看正常市场。下一季起，你将决定如何应对歉收。</p>${missionMarkup()}</div>` : ''}
   ${state.phase === 'result' ? resultExplanation(latestResult()!) : ''}`;
@@ -522,7 +525,7 @@ function actionDock(): string {
 }
 
 function dialogFocus(): string {
-  return dialog === 'advisor' ? advisorReturnFocus : dialog === 'pilot' ? pilotReturnFocus : utilityReturnFocus;
+  return dialog === 'visit' ? visitReturnFocus : dialog === 'advisor' ? advisorReturnFocus : dialog === 'pilot' ? pilotReturnFocus : utilityReturnFocus;
 }
 function musicLibraryMarkup(): string {
   const playButton = (track: LocalTrack): string => `<button class="button secondary" id="play-${track.id}" type="button" data-action="music-select" data-track-id="${track.id}">播放</button>`;
@@ -556,6 +559,7 @@ function dialogMarkup(): string {
   if (dialog === 'pilot') return pilotMarkup();
   if (dialog === 'music-library') return musicLibraryMarkup();
   if (dialog === 'advisor') return advisorMarkup();
+  if (dialog === 'visit') return visitMarkup(state, visitPlace, visitInspected);
   if (dialog === 'reset') return `<dialog class="dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">开始新任期？</h2><p>这会替换此浏览器中的当前进度，并清空试玩反馈草稿。请先下载需要保留的记录与反馈；共享设备换人时，再开始新一局。</p><div class="dialog-actions"><button class="button secondary" type="button" data-action="close-dialog">继续当前游戏</button><button class="button danger" type="button" data-action="confirm-reset">开始新一局</button></div></dialog>`;
   return `<dialog class="dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">你的任期与模型规则</h2>
     <p>第1季认识正常市场，第2–6季管理政策。每一季选好方案就能执行，城镇和账本会立即显示变化。三个任务分别检查：</p>${missionMarkup()}
@@ -666,7 +670,7 @@ function render(focusId?: string): void {
     }
     if (focusId) element.querySelector<HTMLElement>(`#${focusId}`)?.focus({ preventScroll: true });
   } else if (focusId) {
-    const target = document.getElementById(focusId) ?? (focusId === advisorReturnFocus ? document.getElementById('advisor-open') : document.getElementById('menu-button'));
+    const target = document.getElementById(focusId) ?? (focusId === visitReturnFocus ? document.getElementById('tab-town') : focusId === advisorReturnFocus ? document.getElementById('advisor-open') : document.getElementById('menu-button'));
     target?.focus({ preventScroll: true });
   }
 }
@@ -781,17 +785,37 @@ app.addEventListener('click', event => {
     } else render('advisor-open');
     return;
   } else if (action === 'scene-place') {
-    advisorReturnFocus = button.id || 'advisor-open';
-    const topics: Record<string, [AdvisorTopic, string]> = {
-      farm: ['farm', '农田现在遇到了什么问题？'],
-      mill: ['production', '加工坊的生产会受什么影响？'],
-      market: ['market', '现在的市场价格与供求怎样？'],
-      granary: ['reserves', '我该怎样使用公共粮仓？'],
-      homes: ['why', '居民能不能买到足够的面包？'],
-    };
-    const entry = topics[button.dataset.place!];
-    if (!entry) return;
-    talkToAdvisor(...entry); focusId = 'advisor-reply';
+    const place = button.dataset.place!;
+    if (Object.hasOwn(TOWNSPEOPLE, place)) {
+      visitPlace = place as TownPlace;
+      visitInspected = false;
+      visitReturnFocus = button.id || 'tab-town';
+      if (button.dataset.district) district = button.dataset.district;
+      dialog = 'visit'; focusId = 'visit-line';
+    } else if (place === 'granary') {
+      advisorReturnFocus = button.id || 'advisor-open';
+      talkToAdvisor('reserves', '我该怎样使用公共粮仓？'); focusId = 'advisor-reply';
+    } else return;
+  } else if (action === 'visit-inspect' && dialog === 'visit') {
+    visitInspected = !visitInspected;
+    focusId = 'visit-inspect';
+  } else if (action === 'visit-next' && dialog === 'visit') {
+    visitPlace = TOWNSPEOPLE[visitPlace].next;
+    visitInspected = false;
+    focusId = 'visit-line';
+  } else if (action === 'visit-advisor' && dialog === 'visit') {
+    const topics: Record<TownPlace, AdvisorTopic> = { farm: 'farm', mill: 'production', market: 'market', homes: 'access' };
+    advisorReturnFocus = visitReturnFocus;
+    talkToAdvisor(topics[visitPlace], `请解释一下${TOWNSPEOPLE[visitPlace].name}说的情况。`); focusId = 'advisor-reply';
+  } else if (action === 'visit-plan' && dialog === 'visit') {
+    dialog = null;
+    if (state.phase === 'decision') {
+      view = 'command'; render('season-title');
+    } else if (state.records.length >= 2) {
+      beginReplay(latestResult()!.season); render('replay-season');
+    } else render(visitReturnFocus);
+    document.querySelector('.workspace')?.scrollIntoView({ block: 'start' });
+    return;
   } else if (action === 'scene-replay') {
     playScene(); return;
   } else if (action === 'view') {

@@ -367,7 +367,7 @@ try {
       assert.match(await effect.innerText(), /24\.00.*无干预 25\.00 → 政策影响 −1\.00/s);
       assert.equal(await page.locator('.effect-card').count(), 2);
       assert.equal(await page.locator('#forecast-review').count(), 0, 'Feedback must not become a prediction grading exercise.');
-      assert.equal(await page.locator('.street-reaction').isVisible(), true, 'The settlement immediately shows an in-world reaction.');
+      assert.equal(await page.locator('.town-reaction:visible').count(), 2, 'The settlement immediately shows two clickable character reactions.');
       assert.match(await page.locator('.resource-impact').innerText(), /国库|储备/);
       await assertDockReachable(page, 'next');
       await assertNoHorizontalOverflow(page, `${device} result`);
@@ -469,17 +469,22 @@ try {
     await selectView(page, 'town');
     assert.equal(await page.locator('.scene-reserve-cargo').count(), 0, 'A draft is not an executed reserve release.');
     const draft = await savedState(page);
-    for (const [place, expected] of [
-      ['granary', /粮仓.*60.*20/s],
-      ['farm', /原料.*70|70.*原料/s],
-      ['market', /价格|售价|供求|供给/],
+    for (const [place, person, expected] of [
+      ['granary', '林岚', /粮仓.*60.*20/s],
+      ['farm', '陈禾', /原料.*70|70.*原料/s],
+      ['market', '阿芸', /价签.*开市|成交价.*等结算/s],
     ]) {
       await page.locator(`.economy-scene [data-action="scene-place"][data-place="${place}"]`).click();
       await page.locator('#game-dialog[open]').waitFor();
-      assert.match(await page.locator('#advisor-reply').innerText(), expected, `${place} must open a relevant reply based on this season.`);
+      assert.ok((await page.locator('#dialog-title').innerText()).includes(person));
+      assert.match(await page.locator(place === 'granary' ? '#advisor-reply' : '#visit-line').innerText(), expected, `${place} must open a relevant reply based on this season.`);
+      if (place !== 'granary') {
+        await page.locator('#visit-inspect').click();
+        assert.match(await page.locator('#visit-evidence').innerText(), place === 'farm' ? /上限|最大私人产量/ : /没有售价上限.*等结算/s);
+      }
       if (place === 'farm') await page.keyboard.press('Escape');
-      else await page.getByRole('button', { name: '关闭顾问对话', exact: true }).click();
-      assert.equal(await page.evaluate(() => document.activeElement?.id), `scene-${place}`, 'Closing the adviser returns to the building that opened the conversation.');
+      else await page.locator('#game-dialog [data-action="close-dialog"]').click();
+      assert.equal(await page.evaluate(() => document.activeElement?.id), `scene-${place}`, 'Closing the visit or adviser returns to the building that opened the conversation.');
       assert.deepEqual(await savedState(page), draft, 'Visiting buildings must not execute or change policy.');
     }
     await selectView(page, 'command');
