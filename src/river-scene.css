@@ -1,0 +1,48 @@
+.river-scene { overflow: hidden; width: 100%; border: 1px solid #d5d5bb; border-radius: 12px; background: #f7f3e5; }
+.river-scene .river-scene-art { position: relative; overflow: hidden; }
+.river-scene .river-scene-art > svg { display: block; width: 100%; height: auto; }
+.river-scene .river-scene-caption { position: absolute; z-index: 1; top: 18px; left: 22px; display: grid; gap: 5px; color: #3f604e; pointer-events: none; }
+.river-scene .river-scene-caption > span { font-size: 12px; font-weight: 700; letter-spacing: .12em; }
+.river-scene .river-scene-caption > small { color: #7b8667; font-size: 10px; }
+.river-scene .river-scene-description { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.river-scene .river-scene-pin circle { fill: #f6edd3; stroke: #65775b; stroke-width: 1.5; }
+.river-scene .river-scene-pin text { fill: #3b5848; text-anchor: middle; font: 600 13px Georgia, serif; }
+.river-scene[data-active="factory"] .river-scene-pin-factory circle,
+.river-scene[data-active="river"] .river-scene-pin-river circle,
+.river-scene[data-active="harbor"] .river-scene-pin-harbor circle { fill: #365d4b; stroke: #ede4ba; stroke-width: 3; }
+.river-scene[data-active="factory"] .river-scene-pin-factory text,
+.river-scene[data-active="river"] .river-scene-pin-river text,
+.river-scene[data-active="harbor"] .river-scene-pin-harbor text { fill: #fff8dd; }
+.river-scene .river-scene-places { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; border-top: 1px solid #d5d5bb; background: #d5d5bb; }
+.river-scene .river-scene-places > button { display: flex; align-items: center; justify-content: flex-start; gap: 10px; min-height: 66px; margin: 0; padding: 12px 15px; border: 0; border-radius: 0; background: #f7f4e7; color: #355642; font: inherit; text-align: left; cursor: pointer; transition: background .15s; }
+.river-scene .river-scene-places > button:hover { background: #e9edda; }
+.river-scene .river-scene-places > button[aria-pressed="true"] { background: #e0e8d2; box-shadow: inset 0 -3px #4d7055; }
+.river-scene .river-scene-places > button:focus-visible { position: relative; z-index: 1; outline: 3px solid #956933; outline-offset: -4px; }
+.river-scene .river-scene-place-number { flex: 0 0 auto; color: #8c9678; font: 13px Georgia, serif; }
+.river-scene .river-scene-places strong { display: block; font-size: 14px; font-weight: 650; }
+.river-scene .river-scene-places small { display: block; margin-top: 4px; color: #78836b; font-size: 10px; }
+.river-scene .river-scene-place-arrow { margin-left: auto; color: #9a9f81; font-size: 17px; }
+.river-scene-animated .river-scene-wheel { transform-box: fill-box; transform-origin: center; animation: river-wheel-turn 4s linear 1; }
+.river-scene-animated .river-scene-smoke { animation: river-smoke-drift 4s ease-out 1; }
+.river-scene-animated .river-scene-smoke-small { animation-duration: 3.5s; }
+.river-scene-animated .river-scene-ripples { animation: river-water-glint 4s ease-in-out 1; }
+.river-scene-animated .river-scene-boat { animation: river-boat-settle 4s ease-in-out 1; }
+.river-scene-animated .river-scene-boat-arriving { animation-name: river-boat-arrive; }
+@keyframes river-wheel-turn { from { transform: rotate(-90deg); } to { transform: rotate(0); } }
+@keyframes river-smoke-drift { 0% { transform: translate(-4px, 5px); opacity: .15; } 45% { opacity: .8; } 100% { transform: translate(0, 0); opacity: .75; } }
+@keyframes river-water-glint { 0%, 100% { opacity: .55; } 40% { opacity: .85; } 70% { opacity: .4; } }
+@keyframes river-boat-settle { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-3px); } 75% { transform: translateY(1px); } }
+@keyframes river-boat-arrive { from { transform: translate(36px, 20px); } to { transform: translate(0, 0); } }
+@media (max-width: 520px) {
+  .river-scene .river-scene-caption { top: 11px; left: 13px; gap: 3px; }
+  .river-scene .river-scene-caption > span { font-size: 10px; letter-spacing: .05em; }
+  .river-scene .river-scene-caption > small { font-size: 8px; }
+  .river-scene .river-scene-places > button { gap: 7px; min-height: 63px; padding: 10px 9px; }
+  .river-scene .river-scene-place-number { font-size: 11px; }
+  .river-scene .river-scene-places strong { font-size: 13px; }
+  .river-scene .river-scene-places small { font-size: 9px; }
+  .river-scene .river-scene-place-arrow { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .river-scene *, .river-scene *::before, .river-scene *::after { animation: none !important; transition: none !important; }
+}

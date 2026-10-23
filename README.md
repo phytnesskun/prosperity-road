@@ -88,7 +88,17 @@ macOS 优先使用已安装的 Google Chrome。其他环境可先运行 `npx pla
 | `docs/scenarios/bread-crisis.md` | 面包危机的课程、剧本与规则依据 |
 | `docs/scenarios/smokestacks-and-river.md` | 第二剧本《烟囱与河流》完整设计稿 |
 
-《烟囱与河流》已完成规则与独立数值验证，尚未接入可玩界面。
+## 第二剧本：烟囱与河流
+
+[直接试玩四季样品](https://prosperity-road-ial.bingkunq.chatgpt.site/?scenario=river)，也可从《面包危机》的「菜单」进入。两个剧本使用独立存档，切换或重开第二剧本不会删除第一剧本的进度。
+
+第一季开动纸厂，随后应对河岸请愿、枯水与新订单。玩家在自由生产、单位污染税与排放上限之间选择，执行后立即看到本季供货、价格、排放、损害和财政反馈。点击纸厂、河岸、码头听取不同角色的反应；林岚解释同季对照，不提出答题要求。
+
+四季目标为累计交付至少130、损害不超过3000、国库非负。第二至四季结算后可免费试算该季其他方案，使用原有环境与期初现金，不修改正式任期。四季结束自动生成结局与任期账本，可以重新尝试。河水颜色只表示本季损害，不模拟长期污染存量或健康人数。
+
+样品入口由 `src/entry.ts` 按查询参数选择；规则在 `src/river-model.ts`，交互在 `src/river.ts`，场景在 `src/river-scene.ts`。三张策略卡、场景对话和可展开账本是当前范围，原设计稿中的供需图与教师评价材料没有放入必经流程。
+
+浏览器验收：`node scripts/river-smoke.mjs`（先启动本地预览）。模型验收同时核对剧本数值、216条政策路径、预算、重复执行及存档篡改。
 
 ## 世界规则与边界
 
@@ -106,6 +116,6 @@ macOS 优先使用已安装的 Google Chrome。其他环境可先运行 `npx pla
 
 部署配置为 `.openai/hosting.json`，静态产物位于 `dist/`。按照教师授权，Sites 已开放公开访问，学生无需登录；GitHub `origin` 保持为本仓库。发布时使用已验证并推送的同一源代码状态。
 
-下一步建议进行3–5名学生的小范围试玩，观察操作卡点、对世界反馈的理解、主动探索与再玩意愿，再调整引导与难度。《烟囱与河流》可在规则审阅后接入相同的界面流程。
+下一步建议进行3–5名学生的小范围试玩，观察操作卡点、对世界反馈的理解、主动探索与再玩意愿，再调整引导与难度。《烟囱与河流》目前为四季样品，可重点比较两条通关路径和不同角色的反应。
 
 课程来源：[Pearson IAL Economics Specification](https://qualifications.pearson.com/content/dam/pdf/International%20Advanced%20Level/Economics/2018/Specification-and-Sample-Assessment/International-A-Level-Economics-spec.pdf)。

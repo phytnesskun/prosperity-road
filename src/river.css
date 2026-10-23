@@ -1,0 +1,138 @@
+.river-app { max-width: 1240px; margin: auto; padding: 0 28px 112px; }
+.river-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 76px; border-bottom: 1px solid var(--line); }
+.river-brand { color: var(--green); font: 700 21px "Songti SC", serif; text-decoration: none; letter-spacing: .08em; }
+.river-brand span { display: block; margin-top: 5px; font: 9px "Avenir Next", sans-serif; letter-spacing: .17em; }
+.river-header nav { display: flex; gap: 8px; }
+.river-app button, .river-app a.button { min-height: 44px; }
+.river-app h2 { scroll-margin-top: 20px; scroll-margin-bottom: 130px; }
+.river-title-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 25px 0 15px; }
+.river-title-row h1 { margin: 0 0 7px; font: 700 clamp(28px, 3.2vw, 42px) "Songti SC", serif; letter-spacing: .08em; }
+.river-title-row p:last-child { margin: 0; color: var(--muted); font-size: 14px; }
+.river-season-steps { display: flex; list-style: none; padding: 0; gap: 9px; }
+.river-season-steps li { width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid #c8c0ad; border-radius: 50%; color: #857e6f; }
+.river-season-steps li[aria-current] { border: 2px solid var(--green); color: var(--green); box-shadow: 0 0 0 4px #193b3210; }
+.river-season-steps li.finished { color: #fffdf5; background: var(--green); }
+.river-goals { display: grid; grid-template-columns: .8fr 1fr 1fr; padding: 15px 0; margin-bottom: 18px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); gap: 24px; }
+.river-goals > div { display: flex; flex-direction: column; min-width: 0; }
+.river-goals span, .river-goals small { color: var(--muted); font-size: 11px; }
+.river-goals strong { color: var(--green); font-size: 25px; font-variant-numeric: tabular-nums; line-height: 1.6; }
+.river-goals strong small { font-weight: 400; }
+.river-goals progress { width: 100%; height: 4px; appearance: none; border: 0; background: #d8d3c5; border-radius: 2px; }
+.river-goals progress::-webkit-progress-bar { background: #d8d3c5; border-radius: 2px; }
+.river-goals progress::-webkit-progress-value { background: #658575; border-radius: 2px; }
+.river-goals progress::-moz-progress-bar { background: #658575; }
+.river-goals .over-budget strong { color: var(--red); }
+.river-goals .over-budget progress::-webkit-progress-value { background: var(--red); }
+.river-layout { display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(300px, 1fr); gap: 22px; align-items: start; }
+.river-world { min-width: 0; background: #f8f5eb; border: 1px solid #d4cdbb; border-radius: 12px; overflow: hidden; }
+.river-event { padding: 19px 24px 13px; }
+.river-event > span { color: #96713f; font-size: 11px; font-weight: 650; }
+.river-event h2 { margin: 6px 0; font-family: "Songti SC", serif; font-size: 25px; }
+.river-event > p { margin: 0; font-size: 13px; color: #666a5d; }
+.river-dialogue { display: flex; gap: 16px; padding: 20px 22px; background: #fffdf6; border-top: 1px solid var(--line); min-height: 158px; }
+.river-dialogue > div:last-child { min-width: 0; }
+.river-speaker { width: 64px; height: 76px; flex: 0 0 64px; overflow: hidden; border-radius: 38px 38px 6px 6px; background: #e4e8d9; align-self: start; }
+.river-speaker img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; }
+.river-speaker > span { display: grid; height: 100%; place-items: center; font: 700 30px "Songti SC", serif; color: #526951; }
+.river-voice-name { font-weight: 700; margin-bottom: 7px; }
+.river-voice-name span { margin-left: 12px; font-size: 11px; font-weight: 400; color: var(--muted); }
+#river-dialogue-text { margin-bottom: 4px; font-size: 13px; line-height: 1.8; }
+.river-command { min-width: 0; padding: 25px; background: var(--paper); border: 1px solid #d4cdbb; border-top: 3px solid #ae8b51; border-radius: 10px; position: sticky; top: 16px; }
+.river-command h2 { font: 700 24px/1.4 "Songti SC", serif; margin-bottom: 13px; }
+.river-command p { font-size: 13px; color: #626957; }
+.river-seal { display: grid; place-items: center; width: 60px; height: 68px; margin-bottom: 23px; border: 1px solid #b89e6c; border-radius: 34px 34px 5px 5px; color: #8e703e; font: 27px "Songti SC", serif; background: #f4eddb; }
+.river-contract { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 16px 0; margin: 20px 0; font-size: 13px; }
+.river-contract span { display: block; margin-top: 6px; color: var(--muted); }
+.river-hint { font-size: 11px !important; color: var(--muted); }
+.river-strategies { display: grid; gap: 10px; }
+.river-strategy { width: 100%; text-align: left; display: flex; align-items: center; gap: 12px; padding: 14px 12px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: #faf8f0; }
+.river-strategy > span:first-child { font-size: 25px; width: 25px; flex-shrink: 0; color: #8e784e; text-align: center; }
+.river-strategy b { display: block; font-size: 14px; }
+.river-strategy small { display: block; margin-top: 4px; font-size: 11px; line-height: 1.55; color: var(--muted); }
+.river-strategy[aria-pressed="true"] { border-color: var(--green); background: #eaf0e5; box-shadow: inset 3px 0 var(--green); }
+.river-strategy:hover { border-color: #6b836e; }
+.river-intensity { display: flex; gap: 8px; border: 0; padding: 0; margin: 16px 0 0; }
+.river-intensity legend { font-size: 11px; color: var(--muted); margin-bottom: 7px; }
+.river-intensity button { min-width: 53px; border: 1px solid var(--line); border-radius: 5px; background: #f7f2e5; color: var(--ink); }
+.river-intensity button[aria-pressed="true"] { background: var(--green); color: #fff; border-color: var(--green); }
+.river-policy-note { margin-top: 17px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 12px; }
+.river-policy-note span { display: block; margin-top: 3px; font-size: 11px; color: var(--muted); }
+.river-text-button { border: 0; padding: 6px 0; background: transparent; color: #526e58; text-align: left; font-size: 12px; text-decoration: underline; text-underline-offset: 4px; }
+.river-result-context { font-size: 11px !important; }
+.river-results { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; padding: 12px 0 18px; }
+.river-results > div:last-child { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 12px; }
+.river-results span, .river-results small { display: block; font-size: 11px; color: var(--muted); }
+.river-results strong { display: block; font-size: 27px; font-variant-numeric: tabular-nums; color: var(--green); }
+.river-results strong small { display: inline; }
+.river-cashline { padding: 12px; background: #f1eddf; border-radius: 5px; }
+.river-cashline small { color: var(--muted); font-size: 11px; }
+.river-wide { width: 100%; }
+.river-sandbox { padding: 14px 0 0; font-size: 12px; }
+.river-sandbox label { display: block; margin-bottom: 6px; }
+.river-sandbox select { max-width: 100%; width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); background: #fffdf6; padding: 8px; }
+.river-sandbox p { margin: 10px 0; }
+.river-sandbox small { color: var(--muted); }
+.river-ending-goals { list-style: none; padding: 10px 0; line-height: 2.2; font-size: 14px; color: var(--green); }
+.river-ledger { margin-top: 20px; border: 1px solid var(--line); border-radius: 8px; padding: 0 20px; background: #f8f5eb; font-size: 12px; }
+.river-ledger summary { cursor: pointer; padding: 15px 0; font-size: 13px; }
+.river-ledger summary > span { float: right; font-size: 11px; color: var(--muted); }
+.river-table-wrap { overflow-x: auto; }
+.river-ledger table { width: 100%; border-collapse: collapse; text-align: right; margin-bottom: 14px; }
+.river-ledger th, .river-ledger td { padding: 9px 7px; border-bottom: 1px solid var(--line); font-size: 12px; }
+.river-ledger th:first-child { text-align: left; }
+.river-ledger th small { display: block; font-size: 10px; font-weight: 400; }
+.river-settings { display: flex; align-items: center; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+.river-settings > span { font-size: 10px; color: var(--muted); margin-left: auto; }
+.river-storage-message { font-size: 12px; color: var(--red); }
+.river-dock { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 15px max(28px, calc((100vw - 1184px) / 2)); border-top: 1px solid #c8bea7; background: #fffdf6f5; backdrop-filter: blur(12px); box-shadow: 0 -5px 25px #27392d0b; }
+.river-dock b { font-size: 13px; }
+.river-dock small { display: block; font-size: 11px; color: var(--muted); }
+.river-dock .button { min-height: 48px; min-width: 205px; }
+.river-reset-dialog { width: min(480px, calc(100vw - 32px)); padding: 26px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 10px; }
+.river-reset-dialog::backdrop { background: #193b3299; }
+.river-reset-dialog > div { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 800px) {
+  .river-app { padding: 0 18px 118px; }
+  .river-layout { grid-template-columns: 1fr; gap: 16px; }
+  .river-command { position: static; }
+  .river-opening { display: grid; grid-template-columns: 60px 1fr; column-gap: 18px; }
+  .river-opening .river-seal { grid-row: 1 / 4; margin: 0; }
+  .river-opening .river-contract, .river-opening .river-hint { grid-column: 1 / -1; }
+  .river-opening h2 { margin-bottom: 7px; }
+  .river-opening .river-contract { margin: 8px 0; }
+}
+@media (max-width: 520px) {
+  .river-app { padding: 0 12px 140px; }
+  .river-header { min-height: 72px; gap: 8px; }
+  .river-header nav { gap: 3px; }
+  .river-header .button { font-size: 11px; padding: 6px 8px; }
+  .river-brand { font-size: 17px; white-space: nowrap; }
+  .river-brand span { font-size: 7px; }
+  .river-title-row { padding-top: 21px; gap: 8px; align-items: start; }
+  .river-title-row h1 { font-size: 29px; }
+  .river-title-row p:last-child { font-size: 11px; }
+  .river-season-steps { gap: 4px; margin-top: 4px; }
+  .river-season-steps li { width: 22px; height: 22px; font-size: 10px; }
+  .river-title-row .eyebrow { font-size: 9px; }
+  .river-goals { gap: 11px; grid-template-columns: .85fr 1fr 1.15fr; padding: 12px 0; }
+  .river-goals strong { font-size: 20px; }
+  .river-goals span, .river-goals small { font-size: 9px; }
+  .river-goals strong small { font-size: 8px; }
+  .river-event { padding: 16px 16px 10px; }
+  .river-event h2 { font-size: 23px; }
+  .river-event > p { font-size: 12px; }
+  .river-dialogue { padding: 16px 14px; gap: 11px; }
+  .river-speaker { width: 45px; height: 60px; flex-basis: 45px; }
+  .river-voice-name span { margin-left: 7px; font-size: 10px; }
+  #river-dialogue-text { font-size: 12px; }
+  .river-command { padding: 20px; }
+  .river-command h2 { font-size: 24px; }
+  .river-settings { gap: 14px; }
+  .river-settings > span { margin: 0; width: 100%; }
+  .river-dock { padding: 11px 12px max(11px, env(safe-area-inset-bottom)); gap: 10px; }
+  .river-dock > div { flex: 1; min-width: 0; }
+  .river-dock b { font-size: 11px; display: block; }
+  .river-dock small { font-size: 9px; margin-top: 2px; }
+  .river-dock .button { min-width: 138px; max-width: 48%; padding: 10px; font-size: 12px; }
+  .river-ledger { padding: 0 12px; }
+}

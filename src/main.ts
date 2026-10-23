@@ -547,6 +547,7 @@ function musicLibraryMarkup(): string {
 function dialogMarkup(): string {
   if (!dialog) return '';
   if (dialog === 'menu') return `<dialog class="dialog menu-dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">游戏菜单</h2><div class="menu-options">
+    <a class="button secondary" id="river-scenario-link" href="?scenario=river">第二剧本 · 烟囱与河流</a>
     <button class="button secondary" id="pilot-button" type="button" data-action="pilot">试玩与反馈</button>
     <button class="button secondary" id="help-button" type="button" data-action="help">玩法与规则</button>
     <button class="button secondary" id="music-library-button" type="button" data-action="music-library">音乐库</button>
