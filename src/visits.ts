@@ -21,7 +21,7 @@ function propArt(visual: string, inspected: boolean): string {
   return `<svg viewBox="0 0 120 100" aria-hidden="true">${art}</svg>`;
 }
 
-export function visitMarkup(state: GameState, place: TownPlace, inspected: boolean): string {
+export function visitMarkup(state: GameState, place: TownPlace, inspected: boolean, voiceMarkup = ''): string {
   const person = TOWNSPEOPLE[place];
   const story = visitStory(state, place);
   const canPlan = state.phase === 'decision' || (state.records.length >= 2 && ['result', 'complete'].includes(state.phase));
@@ -34,6 +34,7 @@ export function visitMarkup(state: GameState, place: TownPlace, inspected: boole
       <button id="visit-inspect" class="visit-prop" type="button" data-action="visit-inspect" aria-expanded="${inspected}" aria-controls="visit-evidence">${propArt(story.visual, inspected)}<span>${inspected ? '收起细节' : story.propLabel} <b aria-hidden="true">${inspected ? '−' : '+'}</b></span></button>
     </div><div class="visit-talk">
       <p id="visit-line" class="visit-speech" tabindex="-1">“${story.line}”</p>
+      ${voiceMarkup}
       ${inspected ? `<div id="visit-evidence" class="visit-evidence" role="status"><div class="visit-metric"><span>${story.metricLabel}</span><strong>${story.metricValue}</strong></div>${story.visual === 'price' ? '' : `<div class="visit-fill" aria-hidden="true"><span style="width:${story.fill * 100}%"></span></div>`}<p>${story.inspectLine}</p></div>` : '<p class="visit-hint">点点旁边的物件，看看眼前的情况。</p>'}
       <div class="visit-actions"><button class="button primary" id="visit-next" type="button" data-action="visit-next">${person.nextLabel} →</button>${canPlan ? `<button class="button secondary" id="visit-plan" type="button" data-action="visit-plan">${state.phase === 'decision' ? '回政策桌想办法' : '试试另一种办法'}</button>` : ''}</div>
       <button class="visit-advisor" id="visit-advisor" type="button" data-action="visit-advisor">请林岚解释原因 ↗</button>

@@ -1,0 +1,1361 @@
+{
+  "engine": "edge-tts 7.3.1",
+  "profiles": {
+    "zh": {
+      "advisor": {
+        "voice": "zh-CN-XiaoxiaoNeural",
+        "rate": "-4%",
+        "pitch": "+0Hz"
+      },
+      "farm": {
+        "voice": "zh-CN-YunyangNeural",
+        "rate": "-8%",
+        "pitch": "-5Hz"
+      },
+      "mill": {
+        "voice": "zh-CN-YunxiNeural",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+      },
+      "market": {
+        "voice": "zh-CN-XiaoyiNeural",
+        "rate": "+2%",
+        "pitch": "+0Hz"
+      },
+      "homes": {
+        "voice": "zh-TW-HsiaoChenNeural",
+        "rate": "-5%",
+        "pitch": "-3Hz"
+      }
+    },
+    "en": {
+      "advisor": {
+        "voice": "en-GB-SoniaNeural",
+        "rate": "-4%",
+        "pitch": "+0Hz"
+      },
+      "farm": {
+        "voice": "en-GB-RyanNeural",
+        "rate": "-8%",
+        "pitch": "-5Hz"
+      },
+      "mill": {
+        "voice": "en-GB-ThomasNeural",
+        "rate": "+0%",
+        "pitch": "+0Hz"
+      },
+      "market": {
+        "voice": "en-GB-LibbyNeural",
+        "rate": "+2%",
+        "pitch": "+0Hz"
+      },
+      "homes": {
+        "voice": "en-US-JennyNeural",
+        "rate": "-5%",
+        "pitch": "-3Hz"
+      }
+    }
+  },
+  "clips": {
+    "zh/advisor-welcome": {
+      "character": "advisor",
+      "text": "我是林岚。别着急，我们一起照看这座小镇。先去看看市场吧。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "8f3334d3148defd6f8100c09844894ad30f131fb92a386ed36026c0ee714b380",
+      "sha256": "3f50898b05f4194ada85e6d5e4334e5e57ded78cc114cbcc6149eee89f0e03b4",
+      "bytes": 42624
+    },
+    "en/advisor-welcome": {
+      "character": "advisor",
+      "text": "I'm Lin Lan. Take your time. We'll look after this town together. Let's start at the market.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "578b32aa31113a92036e0a83b24b3fd4e3860a33bd4f5297e494d3413370b223",
+      "sha256": "b028d456c5a923c4c8312cfb973d334a65be979b5cb6c2cbeb70766665cdf948",
+      "bytes": 43632
+    },
+    "zh/advisor-complete-pass": {
+      "character": "advisor",
+      "text": "六季走完了，你守住了目标。辛苦啦。要不要回头看看，另一种选择会怎样？",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "c6a7567d798171b18b7db76900d6c03aba62e0b100bb63f26f9efdbe41af0de8",
+      "sha256": "d0c45bbbd481aeb8979a9a5d8002151e3ef1a268ea13bb97d7361189d81ab47c",
+      "bytes": 49104
+    },
+    "en/advisor-complete-pass": {
+      "character": "advisor",
+      "text": "Six seasons, and you've met your goals. Well done. Shall we look back and try a different choice?",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "dc4c174006840c82e16709fcc20c4abf97e27a073d31693cb46331bbbdc543dd",
+      "sha256": "e94ebe0a0e1b65ce85aa143f90c5f8b060107892790de4a94d0828cfcc8b1e79",
+      "bytes": 43056
+    },
+    "zh/advisor-complete-retry": {
+      "character": "advisor",
+      "text": "六季走完了。有些地方还可以再试试。我们回到最吃紧的那一季，好吗？",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "9e33b859ecb49eb83235213beaa5a7956ebb71f45d708c1c98f9351581320012",
+      "sha256": "86055015105490fdf65e2d91895082289913c75065ab03c2676a3a37f81cf160",
+      "bytes": 45216
+    },
+    "en/advisor-complete-retry": {
+      "character": "advisor",
+      "text": "We've reached the end of six seasons. There's still room to try another approach. Let's revisit the toughest season.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "e8b463b456cda3d4f8e9df8ec8cdf3e28de36fe288daa404b29bdf533e08d031",
+      "sha256": "ce2f1d2a3dda125d983e2ef0deac05929c8591259ef1dde7588b1a22cb44874d",
+      "bytes": 48672
+    },
+    "zh/advisor-season-1": {
+      "character": "advisor",
+      "text": "先看看正常收成时，镇上的市场怎么运转。之后做决定，心里就有底了。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "0e02b50536a34cc81d688cbc6d38dae015ae0e8ebb073977bd3fca0a3cb0bd0c",
+      "sha256": "578a1490d764182877dc58409d07bc2a05b5eb136a290b0331b6b416fec18a32",
+      "bytes": 44784
+    },
+    "en/advisor-season-1": {
+      "character": "advisor",
+      "text": "Let's see how the market works in a normal harvest. That will give us something to compare our choices with.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "4cc4d6976c6f22038c083e0f720e216b059aa3d254bbb9bdb0401428978e74e0",
+      "sha256": "a696e98e1dc44195ab99b17af852588308871c5c02150eef18bf9b0798ab77de",
+      "bytes": 42480
+    },
+    "zh/advisor-season-2": {
+      "character": "advisor",
+      "text": "歉收来了，原料紧，成本也高了。选好方案，我们就看看小镇怎么回应。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "aec6201e93d8c9e2ced8e73a231ecdbf1d6f31e267df79b79f05d55fe6a6bc24",
+      "sha256": "22e3d3facb0fc19f6f2991d0c2479491fd2a7ec3fac4ec156796e287a84036ee",
+      "bytes": 46944
+    },
+    "en/advisor-season-2": {
+      "character": "advisor",
+      "text": "The poor harvest is here. Materials are scarce, and costs are higher. Choose a plan, and let's see how the town responds.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "d2941e382122a0cac1d422ea17edc20cf991571508df52b0973aa16e0d73ba0a",
+      "sha256": "f6f54b2d2381c6c73acb4ed1d0b15c78bcec6c169b3cd2e7ad5bba32c7f60ca3",
+      "bytes": 54000
+    },
+    "zh/advisor-season-3": {
+      "character": "advisor",
+      "text": "原料开始恢复了，不过供应还紧。慢慢来，看看这季最需要帮哪一头。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "ca8694fe12e90853400e1374f58b0d00b3c906eaf6cf488c027ec9a555d1e4b6",
+      "sha256": "f77a73c3532262060e21581423400a91c7b540ddce12a01f983032961abfcbf5",
+      "bytes": 44064
+    },
+    "en/advisor-season-3": {
+      "character": "advisor",
+      "text": "Materials are starting to recover, but supplies are still tight. Take a moment to see where help is needed most.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "3f83f40c062c26a23e533cca2e50129807decbc983352b566773df381a4b610a",
+      "sha256": "610d3dd8c299f3ba052cbd19bb16196aa8686ad3591f2a4aafa6f3080241ba20",
+      "bytes": 47952
+    },
+    "zh/advisor-season-4": {
+      "character": "advisor",
+      "text": "原料又宽裕了一些。现在给补贴，效果可能和歉收时不同了。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "cc98317746f41f84768e75e1b269202b65ad34aaaa61e2e7b2eba8b6d6bde4bb",
+      "sha256": "60f4c26763ac648344c9cd4d5e1a72f7c8e910699357d5a53632a359a296ed62",
+      "bytes": 40320
+    },
+    "en/advisor-season-4": {
+      "character": "advisor",
+      "text": "We've got a little more material now. A subsidy may work differently than it did during the poor harvest.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "fe39467fb460f12777196aa9e56617a3aa74ecc874d8b552a83cbf1355a9893e",
+      "sha256": "c1b1ac9cfac01a536e015400f26f4075fd6a1ad04e361ac7d531d36de8ab2b3c",
+      "bytes": 42192
+    },
+    "zh/advisor-season-5": {
+      "character": "advisor",
+      "text": "生产条件接近恢复了。有些措施，也许已经可以慢慢收回来了。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "7264d864140d6ddda17a765d073326c47261436b4cc98c01cf48180a64291d82",
+      "sha256": "cb483925160e207348191c6ee51d3079eec9480be39f427bfeacf3913cfc937c",
+      "bytes": 41040
+    },
+    "en/advisor-season-5": {
+      "character": "advisor",
+      "text": "Production is almost back to normal. It may be time to ease off some of the support.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "4470d79c64655902ab75dded2f86aa441532060e041e4a3248e0e477a4882b2f",
+      "sha256": "4069044f235297acbfe7d70f9fab8446d2de6449919425b0923d2e494fc10c41",
+      "bytes": 35712
+    },
+    "zh/advisor-season-6": {
+      "character": "advisor",
+      "text": "最后一季，生产条件恢复正常了。照顾眼前，也给下一年留点余地吧。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "5f0566c5b955c60eee6dde6354accef8ec61979e982a03e0fc467863ec0d991d",
+      "sha256": "1fed58476a9d766843acb002271210941a78bd9369666e2b2988b10f1bc6b96b",
+      "bytes": 43632
+    },
+    "en/advisor-season-6": {
+      "character": "advisor",
+      "text": "It's the final season, and production conditions are back to normal. Let's look after today, and leave something for next year.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "795f750028e155d516bad68f3bc3f2922a9cd8c4e967733fa41f883c8273792d",
+      "sha256": "cc7efb7d9a93fd85495157fe956a1b28510f6b7645fe9df36e48887f91e476a1",
+      "bytes": 50112
+    },
+    "zh/advisor-result-met": {
+      "character": "advisor",
+      "text": "这季的保障目标达到了。我们再看看，为此花了多少现金和储备。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "f3dd6f96d726c54585bac2a1e75d20c032a6fa08368972c713549db93ce48cec",
+      "sha256": "f7c287624bee6da0b616b18ea1aa31c9632859725ec2c702a6fab4a4c85ed418",
+      "bytes": 40176
+    },
+    "en/advisor-result-met": {
+      "character": "advisor",
+      "text": "We've met this season's food coverage target. Now let's see what it cost in cash and reserves.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "e039d70dda20dbe27c128823ab88d02f647ce57ca8b99ee5f8cc64093c11b0cc",
+      "sha256": "70d9e43b1dbc214dc11717a79564220c7187bcc339f6319bd7912beed09bf331",
+      "bytes": 40752
+    },
+    "en/advisor-result-unmet": {
+      "character": "advisor",
+      "text": "We haven't met this season's food coverage target. Let's work out whether people couldn't afford enough, or there wasn't enough to buy.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "2fe4c5d29418f93ca0f1bf7494ce19cdca1c56d81aaf4fb74eead8867da02cae",
+      "sha256": "cac0059fb4a0b120ae7903b02bffaabea371eec1c6b46b5d50a879bd34842bd4",
+      "bytes": 51408
+    },
+    "zh/advisor-first-market": {
+      "character": "advisor",
+      "text": "先观察一次没有干预的市场。下一季，限价、补贴和粮仓投放，就由你来定。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "f91786ec4f23bfa76976067e314f51c3aae057faa9b22c8e84f2ab412ea700fd",
+      "sha256": "1591473caa973623f52945a6deba0c3145820bb1e5824f55737cdc90e658972e",
+      "bytes": 50544
+    },
+    "en/advisor-first-market": {
+      "character": "advisor",
+      "text": "Let's first watch the market without intervention. Next season, you'll choose price limits, subsidies, and releases from the granary.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "77659b10cb09217c09c51008330cf49aa9bfdc667a82bb4843f59a50659e332e",
+      "sha256": "ed2b1aab7dd9dd33b14d6604cd4cd1903579a6154f3303776e632ba608613464",
+      "bytes": 55872
+    },
+    "zh/advisor-baseline-done": {
+      "character": "advisor",
+      "text": "正常市场已经看过了。进入下一季，就可以选自己的方案了。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "a9ddc5b4663881f4ea0fc9eb15644cde79fa158f20be0f5e740d49209c034871",
+      "sha256": "96397cef6c22d8cd5c1b22f03a7d5829ef4d0259af250cfd18337be76d7925e3",
+      "bytes": 35280
+    },
+    "en/advisor-baseline-done": {
+      "character": "advisor",
+      "text": "We've seen the normal market. Move into the next season, and you can choose your own plan.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "f8b8f3a967a430cb0ad5aca788b2db119786378c7628ff8bee38fac29b8acfc4",
+      "sha256": "288e70609ad2653ee04f751cb31e757cd0d45b390552f26b4236c2fd6c4783a6",
+      "bytes": 36864
+    },
+    "zh/advisor-policy-settled": {
+      "character": "advisor",
+      "text": "这季已经执行完了。想换一种办法，可以免费试算，原来的结果会留着。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "fcb821afcaabc466bb95cf22dcb4ef98ffa176ef0dff19da6f01fb3ae279a8f8",
+      "sha256": "e4d9acfbf399bf72d505f3035ee9dbacb458340760f8b6eabf39308f3b6c3ba0",
+      "bytes": 43920
+    },
+    "en/advisor-policy-settled": {
+      "character": "advisor",
+      "text": "This season's plan has already been carried out. You can try another approach for free, and keep the original result.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "93270144c33e707786e391d4ff632f99e7b314cbc9361defd2203355ff8b3a39",
+      "sha256": "8e3aa7a281778e5bc499e953ed0ad73fb2e06d9466832ac9d222fce71d1c4d92",
+      "bytes": 46944
+    },
+    "zh/advisor-reserves-invalid": {
+      "character": "advisor",
+      "text": "这份草案要用的粮，比粮仓现有的还多。先减少投放，我们再看下一步。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "4f45cab4260818c74939ac30c7a63ff7649c9d78a44cd3caa856bf80a19ecdf4",
+      "sha256": "91a54782eb11b8e1a19806cfcad16af48a5ffc25ab3fa5afbaaa3a9df39b4889",
+      "bytes": 44496
+    },
+    "en/advisor-reserves-invalid": {
+      "character": "advisor",
+      "text": "This draft calls for more grain than we have in reserve. Reduce the release first, and then we'll take another look.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "4a81619433cb5638ccf73134dbc8320c86a9c3ab03ef85057946426ea01e10d3",
+      "sha256": "2ffc5da45f5c0cc4e09a676a8971f8c0304aa1a27e33b82ff116a50a705de550",
+      "bytes": 45072
+    },
+    "zh/advisor-cash-invalid": {
+      "character": "advisor",
+      "text": "这份草案会让国库现金不够。先调整补贴或政策组合，留住周转的余地。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "db30f8de0166dd8216bd1a3bbf76ab2d74a19770e960f12ae132386dd0a980d9",
+      "sha256": "c7d49f89ce32c7787fcc93715c75ceb5977f66c65dd9f220619e88a992c71f6e",
+      "bytes": 47376
+    },
+    "en/advisor-cash-invalid": {
+      "character": "advisor",
+      "text": "This draft would leave the treasury short of cash. Let's adjust the subsidy or the policy mix, so we can keep going.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "8144bd136c440bdc8c608143cbbb659d22bd89f7375d7e93efa8c07f50ae2186",
+      "sha256": "17d02e14b6e648285084e9d58cc3e1e81b7b614b8f2143003247adabdf7f2358",
+      "bytes": 48240
+    },
+    "zh/advisor-policy-market": {
+      "character": "advisor",
+      "text": "你让价格随市场调整。这样能协调供求，但居民能不能买够，还得看看。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "22170832d3bac4306ba59bb64075dbfd221e624489a6bc1441634a186af52d78",
+      "sha256": "5400162d8d7c907305672cbb55446e6a56ce5e20fea497d12dea1a9b3b761217",
+      "bytes": 45504
+    },
+    "en/advisor-policy-market": {
+      "character": "advisor",
+      "text": "You're letting prices adjust with the market. That can balance supply and demand, but we'll still need to check whether residents can afford enough.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "8c7b2ef2edadaedea92806f329fc457753bcf311552f227ccef04f94788b635f",
+      "sha256": "8e443c20fee965886ff2d622a58fd8567277e9b535613b6e21072975ca0b6965",
+      "bytes": 55008
+    },
+    "zh/advisor-policy-cap": {
+      "character": "advisor",
+      "text": "你准备限制售价。价格压得太低，货可能不够卖，得留意居民实际拿到多少。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "b8e4f0269bf4f8a845dd1885bfc06fb629e232ab71f3d4ca92288685b3e610f8",
+      "sha256": "160e396b5a136288c01683ceb0c605f7752adad1285b4fdc68eeb8c17afd9550",
+      "bytes": 48096
+    },
+    "en/advisor-policy-cap": {
+      "character": "advisor",
+      "text": "You're planning a price limit. If it's too low, there may not be enough bread to go round. Watch what residents actually take home.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "cddaf7ef2c5fbb6975c62d3f45b65269b1c57b45648c25e5d9ccff44d37086be",
+      "sha256": "f53d235efb1846021375f980208435e4575bf5f080b2ec5fdd3633a5b96861a3",
+      "bytes": 54000
+    },
+    "zh/advisor-policy-subsidy": {
+      "character": "advisor",
+      "text": "你准备给工坊补贴。能不能多做面包，还要看原料；国库的支出也别忘了。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "a2c9334fe33133e6b92a75b5397fd6f82246b939548083bdb22a201f4076558f",
+      "sha256": "727f5c83af091b7cca5003abdf717b8f695090eb9d97b5b38929a7ab00c49384",
+      "bytes": 45648
+    },
+    "en/advisor-policy-subsidy": {
+      "character": "advisor",
+      "text": "You're planning a subsidy for the workshops. Whether they can bake more depends on materials. Keep an eye on the treasury cost, too.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "6f2205ebdb8d8d0874c4ce3814adeb8c5e3bf6dcad93db88af56ba563f69ccff",
+      "sha256": "4a3692750d7bedb99b37a5bb95a86c2868ab59054e042bfd00816f80099b4e31",
+      "bytes": 56304
+    },
+    "zh/advisor-policy-release": {
+      "character": "advisor",
+      "text": "你准备开仓，增加市场供应。今天用掉的储备，后面就不能再用了。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "c7ffb470302dfc745e2b8ad71d7a347bc2d321c92e42ca786b11cd6792f8ddb2",
+      "sha256": "1489c3e49cc6bd537ce4df847ba42baeabfc3b6cf82d5fd4ed80b28b9277d0b3",
+      "bytes": 41760
+    },
+    "en/advisor-policy-release": {
+      "character": "advisor",
+      "text": "You're planning to open the granary and add to market supply. Reserves used today won't be there for a later season.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "9bdaaf331c79a9fafc15871ced1568d943f0fc68271da91cbbb17f2ba35eef15",
+      "sha256": "62edbe992fc4b4ebabd0eca0db5347eb03338186ac473857043122d84def167c",
+      "bytes": 45360
+    },
+    "zh/advisor-policy-cap-subsidy": {
+      "character": "advisor",
+      "text": "限价加补贴，可以一起考虑。不过原料仍有上限，货架和国库都得照看。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "03869636c838fab80ff9e18be24871db3e2fb40dca1b3cd6f83d820e1c6c845b",
+      "sha256": "ecfffa05c9ded8ab677f9e3d0122b25bf2989eedaa4b299765ab9ade7c0df2c8",
+      "bytes": 46224
+    },
+    "en/advisor-policy-cap-subsidy": {
+      "character": "advisor",
+      "text": "You're combining a price limit with a subsidy. Materials still put a ceiling on production, so watch both the shelves and the treasury.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "af2829d72cf5e75fa2deacf9813bf41d54076165d95c6d60df9eaac7e5a2913d",
+      "sha256": "4c38714016e75a9e7adab55aded7bceefeca668ff664350f5afcb10d271dee0e",
+      "bytes": 53280
+    },
+    "zh/advisor-policy-cap-release": {
+      "character": "advisor",
+      "text": "限价配上开仓，能同时影响价格和供应。也要看看，粮仓还给后面留了多少。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "b4a12f0f82fc3c14856449d4f03b181f231aa8c4bffeda2d4efc96c9abb14121",
+      "sha256": "3f1e9071a854f2b5d9d544cf10694247cab8efe10742ad99febc19e2b1cf6909",
+      "bytes": 49536
+    },
+    "en/advisor-policy-cap-release": {
+      "character": "advisor",
+      "text": "A price limit and a granary release affect both price and supply. Check how much grain you're leaving for the seasons ahead.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "b477792ce768e94a9f978c9438a6c2db17c32d35378f86dfc1d948a2208ba275",
+      "sha256": "cc2d872d57aacb468065ab5e1aa26a8c46cd189a71b759e9c5e45599b6a8f165",
+      "bytes": 49536
+    },
+    "zh/advisor-policy-subsidy-release": {
+      "character": "advisor",
+      "text": "补贴和开仓一起用，会动到现金和储备。先看看这两份代价，你愿不愿意承担。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "2cbd4705fcda3e701dfb40bebd602de2a3c6d48de7131d3cb23d0fadae29ede2",
+      "sha256": "ae11edc023f18a2c2ec7b259e22cd6892c62468f916956a037db84541febb2c1",
+      "bytes": 48816
+    },
+    "en/advisor-policy-subsidy-release": {
+      "character": "advisor",
+      "text": "Using a subsidy and a granary release draws on both cash and reserves. Take a look at those costs before you decide.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "e2b422f2d1fb64e25fb6aca8e29d3b77861d119e3628e621128f4ff16d1cab45",
+      "sha256": "763cf94fffd8050fa6e922646eb09aee12bbbf164ee1215ad6f9da03ff713099",
+      "bytes": 48816
+    },
+    "zh/advisor-policy-all": {
+      "character": "advisor",
+      "text": "三种措施一起用，影响也会交织在一起。价格、原料、现金和储备，都值得留意。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "35c6be8917e3d762b81bc6a0241735f4c54edeb3e53cdaf639cc865148e79b33",
+      "sha256": "a6283b0564e92e2cb2bb6f149876186f1c3b3fedb08dbb8b22441941fc0027a6",
+      "bytes": 53136
+    },
+    "en/advisor-policy-all": {
+      "character": "advisor",
+      "text": "With all three measures together, their effects interact. Keep an eye on prices, materials, cash, and reserves.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "7fd110eb505c337f46218e2862a8f50cbd28d6177ebb1661af825b88f36bb234",
+      "sha256": "23672575d7805f84b20c09bc575920899dd11e114e3fe5bf4a927ab6237b6e40",
+      "bytes": 52272
+    },
+    "zh/advisor-pending": {
+      "character": "advisor",
+      "text": "这季还没结算呢。方案执行后，我们再看居民带回了多少面包。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "73db03f9936e992664474a1ad58ae05308406b534e0ed0aa7e2062a5f5336543",
+      "sha256": "10a11f295ac328a96726966d394a5e6eec10f0250ff990e938b0de7d661c079f",
+      "bytes": 38592
+    },
+    "en/advisor-pending": {
+      "character": "advisor",
+      "text": "This season hasn't been settled yet. Once the plan is carried out, we'll see how much bread residents took home.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "1467dd72c343a989b4df6e96a93fda9cc5f3ff00fe04efba2efe7bbe297b8441",
+      "sha256": "ac4173825283e1f0b833cea89a26691b392ac4e9320c8172f8665af883f6a963",
+      "bytes": 45072
+    },
+    "zh/advisor-shortage": {
+      "character": "advisor",
+      "text": "价签降了，可想买的比货架上的还多，只能按比例分粮。便宜，不一定就能多买。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "313e33069aa32a93fbccfc668e18dc0fe3617945404fa209108fd8bfe36d1999",
+      "sha256": "d56e82197e83acf5ef62c0ca13871f27d5bb59408ea73a0e360e815fa0a20c1e",
+      "bytes": 49824
+    },
+    "en/advisor-shortage": {
+      "character": "advisor",
+      "text": "The price is lower, but people want more than the shelves can supply. Bread has to be rationed proportionally. Cheaper doesn't always mean more to take home.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "0c2e8706a3cd40d459740a552e055c589aeac070104c5b75eb7e99a60d26d2dc",
+      "sha256": "45651885c733bea562cb475ad46365be9d653913556364ecea7e42fac425dc16",
+      "bytes": 62208
+    },
+    "zh/advisor-cleared": {
+      "character": "advisor",
+      "text": "这季供需对上了，没有超额需求。不过市场出清，不代表每组居民都买够了口粮。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "41ace7ac8dfa7d8a71e4394ef9ba64c4985469d5b85832db41c66acb60663d12",
+      "sha256": "0b8fce7e80ddfc78ff80d50a24b4d191d8f53204330f3595704c05b01f09b19c",
+      "bytes": 49824
+    },
+    "en/advisor-cleared": {
+      "character": "advisor",
+      "text": "Supply and demand balance this season, with no excess demand. But a cleared market doesn't mean every group has enough basic food.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "a786298042f6eacf27b960530fb4f6840293d3601e203c0c3cd279836b1da291",
+      "sha256": "79677dc14ec63a71787488858d4b2cbe864be5683a8bfe371615cfc900b17e0e",
+      "bytes": 54576
+    },
+    "zh/advisor-reserves-planned": {
+      "character": "advisor",
+      "text": "你打算动用一部分粮仓。先留意眼前的需要，也记得任期结束要留足储备。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "0ee710768a00abd9ca2f12abe1e23ba3d9fd966040077c5cb172313f35ea9ab9",
+      "sha256": "4ab68a56184b6a6fc1e504c375244f73c9754f37d8f073040ab6357f6120fee1",
+      "bytes": 45792
+    },
+    "en/advisor-reserves-planned": {
+      "character": "advisor",
+      "text": "You're planning to use part of the granary. Consider today's needs, and remember to leave enough reserves at the end of your term.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "13719a2f04f9e970a640215976278dea90d59b349d86c713db48033812684e1f",
+      "sha256": "16d422c3faf18e22aee2c21754d47ad39c637efebf105a8130422371baaf980f",
+      "bytes": 48816
+    },
+    "zh/advisor-reserves-used": {
+      "character": "advisor",
+      "text": "这季已经用掉一部分储备。账本上留下的粮，才是之后还能动用的。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "4959412d397142729f9ac9b53ec2d5da317e6f7c681625c831a80c563978072e",
+      "sha256": "a164e63afa077abd4002295ee8c5c930e921d7013b9a9b6dc0d1cacbc8ad8017",
+      "bytes": 40608
+    },
+    "en/advisor-reserves-used": {
+      "character": "advisor",
+      "text": "We've used some reserves this season. The grain left in the ledger is what we can still use later.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "d9b1bd22f21fc3a422d42daa0bea3b0799ff66a97a14cbbb617b087fb8c7a7c2",
+      "sha256": "ed86ebe1a67d106b356f20cee261760b3f392e8e9c28a46a25e446e97f542b00",
+      "bytes": 39024
+    },
+    "zh/advisor-reserves-saved": {
+      "character": "advisor",
+      "text": "这季没有动用粮仓。留下的储备，是后面遇到困难时的一份余地。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "81cc629df459bfc8c7993a2be99e7c3ae73986cc62b32cf5f5bf8a76329a2f18",
+      "sha256": "7cc70a44c27e7df9f2f0db68a517a583ea2c525cd2762404d3965b67f51adfd9",
+      "bytes": 39600
+    },
+    "en/advisor-reserves-saved": {
+      "character": "advisor",
+      "text": "We didn't use the granary this season. Those reserves give us some room to respond if things get difficult later.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "a79d2ed1b8c31a5ac83aed6739351cb050500e5527d0bed319269be8cea22c0a",
+      "sha256": "58bac500794f37a7b2986e0bf88931daf92513ae5d318adec86ecbe675d36963",
+      "bytes": 45216
+    },
+    "zh/advisor-reserves-general": {
+      "character": "advisor",
+      "text": "粮仓能缓一缓眼前的压力，不过用一篮就少一篮。任期结束，还要留下二十篮。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "afb2bcca69e8322ce3e76d93ee44b10251301087a77b5972b37ef01703236033",
+      "sha256": "fa2fdfa752abd65166f848170da51282452c5b7876b4e3aa8ef0df7e3c28a7d1",
+      "bytes": 47808
+    },
+    "en/advisor-reserves-general": {
+      "character": "advisor",
+      "text": "The granary can ease today's pressure, but every basket used is one less for later. We need to finish with twenty baskets in reserve.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "05f23562402d5500121298f6c4acf88018e3e1a3fcdf5bb2214e9adaffeb1223",
+      "sha256": "549e5a6cdb003a1d45968ff8359a8e34db15fdc379424ff803de1e76facb2a5d",
+      "bytes": 54288
+    },
+    "zh/advisor-farm": {
+      "character": "advisor",
+      "text": "农田给的是原料上限，不是已经做好的面包。补贴再多，也不能让原料凭空增加。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "7d3a7199f92adeb1e4464dbd3ffb3fa0a82c4ff6a00e5e5b4d54fb527eb84a54",
+      "sha256": "d114e8772e9f138b67396f82abf3c8cd5cadfd7e569e66e715eb3814f2cc1315",
+      "bytes": 48096
+    },
+    "en/advisor-farm": {
+      "character": "advisor",
+      "text": "The farm sets the material limit. That isn't bread already produced. A larger subsidy can't create extra materials out of thin air.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "4283c137820bbd777d483c0d1aa1f143ddf126b7eb84fcda185f72f9467aac63",
+      "sha256": "37e2847e889a0a5c84ff3b3c55774cb7247d3e0cb87b55bbac151f93d2cfac60",
+      "bytes": 59472
+    },
+    "zh/advisor-production-plan": {
+      "character": "advisor",
+      "text": "工坊会看售价和成本来安排生产。能不能多做，还得看原料有没有余地。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "7d5ee1dea20f7ef7a9bcae159233732c31ad95995845174fa6ed6dc54d9365dd",
+      "sha256": "727b3706697ba76bc3211f077dce17fa5978915031b7f44dcb70255867b18303",
+      "bytes": 46080
+    },
+    "en/advisor-production-plan": {
+      "character": "advisor",
+      "text": "The workshops plan production around prices and costs. Whether they can make more also depends on the materials available.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "cda7ec387b7cc7384ebfbeb06477452cedba8982bea2ee60170935ed5036b75d",
+      "sha256": "f6b8ab6b84c2223d43ea16fad601d00f501c14817122e3172613c2faa244ba08",
+      "bytes": 50400
+    },
+    "zh/advisor-production-subsidy": {
+      "character": "advisor",
+      "text": "草案里的补贴会提高工坊每篮的收入。可是原料用尽了，就做不出更多面包。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "4ca4ca6e372761440de213a29cb899af18200867722bddd1f6ab65daef869a07",
+      "sha256": "ada7f726617cada3ce6455b16d3fba3c01fe5adb17db4f6e63ebb664ad3a7da3",
+      "bytes": 46944
+    },
+    "en/advisor-production-subsidy": {
+      "character": "advisor",
+      "text": "The draft subsidy would raise what workshops receive per basket. But once materials run out, they can't bake any more.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "b2470f9c2e48ea8624130694e95102b128dabe4e32477eb5c3091f39f8937568",
+      "sha256": "eedd411b67dda83963b11df257c94169ac70d2d233e1e2a1c63dffbd86a483dd",
+      "bytes": 50256
+    },
+    "zh/advisor-production-limit": {
+      "character": "advisor",
+      "text": "这季私人产量已经碰到原料上限了。想再增加供应，就得看看别的办法。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "881fcfdf34b3d4b13261967c161292700ef920f675dd306f0acd846b2b343253",
+      "sha256": "30ebce9413a744849d7288aa780c9b3d964c95d63eaee47a47c93b4df5ec1f07",
+      "bytes": 44352
+    },
+    "en/advisor-production-limit": {
+      "character": "advisor",
+      "text": "Private production has reached the material limit this season. To add more supply, we'll need to consider another approach.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "94d81735d8aa5d20f55bfc3a3fb673e97fd4a8042ec11910e0e44e79fe8d5846",
+      "sha256": "71ae33e95c60647ab1b9a74ab2795508cad2f2d244d51ae3b34181b98be8f998",
+      "bytes": 50256
+    },
+    "zh/advisor-production-room": {
+      "character": "advisor",
+      "text": "这季原料还没用到上限。工坊实际做多少，仍然取决于售价和成本。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "31aca97cc3017e6e82dabe3c8f4aca83c09e7450ce806b31c6f15b60e660090c",
+      "sha256": "4f2596627c8d6eb3053788740fe619995ef9fc8228cfa4e7351eb0e842ae5dbb",
+      "bytes": 44208
+    },
+    "en/advisor-production-room": {
+      "character": "advisor",
+      "text": "Production stayed below the material limit this season. What workshops actually make still depends on prices and costs.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "b500f30d1100ceafddb6ede7daab2d923a1a460e5b70d393cbe3a36ec07795f3",
+      "sha256": "0d57e3aa951051d62fd6118a167901091fe6ad4e99f59e41403fbbf40898a451",
+      "bytes": 49968
+    },
+    "zh/advisor-market-plan": {
+      "character": "advisor",
+      "text": "现在没有售价上限。成交价和居民买到的数量，要等开市后再看。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "c6576ab6fcaec4326988a3249d2bddb00c935591444f0e13be6baed1f7114958",
+      "sha256": "a2f42069c6428d7bce553f15253bd963ae0c64d8ecc7b44b73735f60f4972c95",
+      "bytes": 43200
+    },
+    "en/advisor-market-plan": {
+      "character": "advisor",
+      "text": "There's no price limit at the moment. We'll see the trading price and residents' purchases once the market opens.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "ba45ca94ab00e2a2ff5a59083d30bf9a2aca0b80aff3db36c9a6cc863ed059db",
+      "sha256": "b6c06cbb1ac0bd12beec0ea55bc5e85ecd90baeceec59b51f35e7efd19b0fe94",
+      "bytes": 45936
+    },
+    "zh/advisor-market-cap-plan": {
+      "character": "advisor",
+      "text": "限价还在草案里。只有低于原本的均衡价格，它才会起作用；先别把草案当结果。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "e4d094234f246455e1f482550f8f5a1f3f42a92645097c63610402f79bf0bc1f",
+      "sha256": "5f4b72e919907a220f022ea4107dda539b893ac7a8a3f9ad14c9c200d1f9d8cf",
+      "bytes": 50400
+    },
+    "en/advisor-market-cap-plan": {
+      "character": "advisor",
+      "text": "The price limit is still a draft. It only binds below the market's equilibrium price. Let's not mistake a plan for a result.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "15182920265e340ea63b2102e9bf8b3841b3fafe5ea8f2a36a9a474c2438282b",
+      "sha256": "748d5df9de7adcfb364c14c006ea0f86f7970748f0660028946013679315b01f",
+      "bytes": 56592
+    },
+    "zh/advisor-opportunity": {
+      "character": "advisor",
+      "text": "开仓能救急，也会减少未来的余地。而且粮仓是按市场价卖粮，不是免费发放。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "a18346d769abf5fc38a0524c74ae3103bc97fccdb9a935eeaaca607df38cc862",
+      "sha256": "cfdb7c51e2fa82bad3528db08504384ac6585b6e9afe9b8fab4532328d573f64",
+      "bytes": 51696
+    },
+    "en/advisor-opportunity": {
+      "character": "advisor",
+      "text": "Opening the granary can help now, but leaves less for later. And the grain is sold at the market price. It isn't given away.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "fdac54440d00f9588477dfe902eafc4ad516e4ad147b5b9534bc05529b04c912",
+      "sha256": "0854194fb4020c9c93f3baf914a67300548b475acbf27c4f76864b48db0b53c3",
+      "bytes": 53280
+    },
+    "zh/advisor-lesson-cap": {
+      "character": "advisor",
+      "text": "限价压得低，大家想多买，工坊却可能少做。最后要看带回家的面包，别只盯着价签。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "210f896a3ecd25bef21437d7bed3dc00324bb54acd01fe04ff08386a9ebaf257",
+      "sha256": "7373ac98af13e1f014889f3b6f50e2152880f49210962385e5a3c165fdb5bec4",
+      "bytes": 54864
+    },
+    "en/advisor-lesson-cap": {
+      "character": "advisor",
+      "text": "A low price limit makes people want more, while workshops may produce less. Watch the bread people take home, not just the price tag.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "596805c16bbb928676989746e7ec7640028aa4964374152c7f1c66545f3e6c2f",
+      "sha256": "67ac30f45664a8b705c03524b3c1d67e91eef7a6c35ae4de66a3af09f7c6482d",
+      "bytes": 54720
+    },
+    "zh/advisor-lesson-subsidy": {
+      "character": "advisor",
+      "text": "补贴能鼓励生产，但增产要有原料。原料用尽了，钱照样花，面包却不会凭空多出来。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "3d6d7178c69b1833bf506ac94328f82a7b9368cca5cd78ae15a0297e0e92238f",
+      "sha256": "0f759a4d40c0ad1128bb40dbb20588934a1cc445b410da7802690f2aae324f05",
+      "bytes": 54576
+    },
+    "en/advisor-lesson-subsidy": {
+      "character": "advisor",
+      "text": "A subsidy can encourage production, but extra output needs materials. Once those run out, the money still gets spent without creating more bread.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "16444f8a1a78eb264b66a1e2a1ee69b360589ecab5ce5421bd61806728eb4082",
+      "sha256": "7697ba07e14c6573ca286e374d17384329fa67b4ce21eb3eac28b25deaa25f07",
+      "bytes": 62064
+    },
+    "zh/advisor-lesson-release": {
+      "character": "advisor",
+      "text": "开仓把储备送进市场，能缓解眼前的供应压力。不过这些粮，下一季就不能再用了。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "075c79b5935a514852345db25eea77e007283a5f6b5dea28eda143464ec67df1",
+      "sha256": "eb2e625eff8615c05194c8207b799f1a160fde0c3f972d7dd15c97d9bcb12019",
+      "bytes": 50976
+    },
+    "en/advisor-lesson-release": {
+      "character": "advisor",
+      "text": "Opening the granary adds reserves to the market and eases supply pressure now. But that grain won't be available next season.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "bd7cbc483adf3ad6a707406d3568a079e15dae8d766438cf6c2b00005f746985",
+      "sha256": "146e651ee1fbdbec5e2bd6aab816ab232acd51526c4c5c2c9d5f8991c0c8e89b",
+      "bytes": 49968
+    },
+    "zh/advisor-access-pending": {
+      "character": "advisor",
+      "text": "降价会让人想多买，可货架不一定跟着变满。等执行以后，再看看大家实际带回多少。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "884a071048497f39e12ec7a317f4d4297f3140030f526a6fa32fff4110d97a19",
+      "sha256": "11c3d4b7ad23689bdafbd7a55337cb0eb930f66e5a0ef53b75d29621d184d7d7",
+      "bytes": 53280
+    },
+    "en/advisor-access-pending": {
+      "character": "advisor",
+      "text": "Lower prices make people want more, but don't automatically fill the shelves. After the plan runs, let's see what people actually take home.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "6bad0312825a34321ec660094f3de780a3ac2299915c4babeec34397f37c5e87",
+      "sha256": "4effef6b39bdb95f94096401e0c4a40a3d446d673da0dcd902644f49e6e81a69",
+      "bytes": 56880
+    },
+    "zh/advisor-access-enough": {
+      "character": "advisor",
+      "text": "这季低收入组已经买够基本口粮了。价格和供应，两头都在影响他们的篮子。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "608161511525b156427f36d4b042ec78f4660d63685ea3bcdd7d2fbed85754f6",
+      "sha256": "6d066945decb7ce9cab68a47831b11cb1cfb8493cc41fc4e062fcf77aac9bf66",
+      "bytes": 47952
+    },
+    "en/advisor-access-enough": {
+      "character": "advisor",
+      "text": "The low-income group bought enough basic food this season. Both prices and supply shape what ends up in their baskets.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "ea6e5fc8694a3b950dbcf9b777a64135134395a707384be53a7aaf701ca03ef3",
+      "sha256": "9471710daefc8571b69e39da9c1ee8b7f2d6014c021b0dee54dfabbb96f54ab0",
+      "bytes": 48384
+    },
+    "zh/advisor-access-low": {
+      "character": "advisor",
+      "text": "这季市场虽然出清了，低收入组仍没买够口粮。买得到，也可能买不起足够的量。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "6a57d788fbaf346e2ace29a8635f33101f65fb43cfa56d7af57e49dacc36bb31",
+      "sha256": "78a4d8f093ad876de866f076fdbff2bf9e1bdeea3eecc769aa5a5287806bfb3a",
+      "bytes": 49680
+    },
+    "en/advisor-access-low": {
+      "character": "advisor",
+      "text": "The market cleared, but the low-income group still didn't buy enough basic food. Bread can be available without enough of it being affordable.",
+      "voice": "en-GB-SoniaNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "d38a420aed0fcfbfb53edd18c4a4e51940816220b4e8aec5b1f1f0c3263ec8c4",
+      "sha256": "987ea9e3c0b07ade3371dd4d9419ebecd37d312fb672ed579e2c61d33ed11451",
+      "bytes": 54000
+    },
+    "zh/farm-normal": {
+      "character": "farm",
+      "text": "原料都备着呢。来，看看这些袋子，工坊能做多少，先得看它们。",
+      "voice": "zh-CN-YunyangNeural",
+      "rate": "-8%",
+      "pitch": "-5Hz",
+      "signature": "9119aa6150ea54913a0e5ff52e756f3c1574267da72ac0c729f8dbdd4e2586af",
+      "sha256": "25ab72ec7c7a5322db9671cd255d9a9e1a920bffcf123c10634ac237608be2a5",
+      "bytes": 41184
+    },
+    "en/farm-normal": {
+      "character": "farm",
+      "text": "The materials are ready. Come, have a look at these sacks. What the workshops can make starts here.",
+      "voice": "en-GB-RyanNeural",
+      "rate": "-8%",
+      "pitch": "-5Hz",
+      "signature": "704d284d46d313e74f58949f62bd2900f7a390e3f12c57b31b137009e99952c6",
+      "sha256": "f3a6d597f1a41847f97026548fcb9ef24c0881ca20450b2ecad44dfc056b1266",
+      "bytes": 52848
+    },
+    "zh/farm-tight": {
+      "character": "farm",
+      "text": "唉，这季原料紧。再怎么赶工，也得先有粮啊。",
+      "voice": "zh-CN-YunyangNeural",
+      "rate": "-8%",
+      "pitch": "-5Hz",
+      "signature": "b98fb86783c99959ddce14657285633a1396b47d44dfe58c6f6a80c85a427565",
+      "sha256": "985b4cac346fdfbb52adfb4a5bf86ffdfaf29cc4a51dd951e8b1ecce63ba7714",
+      "bytes": 30816
+    },
+    "en/farm-tight": {
+      "character": "farm",
+      "text": "Ah, materials are tight this season. However hard we work, we need the grain first.",
+      "voice": "en-GB-RyanNeural",
+      "rate": "-8%",
+      "pitch": "-5Hz",
+      "signature": "84f7afc74427c3c4792eafbd2920c0cdcd6136181f7e561abbed8406d1e2ac16",
+      "sha256": "ddb5d5b42a0b3990f8439c4a39fcdaa925731f6d989db05aebb3c95d96fb9dac",
+      "bytes": 44496
+    },
+    "zh/farm-recovery": {
+      "character": "farm",
+      "text": "比上季宽裕些了。去工坊问问阿诚，看看他怎么安排。",
+      "voice": "zh-CN-YunyangNeural",
+      "rate": "-8%",
+      "pitch": "-5Hz",
+      "signature": "3557e9e09726d6ea81422c95851ab2570ddfb2b670e657be114419ace80d5999",
+      "sha256": "34a9e70a8f707d866db4abb736364c773c5ffcfc8d05d7fd1ae7407bd226f33d",
+      "bytes": 34848
+    },
+    "en/farm-recovery": {
+      "character": "farm",
+      "text": "We've got a little more than last season. Go and ask Cheng at the workshop what he's planning.",
+      "voice": "en-GB-RyanNeural",
+      "rate": "-8%",
+      "pitch": "-5Hz",
+      "signature": "6e0b4f41bb56664e4282ec764135763be170d2ddaf6b5c56528742e94ba7cde8",
+      "sha256": "880026ec6dea630ac5b92b88d734644e7c6c111b5b27e5e49a92f4af81db930c",
+      "bytes": 39456
+    },
+    "zh/farm-inspect": {
+      "character": "farm",
+      "text": "袋子上的数，记的是原料最多能支持做多少。可不是已经出炉的面包。",
+      "voice": "zh-CN-YunyangNeural",
+      "rate": "-8%",
+      "pitch": "-5Hz",
+      "signature": "58fbcdc3d3eb7a948cd837d5c47a3e004407a875ac095e2a3a46c0c496c6c45c",
+      "sha256": "9af318103e852113da3816f00349e7f1a617876e0f9c249e144bc7c2134d9416",
+      "bytes": 44352
+    },
+    "en/farm-inspect": {
+      "character": "farm",
+      "text": "The figure on the sacks tells you the most our materials can support. It isn't bread that's already come out of the oven.",
+      "voice": "en-GB-RyanNeural",
+      "rate": "-8%",
+      "pitch": "-5Hz",
+      "signature": "f8353bce95dbfb3b0bef09c987d8751553d38482f5d006ec64a667588d2af992",
+      "sha256": "c686f6ea29772dec54955e896c1e27f14efd23b179dc5ddd1731cfe5f8ce8479",
+      "bytes": 48240
+    },
+    "zh/mill-pending": {
+      "character": "mill",
+      "text": "做多少，得看售价和成本。先别数筐，开工的安排还没定呢。",
+      "voice": "zh-CN-YunxiNeural",
+      "rate": "+0%",
+      "pitch": "+0Hz",
+      "signature": "843a383f75efcff42cbda224d24d8e829d4d55d07808079404184026ddb5e030",
+      "sha256": "7a94c71d3e3440a9f27a320723bf31ed189695c335054e47e04d18243886d9dc",
+      "bytes": 41184
+    },
+    "en/mill-pending": {
+      "character": "mill",
+      "text": "How much we make depends on the price and our costs. Don't count the baskets yet. The production plan isn't settled.",
+      "voice": "en-GB-ThomasNeural",
+      "rate": "+0%",
+      "pitch": "+0Hz",
+      "signature": "d61870ec46272764600b43aede0c11c7e6d51dd554ff6250492620ec5b79ea55",
+      "sha256": "4073ceb9cfe8e40b2839180c2091cce0ab09a390d66973431f9c8c105df0d09f",
+      "bytes": 51984
+    },
+    "zh/mill-subsidy-pending": {
+      "character": "mill",
+      "text": "听说草案里有补贴？我先记着。等方案敲定，再安排开工。",
+      "voice": "zh-CN-YunxiNeural",
+      "rate": "+0%",
+      "pitch": "+0Hz",
+      "signature": "450e9ca2e2dd4281a9a397bdf8c6388dca90d7e939a75b6ada087245e190e096",
+      "sha256": "3cab3b7ef573dad20212775927930cb312dbe89f825d5a9ccccb157d07cc16fb",
+      "bytes": 39744
+    },
+    "en/mill-subsidy-pending": {
+      "character": "mill",
+      "text": "There's a subsidy in the draft? I'll keep that in mind. Once the plan is final, we can arrange production.",
+      "voice": "en-GB-ThomasNeural",
+      "rate": "+0%",
+      "pitch": "+0Hz",
+      "signature": "68f137be94fd962b45b8e3a631cc1b103f133e37da95616d13cca9f4c81ee7e7",
+      "sha256": "8d2bd453bb88d39c4bd800a6953909619b97448fa1d7ae77267ecc3ef396cff4",
+      "bytes": 49680
+    },
+    "zh/mill-at-limit": {
+      "character": "mill",
+      "text": "这季原料已经用到上限了。再添一筐，也得先等原料。",
+      "voice": "zh-CN-YunxiNeural",
+      "rate": "+0%",
+      "pitch": "+0Hz",
+      "signature": "2d4b56df9edfd42fbb8f4d82eb8d0500c4d8c10b0ca986e357a4b3f471f2f502",
+      "sha256": "e5bbb70c65b89c937e95f181b148a0a600e1a5c73025508a4f3e45798ae2dd14",
+      "bytes": 33552
+    },
+    "en/mill-at-limit": {
+      "character": "mill",
+      "text": "We've hit the material limit this season. Even one more basket needs more supplies first.",
+      "voice": "en-GB-ThomasNeural",
+      "rate": "+0%",
+      "pitch": "+0Hz",
+      "signature": "a1ac2c31f3495a60d166ade6e9065ae9c45b10aaf92bf5cedfd9a090f9c1c29d",
+      "sha256": "001d04d125cb7b5648ff7964f2aee802f23f49b754109ca69460412399779564",
+      "bytes": 39312
+    },
+    "zh/mill-below-limit": {
+      "character": "mill",
+      "text": "这季做完了，原料还有余地。到底做多少，还得看卖价和成本合不合适。",
+      "voice": "zh-CN-YunxiNeural",
+      "rate": "+0%",
+      "pitch": "+0Hz",
+      "signature": "ae4a1035366ccc7c634ab6d689b3bc416e86f79ee974ca5a471829739a5eed39",
+      "sha256": "e4be7737fde28a119fa0cbd7cad79be7df6a528c33e06cac05ed785bbee19d81",
+      "bytes": 43920
+    },
+    "en/mill-below-limit": {
+      "character": "mill",
+      "text": "This season's production is done, with some material capacity left. How much we make depends on whether the price covers the cost.",
+      "voice": "en-GB-ThomasNeural",
+      "rate": "+0%",
+      "pitch": "+0Hz",
+      "signature": "e1905644c174c3adce144f57f9ecf0014fa264ff678c5b4e37e94c0b79e902ab",
+      "sha256": "158a2010d12268ab4aebce2241bd591ab89f0e1521d7244ed5bbf1cc7dba08b4",
+      "bytes": 51408
+    },
+    "zh/mill-inspect": {
+      "character": "mill",
+      "text": "这是我们的生产单。上限归上限，实际做了多少，要看结算后的记录。",
+      "voice": "zh-CN-YunxiNeural",
+      "rate": "+0%",
+      "pitch": "+0Hz",
+      "signature": "4f432f00fc7410777f2801080b3aef13ca6a9a99107b00d983295449967ba9e6",
+      "sha256": "fae3d18a6c70d18ccfe5a98dba252d44373e3de9589e3e11b431bd1e220339ed",
+      "bytes": 42480
+    },
+    "en/mill-inspect": {
+      "character": "mill",
+      "text": "Here's our production sheet. Capacity is one thing. The amount we actually made is in the settled record.",
+      "voice": "en-GB-ThomasNeural",
+      "rate": "+0%",
+      "pitch": "+0Hz",
+      "signature": "d61ea39daec15fd17f498b3901fdc38960034d83849c5fbf559284d489f887bf",
+      "sha256": "a554873c5ffe656caeecbdd1caec284c6702102a420304b4450bad880a0e9846",
+      "bytes": 50544
+    },
+    "zh/market-pending": {
+      "character": "market",
+      "text": "价签先空着，等开市再换。工坊和粮仓能送多少货，还得等等。",
+      "voice": "zh-CN-XiaoyiNeural",
+      "rate": "+2%",
+      "pitch": "+0Hz",
+      "signature": "bae97e821e8427863f1f97201771c4a3f24e25790f29ccd6f6eaf786f6ae334c",
+      "sha256": "297cf50a61684457e9ef70c917565590b44c48b4e3e749c2809d6db3c54ff469",
+      "bytes": 41040
+    },
+    "en/market-pending": {
+      "character": "market",
+      "text": "I'll leave the price tag blank until the market opens. We're still waiting to see what the workshops and granary send.",
+      "voice": "en-GB-LibbyNeural",
+      "rate": "+2%",
+      "pitch": "+0Hz",
+      "signature": "f647087a24c79e765a381f0a91515b68148d71170fc7502105c5fbdf55d669a9",
+      "sha256": "e23ebc505c0259b4aa843583e6340a3b4d3c291564f479c1b3937aceca7a2a91",
+      "bytes": 50832
+    },
+    "zh/market-cap-pending": {
+      "character": "market",
+      "text": "草案里的最高价，我记下了。不过还没执行呢，价签先不换。",
+      "voice": "zh-CN-XiaoyiNeural",
+      "rate": "+2%",
+      "pitch": "+0Hz",
+      "signature": "9ac01bad8c213a99a4d219b54271ab767b7c55ddce03a520bf9fd63e1dad56b4",
+      "sha256": "feeabb660cce85b4510fd6ff67ba4d442edc084453ce5366b6b177e0942116cf",
+      "bytes": 37440
+    },
+    "en/market-cap-pending": {
+      "character": "market",
+      "text": "I've noted the draft price limit. It hasn't taken effect yet, so I'll leave the price tag as it is.",
+      "voice": "en-GB-LibbyNeural",
+      "rate": "+2%",
+      "pitch": "+0Hz",
+      "signature": "ced32338e9c282045082f4902c1a96c8d62d031a720a290935f5d7f8c38e0b5f",
+      "sha256": "93855a3101c4cc275042bbbc6b0085ad3fac836adc65789aa2bc0aad70c640df",
+      "bytes": 47232
+    },
+    "zh/market-shortage": {
+      "character": "market",
+      "text": "想买的比送来的还多，只能分着卖了。价签低，可不等于货就够啊。",
+      "voice": "zh-CN-XiaoyiNeural",
+      "rate": "+2%",
+      "pitch": "+0Hz",
+      "signature": "733cd89fdcd84f0ea29549bc2905b86146fed36684d865bb88d762f2e4825a28",
+      "sha256": "28afacf94200a9047fb6713c643686e476bd1f260f4650b8a8d56ccbadb2c455",
+      "bytes": 40032
+    },
+    "en/market-shortage": {
+      "character": "market",
+      "text": "People want more than we've received, so we have to share it out. A low price tag doesn't mean there's enough on the shelves.",
+      "voice": "en-GB-LibbyNeural",
+      "rate": "+2%",
+      "pitch": "+0Hz",
+      "signature": "b13f13fe7cc464a3e23de474d3a103e97f15048c4bafeb365c266ab32342e620",
+      "sha256": "310e9e413ca82f6740a801487f57e1ef604fe0b271aacfd5e58760c5831de5c9",
+      "bytes": 53136
+    },
+    "zh/market-cleared": {
+      "character": "market",
+      "text": "这季供需对上了。居民到底带回多少，你去问问周婶吧。",
+      "voice": "zh-CN-XiaoyiNeural",
+      "rate": "+2%",
+      "pitch": "+0Hz",
+      "signature": "6fc5e8258cbfda1bfbee3ad8187ed10b776d9da57d6ec02e13e7a1ef4651479d",
+      "sha256": "ec92c94da7c967686f496e2b758a9c87ee66b9d1a7378cb3caded035e3dc1849",
+      "bytes": 32400
+    },
+    "en/market-cleared": {
+      "character": "market",
+      "text": "Supply and demand matched this season. To hear what residents took home, go and ask Auntie Zhou.",
+      "voice": "en-GB-LibbyNeural",
+      "rate": "+2%",
+      "pitch": "+0Hz",
+      "signature": "03847c59da6dcc035f86c5db68498e72eaca110133d91d15b44d30e776b4c592",
+      "sha256": "964fb5ac87a0271907bcf5dd9162c025cbd99167f60e939a7406ec584cc5be09",
+      "bytes": 46800
+    },
+    "zh/market-inspect": {
+      "character": "market",
+      "text": "翻开账本看看吧。成交价、送来的货、还想买的量，得分开看。",
+      "voice": "zh-CN-XiaoyiNeural",
+      "rate": "+2%",
+      "pitch": "+0Hz",
+      "signature": "2ce929d06b9945b99aa7de7df37818929f0feae10ddd3c8420e148e1fe34f52a",
+      "sha256": "131978de9e922d81e059ce12189de494fb45bc4009f6ac484ce03694ee96e6e2",
+      "bytes": 38880
+    },
+    "en/market-inspect": {
+      "character": "market",
+      "text": "Have a look through the ledger. The trading price, the supply, and any excess demand are different things.",
+      "voice": "en-GB-LibbyNeural",
+      "rate": "+2%",
+      "pitch": "+0Hz",
+      "signature": "8517706a5ad54f8f15706242a3e121b4ed254b7a7e4d57a1b45451aeb379ac18",
+      "sha256": "6a8dd96820f9a319ccf61528b7db004f9bd65b21962d4b4878ed91053ca547e5",
+      "bytes": 45504
+    },
+    "zh/homes-pending": {
+      "character": "homes",
+      "text": "我们低收入组的口粮需求没变。等开市了，再看看能带回多少吧。",
+      "voice": "zh-TW-HsiaoChenNeural",
+      "rate": "-5%",
+      "pitch": "-3Hz",
+      "signature": "e9c6b41795464abef91540627c7b5dad169bef8a1569779b89789368d855a1b2",
+      "sha256": "62d44460f05c1029f705cd891a57c82d0e9b79628284fa51cd4c0c6559f411e5",
+      "bytes": 46224
+    },
+    "en/homes-pending": {
+      "character": "homes",
+      "text": "Our low-income group's basic food needs haven't changed. Once the market opens, we'll see how much we can bring home.",
+      "voice": "en-US-JennyNeural",
+      "rate": "-5%",
+      "pitch": "-3Hz",
+      "signature": "c8bb40ae38c29c3c7b4bacd34b79ff349237250e7070c06b066239f7ba2de0f3",
+      "sha256": "ea933f0ad89cf01b1c4e82429faadf5779e0d19468812a9b323250216e8c6b93",
+      "bytes": 48816
+    },
+    "zh/homes-enough": {
+      "character": "homes",
+      "text": "我们这组买够基本口粮了。总算能松一口气。",
+      "voice": "zh-TW-HsiaoChenNeural",
+      "rate": "-5%",
+      "pitch": "-3Hz",
+      "signature": "dba2b381222d370d4dd287016b2726ba4fe52ea5173a978b4bdda965149ebd78",
+      "sha256": "b32cb05e6b95197c7245b2536ca90d6bba051661bb38e333d1bcf0ebbb5771d7",
+      "bytes": 35280
+    },
+    "en/homes-enough": {
+      "character": "homes",
+      "text": "Our group bought enough basic food. We can finally breathe a little easier.",
+      "voice": "en-US-JennyNeural",
+      "rate": "-5%",
+      "pitch": "-3Hz",
+      "signature": "c1519443854ad247b24e05ca54a47b10707206f38b86dfe074f03605a66935e8",
+      "sha256": "8bcb68825c039c0bf9fa0139e5d3adab35e0e7b34d43dd1504d1c879434f2705",
+      "bytes": 36000
+    },
+    "zh/homes-low": {
+      "character": "homes",
+      "text": "我们这组带回来的，还是不够基本口粮。得再想想办法呀。",
+      "voice": "zh-TW-HsiaoChenNeural",
+      "rate": "-5%",
+      "pitch": "-3Hz",
+      "signature": "7a947100b846e75973bedd1a192281fea7ac5f896332027ec7ed901fb9b38865",
+      "sha256": "dacd611c411695e3b5f0363e288655a434db398664947761e819d8e104c1d03e",
+      "bytes": 41328
+    },
+    "en/homes-low": {
+      "character": "homes",
+      "text": "What our group brought home still isn't enough for our basic needs. We'll have to find another way.",
+      "voice": "en-US-JennyNeural",
+      "rate": "-5%",
+      "pitch": "-3Hz",
+      "signature": "84319936246850588613a2ec47216071542558adeace4f86d4ef21aa4ac81a48",
+      "sha256": "c604cacfb32ad2941272d11efeeee93e5a4f64b1634022911448e36b5da91292",
+      "bytes": 42048
+    },
+    "zh/homes-inspect": {
+      "character": "homes",
+      "text": "这本账记的是我们整组人的粮，不是我一家。买回多少、够不够，都在这里。",
+      "voice": "zh-TW-HsiaoChenNeural",
+      "rate": "-5%",
+      "pitch": "-3Hz",
+      "signature": "bb18c76f4817c4e508b90c353c3f9bcc3b651d54f2816efef618426def31c444",
+      "sha256": "fba94fd65c842ac89a026ce42d0bb94ad252f38d28794855ed002baa1184f8a1",
+      "bytes": 51408
+    },
+    "en/homes-inspect": {
+      "character": "homes",
+      "text": "This ledger is for our whole group, not just my family. It shows how much we bought, and whether it's enough.",
+      "voice": "en-US-JennyNeural",
+      "rate": "-5%",
+      "pitch": "-3Hz",
+      "signature": "7ba3836cc5c0e58b3acd240b9bf0749b9f4bf384622385313b52100e889a876f",
+      "sha256": "bc7c7c8fb551280f4edaec2a4ab6ece67c746fac21b3898cf8bff14205755985",
+      "bytes": 47088
+    },
+    "zh/advisor-result-unmet": {
+      "character": "advisor",
+      "text": "这季的保障还没达标。别急，我们一起看看，是买不起，还是货不够。",
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-4%",
+      "pitch": "+0Hz",
+      "signature": "35ece091a27c2e4157aac3e18145f633d19516c5feccf734ca197ff9a2beb1c2",
+      "sha256": "99aa14d4009413edd37b06360c80fbba643dad7772996c0da60ea7a83b3307fc",
+      "bytes": 43056
+    },
+    "zh/market-inspect-pending": {
+      "character": "market",
+      "text": "价签还没定呢。草案归草案，成交价和货量，都得等开市再看。",
+      "voice": "zh-CN-XiaoyiNeural",
+      "rate": "+2%",
+      "pitch": "+0Hz",
+      "signature": "f10251e7c1a3e67cca9f408cd785d74fd49dbc5ea0cc2d25460d5c8012c92d26",
+      "sha256": "624b09bd3217075bb728b68642e23971cb2cafd4cc7a06fb78fd36c2c3e570cd",
+      "bytes": 39024
+    },
+    "zh/homes-inspect-pending": {
+      "character": "homes",
+      "text": "这是我们整组人的口粮账，不是我一家。买得到多少，还得等开市呢。",
+      "voice": "zh-TW-HsiaoChenNeural",
+      "rate": "-5%",
+      "pitch": "-3Hz",
+      "signature": "7b665ab5f55d95ee9706d67f055c660d0fec2478e4dabd7843bbee022e36f6f5",
+      "sha256": "2f0839a3f542b3831d35fab3673c0cb46e72dcbb68fe446311664acb1aed0469",
+      "bytes": 48240
+    },
+    "en/homes-inspect-pending": {
+      "character": "homes",
+      "text": "This food ledger is for our whole group, not just my family. We'll have to wait for the market to open to see how much we can buy.",
+      "voice": "en-US-JennyNeural",
+      "rate": "-5%",
+      "pitch": "-3Hz",
+      "signature": "055074ec4a378a68665d157a3c40ee5d9f2b6e84768db0084658c3796f91c230",
+      "sha256": "682bcc03c2b4d5a5a348ac0680177f9b376d980cae9976ffb0cd2e14270de5df",
+      "bytes": 51984
+    },
+    "en/market-inspect-pending": {
+      "character": "market",
+      "text": "The price tag isn't final yet. A draft is just a draft. We'll know the trading price and supply once the market opens.",
+      "voice": "en-GB-LibbyNeural",
+      "rate": "+2%",
+      "pitch": "+0Hz",
+      "signature": "cb7d84637c2a112f3858e98df208a19391526292ebb36829144577d519189889",
+      "sha256": "761c31e588842b8c825bc6137bb2692f31aa81dbba2cc4d0d7ee031844cca354",
+      "bytes": 61200
+    }
+  }
+}

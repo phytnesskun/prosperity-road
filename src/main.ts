@@ -17,6 +17,9 @@ import './focus.css';
 import { PILOT_VERSION, emptyPilotFeedback, restorePilotFeedback, pilotFeedbackReport } from './pilot.ts';
 import type { PilotFeedback } from './pilot.ts';
 import { SOUNDTRACKS, findSoundtrack } from './soundtracks.ts';
+import { advisorVoiceLine, visitVoiceLine } from './voice-lines.ts';
+import { createCharacterVoice } from './character-voice.ts';
+import './character-voice.css';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const SAVE_KEY = 'prosperity-road.bread-crisis.v1';
@@ -72,6 +75,12 @@ try { musicRequested = localStorage.getItem('prosperity-road.music.v1') !== 'off
 let musicStarted = false;
 let musicPending = false;
 let musicUnavailable = false;
+const characterVoice = createCharacterVoice(active => { music.volume = active ? 0.07 : 0.24; });
+
+function currentVoiceLine() {
+  return dialog === 'advisor' ? advisorVoiceLine(state, advisorTopic)
+    : dialog === 'visit' ? visitVoiceLine(state, visitPlace, visitInspected) : null;
+}
 
 function updateMusicButton(): void {
   const button = document.getElementById('music-button');
@@ -555,11 +564,11 @@ function dialogMarkup(): string {
     <button class="button secondary" id="help-button" type="button" data-action="help">玩法与规则</button>
     <button class="button secondary" id="music-library-button" type="button" data-action="music-library">音乐库</button>
     <button class="button secondary" id="motion-button" type="button" data-action="motion" aria-pressed="${motionEnabled()}" ${motionQuery.matches ? 'disabled title="已遵循系统减少动态效果设置"' : ''}>动画：${motionEnabled() ? '开' : '关'}</button>
-    <button class="button danger" id="reset-button" type="button" data-action="reset">新任期</button></div><div class="dialog-actions"><button class="button primary" type="button" data-action="close-dialog">返回游戏</button></div></dialog>`;
+    <button class="button danger" id="reset-button" type="button" data-action="reset">新任期</button></div>${characterVoice.menuMarkup()}<div class="dialog-actions"><button class="button primary" type="button" data-action="close-dialog">返回游戏</button></div></dialog>`;
   if (dialog === 'pilot') return pilotMarkup();
   if (dialog === 'music-library') return musicLibraryMarkup();
   if (dialog === 'advisor') return advisorMarkup();
-  if (dialog === 'visit') return visitMarkup(state, visitPlace, visitInspected);
+  if (dialog === 'visit') return visitMarkup(state, visitPlace, visitInspected, characterVoice.controlsMarkup(visitVoiceLine(state, visitPlace, visitInspected)));
   if (dialog === 'reset') return `<dialog class="dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">开始新任期？</h2><p>这会替换此浏览器中的当前进度，并清空试玩反馈草稿。请先下载需要保留的记录与反馈；共享设备换人时，再开始新一局。</p><div class="dialog-actions"><button class="button secondary" type="button" data-action="close-dialog">继续当前游戏</button><button class="button danger" type="button" data-action="confirm-reset">开始新一局</button></div></dialog>`;
   return `<dialog class="dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">你的任期与模型规则</h2>
     <p>第1季认识正常市场，第2–6季管理政策。每一季选好方案就能执行，城镇和账本会立即显示变化。三个任务分别检查：</p>${missionMarkup()}
@@ -595,6 +604,7 @@ function advisorMarkup(): string {
     <header class="advisor-header"><div><span class="eyebrow">YOUR ECONOMIC ADVISER</span><h2 id="dialog-title">林岚 <small>经济顾问</small></h2></div><button class="button ghost" type="button" data-action="close-dialog" aria-label="关闭顾问对话">返回游戏 ×</button></header>
     <div class="advisor-conversation"><div class="advisor-portrait" data-mood="${reply.mood}"><div class="portrait-halo" aria-hidden="true"></div><img src="/advisor-lin-lan.png" alt="手持账本、向你解释的经济顾问林岚" width="1145" height="1374" /><span class="advisor-mood">${mood}</span><small>第${state.seasonIndex + 1}季 · ${state.phase === 'decision' ? '政策尚未执行' : settled() ? '依据已结算记录' : '任期开始前'}</small></div>
       <div class="advisor-chat">${view === 'replay' ? `<p class="advisor-context-note">林岚正在讨论第${state.seasonIndex + 1}季的正式任期。替代方案的结果请看回放对照表。</p>` : ''}<div class="conversation-log" role="log" aria-label="与林岚的对话">${conversation.map((turn, index) => `<div class="speech-bubble ${turn.speaker}" ${index === conversation.length - 1 ? 'id="advisor-reply" tabindex="-1"' : ''}><span>${turn.speaker === 'advisor' ? '林岚' : '你'}</span><p>${escape(turn.text)}</p></div>`).join('')}</div>
+      ${characterVoice.controlsMarkup(advisorVoiceLine(state, advisorTopic))}
       <div class="dialogue-choices" aria-label="选择你的回应">${reply.choices.map(choice => `<button class="button secondary" type="button" data-action="advisor-topic" data-topic="${choice.topic}">${escape(choice.label)} <span aria-hidden="true">↗</span></button>`).join('')}</div>
       ${reply.action ? `<button class="button primary advisor-link" type="button" data-action="advisor-go" data-destination="${reply.action.kind}">${escape(reply.action.label)} →</button>` : ''}
       <div class="advisor-topics"><button type="button" data-action="advisor-topic" data-topic="briefing">回到本季局势</button></div>
@@ -610,6 +620,7 @@ function talkToAdvisor(topic: AdvisorTopic, question?: string): void {
   dialog = 'advisor';
 }
 function render(focusId?: string): void {
+  if (dialog !== 'advisor' && dialog !== 'visit') characterVoice.stop();
   chartObserver?.disconnect();
   clearTimeout(sceneTimer);
   clearTimeout(settlementTimer);
@@ -633,6 +644,7 @@ function render(focusId?: string): void {
     <div class="footer-note"><span>经济模拟 · 游戏数值</span><span id="save-status">${escape(storageMessage || '进度自动保存在此浏览器')}</span></div>
     ${actionDock()}${dialogMarkup()}</div>`;
   syncMusic();
+  characterVoice.syncControls();
   document.querySelector<HTMLDetailsElement>('#policy-custom')?.addEventListener('toggle', event => {
     customPolicyOpen = (event.currentTarget as HTMLDetailsElement).open;
   });
@@ -705,6 +717,12 @@ app.addEventListener('click', event => {
   const button = (event.target as Element).closest<HTMLButtonElement>('button[data-action]');
   if (!button || button.disabled) return;
   const action = button.dataset.action;
+  if (action === 'voice-replay') {
+    const line = currentVoiceLine();
+    if (line) characterVoice.play(line);
+    return;
+  }
+  if (action === 'voice-stop') { characterVoice.stop(); return; }
   if (action === 'music') {
     musicRequested = !musicStarted || musicUnavailable || !musicRequested;
     musicStarted = true;
@@ -886,6 +904,10 @@ app.addEventListener('click', event => {
     save();
   } else if (action === 'download-report') { downloadReport(); return; }
   render(focusId);
+  if (['advisor-open', 'advisor-topic', 'scene-place', 'visit-next', 'visit-inspect', 'visit-advisor'].includes(action ?? '')) {
+    const line = currentVoiceLine();
+    if (line) characterVoice.play(line);
+  }
   if (animateSettlement) playSettlement();
   if (['settle', 'next', 'confirm-reset', 'replay-season', 'compare-baseline'].includes(action ?? '')) {
     document.querySelector('.workspace')?.scrollIntoView({ block: 'start' });
@@ -893,6 +915,12 @@ app.addEventListener('click', event => {
 });
 app.addEventListener('change', event => {
   const target = event.target as HTMLInputElement | HTMLSelectElement;
+  if (target.id === 'voice-language') {
+    const value = target.value;
+    if (value === 'zh' || value === 'en' || value === 'off') characterVoice.setSetting(value);
+    render('voice-language');
+    return;
+  }
   if (target.id === 'music-files') {
     const files = (target as HTMLInputElement).files;
     if (files?.length) importMusic(files);
