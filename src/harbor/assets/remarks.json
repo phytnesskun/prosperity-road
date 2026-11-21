@@ -1,0 +1,17 @@
+{
+  "welcome": ["阿芸", "铃铛在车把上。轻点拉，上次半条街的人都来了！", "The bell’s on the handle. Gently! I called half the street last time."],
+  "quayChat": ["船长", "听见了吗？是缆绳在敲木桩。", "Hear that? It's the mooring line knocking on the post."],
+  "millChat": ["陈禾", "你把手伸过来，摸摸这粉磨得有多细。", "Give me your hand. Feel how fine that flour is."],
+  "ovenChat": ["阿诚", "这炉子有年头了。闭着眼我都知道它的脾气。", "I've worked this old oven for years. I know its moods with my eyes shut."],
+  "streetChat": ["阿芸", "你听，我站这儿就知道哪家开门了。", "Listen. From right here I can tell which shop just opened."],
+  "customer": ["周婶", "听见啦。给我一个刚出炉的！", "I heard you! One fresh loaf, please."],
+  "arrival": ["阿芸", "听！这条船都停航三年了。谁把它开回来了？", "Listen! That ferry hasn't run in three years. Who brought it back?"],
+  "dock": ["船长", "帮我递到甲板上。舱里还有人等着呢。", "Pass them up onto the deck. There's a hungry crew below."],
+  "workers": ["阿诚", "我来接。里头的人从天亮就没歇过。", "Here, I'll take them. The crew hasn't stopped since dawn."],
+  "flour": ["陈禾", "拿稳，袋子沉。新磨的粉烤出来香。", "Steady now, it's heavy. Freshly milled flour makes a lovely loaf."],
+  "bake": ["阿诚", "你管炉门，我来接盘。闻到香味了吗？", "You mind the oven door. I'll catch the tray. Smell that?"],
+  "clue": ["船长", "那盏灯是修桥队挂的。他们终于回家了。", "The bridge crew hung that lamp. They're finally home."],
+  "dawn": ["阿芸", "开门啦。你瞧，昨天的人又来了。", "Time to open up. Look who's back from yesterday."],
+  "sail": ["船长", "跳上来！对岸这会儿刚开集。", "Hop aboard! The market across the water is just opening."],
+  "fire": ["阿诚", "这炉子烧得旺。第一盘，归你。", "She's a good hot oven. The first tray's yours."]
+}

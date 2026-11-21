@@ -299,6 +299,7 @@ function commandView(): string {
       <li><strong>看变化</strong><span>市场价格、面包流转、居民的饭桌，立刻回应你的决定。</span></li>
       <li><strong>试另一招</strong><span>结算后对比政策，再决定下一季。</span></li></ol>
     <p class="inline-help">六季至少五季保障达标，期末留20单位储备，国库不透支。</p>
+    <a class="button secondary" href="?scenario=harbor">推车去雾港 · 剧情试玩 →</a>
     <button class="button secondary" id="intro-pilot" type="button" data-action="pilot">看看怎么玩 · 可选演示 →</button></section>`;
   const season = SEASONS[state.seasonIndex];
   const prior = SEASONS[state.seasonIndex - 1];
@@ -559,6 +560,7 @@ function musicLibraryMarkup(): string {
 function dialogMarkup(): string {
   if (!dialog) return '';
   if (dialog === 'menu') return `<dialog class="dialog menu-dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">游戏菜单</h2><div class="menu-options">
+    <a class="button primary" href="?scenario=harbor">进入雾港 · 推车摆摊</a>
     <a class="button secondary" id="river-scenario-link" href="?scenario=river">第二剧本 · 烟囱与河流</a>
     <button class="button secondary" id="pilot-button" type="button" data-action="pilot">试玩与反馈</button>
     <button class="button secondary" id="help-button" type="button" data-action="help">玩法与规则</button>

@@ -2,6 +2,18 @@
 
 以 Pearson Edexcel International A Level Economics 为经济规则依据的城镇策略游戏。
 
+## 雾港的最后一炉 · 离线剧情试玩
+
+从《面包危机》开场点「推车去雾港」，或直接进入 `/?scenario=harbor`。点击街面或地名推车，也可用方向键或 WASD。轻点车身拉铃，把面包从车上拖到地名递货，E 使用附近的主要动作。手记可切换中文、英文和关闭配音。
+
+船长和夜班工人各订十二个面包。你可以为一边留货，或用半篮的收入购粉补烤。昨晚的订单决定次日能否掌舵去对岸磨坊、用工友送来的旧炉烤面包。进度独立保存在本机。
+
+- `npm run build` 生成网站和单文件 `dist/fog-harbor.html`。将这个 HTML 复制到电脑，双击即可离线游玩。街景、人物、双语语音和原创配乐随文件提供。
+- 在装有 Xcode 工具的 Mac 上，运行 `scripts/package-harbor-mac.sh dist/fog-harbor.html` 可生成 Apple Silicon 的 macOS 13+ 应用和 ZIP。默认输出在 `.qa/harbor-release/`，应用使用本地签名。
+- `swift scripts/harbor-smoke-mac.swift dist/fog-harbor.html .qa/harbor-native` 在原生 WKWebView 中走完三条路线，检查重载存档并保存截图。
+
+## 面包危机 · 季度策略
+
 当前《面包危机》可完成六个季度：观察正常市场、应对歉收、选择限价/补贴/公共投放、听取街头反应、尝试替代政策，最后查看自动生成的任期战报。经济概念决定世界如何响应玩家；所有数值是透明的模型假设，不是现实预测。
 
 ## 怎么玩

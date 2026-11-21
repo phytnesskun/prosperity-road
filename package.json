@@ -10,7 +10,8 @@
     "check": "tsc --noEmit",
     "test": "node --test tests/*.test.ts",
     "test:browser": "node scripts/browser-smoke.mjs",
-    "build": "npm run check && vite build",
+    "build": "npm run check && vite build && npm run build:harbor",
+    "build:harbor": "node scripts/build-harbor.mjs",
     "preview": "vite preview --host 127.0.0.1"
   },
   "devDependencies": {
