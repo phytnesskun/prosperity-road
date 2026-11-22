@@ -1,6 +1,7 @@
 """Regenerate the harbor's short bilingual character performances using edge-tts 7.3.1."""
 import asyncio
 import json
+import sys
 from pathlib import Path
 
 import edge_tts
@@ -17,6 +18,8 @@ VOICES = {
 
 async def main():
     remarks = json.loads((ROOT / "remarks.json").read_text())
+    if sys.argv[1:]:
+        remarks = {key: remarks[key] for key in sys.argv[1:]}
     output = ROOT / "voices"
     output.mkdir(exist_ok=True)
     limit = asyncio.Semaphore(3)

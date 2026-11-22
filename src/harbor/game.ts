@@ -24,6 +24,7 @@ const places: Record<Place, { label: string; x: number; y: number; tagY: number 
 };
 const destinations = Object.keys(places) as Place[];
 const storageKey = 'prosperity-road.fog-harbor.v1';
+const riceLink = location.protocol === 'file:' ? '#rice' : '?scenario=rice';
 const start = { x: 760, y: 428 };
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 let state = startHarbor();
@@ -62,7 +63,7 @@ app.innerHTML = `<main class="harbor">
 <p>点击街面或地名推车。轻点面包车会响铃，把车上的面包拖到客人所在的地名，就会推过去交货。右上角的面包也可以拖。</p>
 <details id="lesson"><summary>回看这一单</summary><p id="review"></p><p>想试着改变价格和成本，可在爱德思经济平台的「需求、供给与均衡」里打开咖啡市场。</p></details>
 <nav><button class="primary" id="resume">回到街上</button><button class="secondary" id="replay-line">再听一句</button>
-<button class="secondary" id="new-run">重玩昨晚</button>${location.protocol === 'file:' ? '' : '<a href="?">回面包危机</a>'}</nav>
+<button class="secondary" id="new-run">重玩昨晚</button><a href="${riceLink}">第二章 · 西岸米行</a>${location.protocol === 'file:' ? '' : '<a href="?">回面包危机</a>'}</nav>
 <div id="reset-ask" hidden><p>从阿芸借车时重新开始？会替换这辆面包车的进度。</p><button class="primary" id="confirm-new">重新开张</button> <button class="secondary" id="cancel-new">保留进度</button></div>
 <p id="save-note"></p></dialog></main>`;
 
@@ -110,7 +111,7 @@ function syncButtons() {
   commands.innerHTML = actions.map((action, i) =>
     `<button class="${i ? 'secondary' : 'primary'}" data-action="${action.id}">${i === 0 ? '<kbd>E</kbd>' : ''}${action.label}</button>`).join('')
     + (!actions.some(a => a.id === 'bell') ? '<button class="secondary" data-action="bell">拉车铃</button>' : '')
-    + (morningComplete(state) ? '<button class="secondary" id="again">再过一次昨晚</button>' : '');
+    + (morningComplete(state) ? `<a class="primary" href="${riceLink}">去西岸米行 · 第二章</a><button class="secondary" id="again">再过一次昨晚</button>` : '');
 }
 function syncPeople() {
   by('speaker').textContent = message.speaker;

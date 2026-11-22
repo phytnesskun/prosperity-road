@@ -1,7 +1,7 @@
 import AppKit
 import WebKit
 
-private let gameName = "雾港的最后一炉"
+private let gameName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "雾港的最后一炉"
 
 private final class HarborApp: NSObject, NSApplicationDelegate, WKNavigationDelegate {
     private var window: NSWindow!

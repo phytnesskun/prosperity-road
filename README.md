@@ -12,6 +12,16 @@
 - 在装有 Xcode 工具的 Mac 上，运行 `scripts/package-harbor-mac.sh dist/fog-harbor.html` 可生成 Apple Silicon 的 macOS 13+ 应用和 ZIP。默认输出在 `.qa/harbor-release/`，应用使用本地签名。
 - `swift scripts/harbor-smoke-mac.swift dist/fog-harbor.html .qa/harbor-native` 在原生 WKWebView 中走完三条路线，检查重载存档并保存截图。
 
+## 雾港米行 · 谁把西岸的粮买空了？
+
+西岸的陈禾和东岸的阿芸今天挂着同样的米价。你有一条能装四袋米的小船和 28 枚铜币。点米袋选数量，或把米袋拖上船。到对岸后，可以按牌价卖，也可以试着在柜台按停三枚商印。谈成第一笔议价生意，下回就能留住一枚喜欢的印。
+
+收市后，掌柜按仓里实际留下的米换价牌。第二天由你决定去哪一岸、装多少货。攒够本钱还能给自己的摊位题名。
+
+- 在游戏菜单选「第二章 · 谁把西岸的粮买空了？」，或进入 `/?scenario=rice`。也可以从序章次日进入，同一存档里帮船长交齐十二个面包的玩家可抵一次船费。
+- `npm run build` 同时生成 `dist/rice-market.html`。双击即可离线从米行开始，同一文件里可以往返两章。重复打开原文件可续玩，手记里能设置人物配音。
+- `sh scripts/package-harbor-mac.sh dist/rice-market.html` 生成 Apple Silicon 的 macOS 13+ 应用和 ZIP。`swift scripts/harbor-smoke-mac.swift dist/rice-market.html .qa/rice-native --rice` 在原生窗口中验证两种运量、议价、重载与跨章返回。
+
 ## 面包危机 · 季度策略
 
 当前《面包危机》可完成六个季度：观察正常市场、应对歉收、选择限价/补贴/公共投放、听取街头反应、尝试替代政策，最后查看自动生成的任期战报。经济概念决定世界如何响应玩家；所有数值是透明的模型假设，不是现实预测。

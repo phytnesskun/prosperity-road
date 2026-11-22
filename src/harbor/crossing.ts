@@ -1,9 +1,8 @@
 type Point = { x: number; y: number };
 type Ink = CanvasRenderingContext2D;
 
-const marks: Point[] = [{x:306,y:294}, {x:581,y:204}, {x:822,y:140}];
+const outward: Point[] = [{x:306,y:294}, {x:581,y:204}, {x:822,y:140}];
 const wood: Point[] = [{x:231,y:366}, {x:436,y:227}, {x:484,y:281}, {x:668,y:150}, {x:754,y:225}];
-const captions = ['跟随亮灯，驶过铜铃航标', '穿过第二座航标的双灯', '驶近蓝旗磨坊的栈桥', '已靠泊。把磨坊的面粉装上船。'];
 
 function polygon(g: Ink, c: string, ...p: number[]) {
   g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);
@@ -56,7 +55,7 @@ function pierDeck(g:Ink,x:number,y:number,angle:number,len:number) {
   }
   g.restore();
 }
-function shore(g:Ink){
+function shore(g:Ink, trade:boolean){
   const gradient=g.createLinearGradient(0,0,215,540);
   gradient.addColorStop(0,'#a5bfa6');gradient.addColorStop(.35,'#85a99a');gradient.addColorStop(1,'#3f7776');
   g.fillStyle=gradient;g.fillRect(0,0,960,540);
@@ -92,7 +91,7 @@ function shore(g:Ink){
   polygon(g,'#abc0a080',661,540,693,504,747,494,799,461,836,453,871,428,926,432,963,416,963,540);
   polygon(g,'#a2a47f',678,540,701,514,755,501,804,470,839,464,876,437,930,442,963,427,963,540);
   for(let i=0;i<16;i++)tree(g,790+noise(i+17)*180,488+noise(i+85)*55,.75+noise(i+87)*.8);
-  tag(g,72,473,'雾 港');tag(g,875,126,'蓝 旗 磨 坊');
+  tag(g,72,473,trade?'西岸 · 雾港':'雾 港');tag(g,875,126,trade?'东岸 · 米埠':'蓝 旗 磨 坊');
 }
 
 function buoy(g:Ink,x:number,y:number,active:boolean,passed:boolean,t:number) {
@@ -124,9 +123,15 @@ function boatArt(g:Ink,x:number,y:number,dir:number,speed:number,t:number) {
 }
 
 /** Mounts a self-contained morning trip; cargo is awarded only by the caller's finished action. */
-export function startCrossing(host:HTMLElement, finished:()=>void, cancelled:()=>void):()=>void {
+export function startCrossing(host:HTMLElement, finished:()=>void, cancelled:()=>void, tradeDestination?: 'east'|'west'):()=>void {
+  const home = {x:120, y:363};
+  const returning = tradeDestination === 'west';
+  const marks = returning ? [outward[1], outward[0], home] : outward;
+  const destination = tradeDestination ? (returning ? '西岸雾港' : '东岸米埠') : '蓝旗磨坊';
+  const captions = ['跟随亮灯，驶过铜铃航标', '穿过第二座航标的双灯', '驶近'+destination+'的栈桥',
+    tradeDestination ? '已靠泊。系好缆绳就能上岸。' : '已靠泊。把磨坊的面粉装上船。'];
   const panel=document.createElement('section');
-  panel.className='harbor-crossing';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','掌舵去对岸磨坊');
+  panel.className='harbor-crossing';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','掌舵去'+destination);
   panel.innerHTML=`
     <style>
       .harbor-crossing{position:absolute;inset:0;z-index:12;isolation:isolate;overflow:hidden;background:#507e76;color:#f5e9c9;container-type:inline-size;font:13px/1.35 system-ui,sans-serif}
@@ -147,16 +152,17 @@ export function startCrossing(host:HTMLElement, finished:()=>void, cancelled:()=
   const canvas=panel.querySelector<HTMLCanvasElement>('canvas')!;
   const ctx=canvas.getContext('2d')!;
   const plate=document.createElement('canvas');plate.width=960;plate.height=540;
-  const base=plate.getContext('2d')!;shore(base);
+  const base=plate.getContext('2d')!;shore(base,!!tradeDestination);
   const status=panel.querySelector<HTMLElement>('[data-cross-status]')!;
   const counter=panel.querySelector<HTMLElement>('[data-cross-step]')!;
   const assist=panel.querySelector<HTMLButtonElement>('[data-cross-assist]')!;
   const load=panel.querySelector<HTMLButtonElement>('[data-cross-load]')!;
   const cancel=panel.querySelector<HTMLButtonElement>('[data-cross-cancel]')!;
+  if(tradeDestination){load.textContent='系缆上岸';cancel.textContent='撤回码头';}
   const keys=new Set<string>();
   const media=window.matchMedia('(prefers-reduced-motion: reduce)');
   const aborter=new AbortController();const opts={signal:aborter.signal};
-  const vessel={x:120,y:363,dir:-.42,speed:0};
+  const vessel={...(returning?outward[2]:home),dir:returning?2.72:-.42,speed:0};
   let leg=0,frame=0,assisted=false,closed=false,last=0,elapsed=0,lastBump=-8;
   let aim:Point|null=null;
   status.textContent=captions[0];
@@ -270,7 +276,7 @@ export function startCrossing(host:HTMLElement, finished:()=>void, cancelled:()=
     boatArt(g,vessel.x,vessel.y,vessel.dir,vessel.speed,t);
     if(leg===3){
       for(let i=0;i<3;i++){
-        const x=844+i*7,y=137-(i%2)*5;
+        const x=marks[2].x+22+i*7,y=marks[2].y-3-(i%2)*5;
         oval(g,x,y,5,6,'#dfcda2');stroke(g,'#51869b',1.7,x-3,y,x+3,y-2);
       }
     }

@@ -561,6 +561,7 @@ function dialogMarkup(): string {
   if (!dialog) return '';
   if (dialog === 'menu') return `<dialog class="dialog menu-dialog" id="game-dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">游戏菜单</h2><div class="menu-options">
     <a class="button primary" href="?scenario=harbor">进入雾港 · 推车摆摊</a>
+    <a class="button secondary" href="?scenario=rice">第二章 · 谁把西岸的粮买空了？</a>
     <a class="button secondary" id="river-scenario-link" href="?scenario=river">第二剧本 · 烟囱与河流</a>
     <button class="button secondary" id="pilot-button" type="button" data-action="pilot">试玩与反馈</button>
     <button class="button secondary" id="help-button" type="button" data-action="help">玩法与规则</button>

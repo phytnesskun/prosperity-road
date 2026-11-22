@@ -1,0 +1,465 @@
+:root {
+  --ink: #233a34;
+  --night: #152d28;
+  --brass: #f3cd82;
+  --paper: #f1dfba;
+  --muted: #c3c8ab;
+  --line: #718577;
+  --serif: 'Songti SC', 'STSong', 'SimSun', Georgia, serif;
+  font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  color: #f0efdc;
+  background: var(--night);
+  color-scheme: dark;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 300px;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 28% 0, #3d5144, transparent 67%), #142b26;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button,
+a,
+select {
+  touch-action: manipulation;
+}
+button,
+select {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.48;
+}
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #f5b75d;
+  outline-offset: 3px;
+}
+[hidden] {
+  display: none !important;
+}
+.rice-game {
+  width: min(1120px, calc(100% - 32px), max(740px, calc((100svh - 245px) * 2)));
+  max-width: 100%;
+  margin: auto;
+  padding: 12px 0 16px;
+}
+.brandbar,
+.sign,
+.head-buttons,
+.holdings,
+.action-panel,
+.qty,
+.action-row,
+.ticker,
+.trade-tools,
+.pane-actions {
+  display: flex;
+  align-items: center;
+}
+.brandbar {
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+}
+.sign {
+  gap: 13px;
+}
+.crest {
+  display: grid;
+  place-items: center;
+  border: 1px solid #bfaa79;
+  outline: 1px solid #8d825f;
+  outline-offset: -4px;
+  border-radius: 4px;
+  transform: rotate(-4deg);
+  height: 37px;
+  width: 37px;
+  font: bold 23px var(--serif);
+  color: #f0d7a3;
+}
+.series {
+  margin: 0;
+  font: 12px var(--serif);
+  letter-spacing: 0.13em;
+  color: #d3cbb1;
+}
+h1 {
+  font: 700 clamp(21px, 2.4vw, 32px) / 1.3 var(--serif);
+  margin: 0;
+  color: #ffedc3;
+  letter-spacing: 0.035em;
+}
+.head-buttons,
+.action-row,
+.trade-tools,
+.pane-actions {
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.rice-game button,
+.rice-game select,
+.rice-game input {
+  border-radius: 5px;
+}
+.light-button,
+.dark-button,
+.action-button,
+.sale-button,
+.sheet a {
+  border: 1px solid #88927c;
+  background: #294339;
+  color: #fff1ce;
+  padding: 8px 12px;
+  line-height: 1.25;
+  text-decoration: none;
+}
+.light-button {
+  font-size: 12px;
+  min-height: 33px;
+}
+.light-button:hover,
+.dark-button:hover,
+.sheet a:hover {
+  background: #365443;
+}
+.gamebox {
+  overflow: hidden;
+  border: 1px solid #958d6f;
+  border-radius: 9px;
+  background: var(--ink);
+  box-shadow: 0 10px 26px #071e1880;
+}
+.rice-stage {
+  position: relative;
+  aspect-ratio: 2;
+  isolation: isolate;
+  background: #9cb3a8;
+}
+.rice-art {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.daytag,
+.holdings {
+  position: absolute;
+  top: 10px;
+  border-radius: 4px;
+  border: 1px solid #ab9b74;
+  box-shadow: 0 2px 5px #223e354d;
+  background: #1e382feb;
+  color: #fff1cf;
+  font-size: 12px;
+}
+.daytag {
+  left: 10px;
+  padding: 7px 10px;
+  font-family: var(--serif);
+  letter-spacing: 0.07em;
+}
+.holdings {
+  right: 10px;
+  gap: 12px;
+  padding: 5px 9px;
+}
+.holdings b {
+  font:
+    700 16px Georgia,
+    serif;
+  color: #ffda8b;
+}
+.spot-button {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: 1px solid #e6d197;
+  background: #22392fec;
+  color: #ffe4a6;
+  box-shadow: 0 2px 5px #192d2680;
+  font: 600 clamp(10px, 1.3vw, 14px) var(--serif);
+  padding: 6px 9px;
+  touch-action: none !important;
+}
+.spot-button:hover {
+  background: #425e47;
+}
+.spot-button[data-spot='warehouse'] {
+  cursor: grab;
+}
+.rice-stage.hauling .spot-button {
+  outline: 2px dashed #fff0ba;
+  outline-offset: 2px;
+}
+.spot-button small {
+  font-size: 0.76em;
+  color: #e9debd;
+}
+.held-sack {
+  width: 24px;
+  height: 29px;
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(9deg);
+  border-radius: 8px 8px 11px 11px;
+  background: repeating-linear-gradient(0deg, #be9860 0 1px, #d8b77b 2px 4px);
+  border: 2px solid #85623d;
+  box-shadow: 0 3px 7px #263b3080;
+}
+.rice-art {
+  touch-action: none;
+}
+.stage-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: #263f34;
+}
+.caption {
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 90%;
+  padding: 4px 9px;
+  background: #152921ec;
+  color: #fff3cf;
+  border-radius: 4px;
+  font: 13px/1.4 system-ui;
+  text-align: center;
+  pointer-events: none;
+}
+.caption:empty {
+  display: none;
+}
+.counter {
+  background: linear-gradient(115deg, #f1e2c3, #e0cda7);
+  color: #29372b;
+  padding: 10px 15px 12px;
+}
+.ticker {
+  gap: 8px;
+  min-height: 28px;
+  margin-bottom: 7px;
+  color: #343d30;
+}
+.ticker strong {
+  color: #704425;
+  white-space: nowrap;
+  font: bold 16px var(--serif);
+}
+.ticker p {
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+.action-panel {
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.qty {
+  gap: 5px;
+  font-size: 13px;
+  color: #4d5947;
+}
+.qty select {
+  color: #283e32;
+  background: #faf2dc;
+  border: 1px solid #92886b;
+  padding: 6px;
+  min-height: 35px;
+}
+.action-button,
+.sale-button {
+  font: 600 14px system-ui;
+  min-height: 36px;
+}
+.action-button {
+  background: #2b5142;
+  color: #fff0c6;
+  border-color: #486548;
+}
+.action-button:hover:enabled {
+  background: #396749;
+}
+.sale-button {
+  background: #fcf0d2;
+  color: #3b4939;
+  border-color: #9b906e;
+}
+.sale-button:hover:enabled {
+  background: #fff6dc;
+}
+.dark-button {
+  background: #423b2e;
+  color: #ffe3a7;
+  border-color: #786749;
+  min-height: 35px;
+}
+.dark-button:hover {
+  background: #5b4b31;
+}
+.prices {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 9px;
+  color: #c9d4be;
+  font-size: 12px;
+}
+.prices b {
+  color: #f5deb1;
+}
+.prices .board {
+  display: inline-block;
+  margin-right: 12px;
+}
+.tip {
+  color: #d4d4bb;
+}
+.sheet {
+  border: 1px solid #a79b73;
+  border-radius: 9px;
+  background: #203b30;
+  color: #eee8cf;
+  width: min(440px, calc(100% - 20px));
+  max-height: 88svh;
+  overflow: auto;
+  padding: 20px;
+}
+.sheet::backdrop {
+  background: #11231cd9;
+}
+.sheet h2 {
+  font: 700 23px var(--serif);
+  color: #edcf8c;
+  margin: 0 0 13px;
+}
+.sheet p,
+.sheet label {
+  font: 14px/1.6 system-ui;
+}
+.sheet label {
+  display: block;
+  margin: 10px 0;
+}
+.sheet input,
+.sheet select {
+  border: 1px solid #8a9379;
+  background: #f4e8c9;
+  color: #28392b;
+  padding: 5px 8px;
+  max-width: 98%;
+}
+.sheet .pane-actions {
+  margin-block: 10px;
+}
+.sheet a {
+  display: inline-block;
+  font-size: 13px;
+}
+.sheet .fine {
+  color: #d6c8a1;
+  font-size: 12px;
+}
+.end-sign {
+  position: absolute;
+  left: 50%;
+  top: 20%;
+  transform: translateX(-50%) rotate(-1.2deg);
+  border: 4px double #bfa06c;
+  box-shadow: 0 8px 12px #273a2780;
+  background: #3b3024;
+  color: #ffdda0;
+  text-align: center;
+  font: bold clamp(18px, 3vw, 35px) var(--serif);
+  padding: 8px 24px;
+  pointer-events: none;
+}
+@media (max-width: 740px) {
+  .rice-game {
+    width: 100%;
+    padding: 5px 0 10px;
+  }
+  .brandbar,
+  .prices {
+    margin-inline: 8px;
+  }
+  .sign {
+    gap: 7px;
+  }
+  .crest {
+    width: 28px;
+    height: 30px;
+    font-size: 18px;
+  }
+  .head-buttons {
+    gap: 3px;
+  }
+  .light-button {
+    padding: 5px 7px;
+  }
+  .gamebox {
+    border-radius: 0;
+  }
+  .counter {
+    padding: 8px;
+  }
+  .action-panel,
+  .trade-tools,
+  .action-row {
+    gap: 5px;
+  }
+  .daytag,
+  .holdings {
+    font-size: 10px;
+    top: 4px;
+  }
+  .daytag {
+    left: 4px;
+    padding: 4px 6px;
+  }
+  .holdings {
+    right: 4px;
+    gap: 6px;
+    padding: 3px 5px;
+  }
+  .holdings b {
+    font-size: 13px;
+  }
+  .spot-button {
+    padding: 4px;
+  }
+  .caption {
+    font-size: 10px;
+    bottom: 2px;
+  }
+  .tip {
+    display: none;
+  }
+  .action-button,
+  .sale-button,
+  .dark-button {
+    padding: 6px 8px;
+    font-size: 13px;
+    min-height: 36px;
+  }
+  .ticker {
+    align-items: baseline;
+  }
+}

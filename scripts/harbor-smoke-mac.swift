@@ -1,4 +1,5 @@
 // swift scripts/harbor-smoke-mac.swift dist/fog-harbor.html .qa/harbor-native
+// swift scripts/harbor-smoke-mac.swift dist/rice-market.html .qa/rice-native --rice
 import AppKit
 import WebKit
 
@@ -85,7 +86,9 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
         web.navigationDelegate = self
         window.contentView = web
         window.center()
-        window.orderFront(nil)
+        window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
+        window.makeKeyAndOrderFront(nil)
+        window.orderFrontRegardless()
         if locked {
             frames = Task { [weak self] in
                 while !Task.isCancelled {
@@ -129,10 +132,14 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
     func check(_ expression: String, _ description: String, seconds: Double = 10) async throws {
         try await until(description, seconds: seconds) { try await self.web.evaluateJavaScript("Boolean(" + expression + ")") as? Bool == true }
     }
-    func openPage(reloading: Bool = false) async throws {
+    func openPage(reloading: Bool = false, rice: Bool = false) async throws {
         let previous = loads
         if reloading { web.reload() } else { web.loadFileURL(file, allowingReadAccessTo: file) }
         try await until("offline navigation") { self.loads > previous }
+        if rice {
+            try await check("document.querySelector('.rice-game')", "second chapter store")
+            return
+        }
         try await check("document.querySelector('h1')?.textContent.includes('雾港的最后一炉') && document.querySelector('#street-canvas')?.width > 0", "title and street")
         try await check("document.documentElement.scrollWidth <= innerWidth+1", "viewport without horizontal overflow")
         try await check(#"""
@@ -145,8 +152,8 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
     }
     func click(_ selector: String, seconds: Double = 10) async throws {
         // Selectors are constant test inputs (no user-provided JavaScript).
-        let find = "document.querySelector(\"" + selector + "\")"
-        try await check(find + " && !" + find + ".disabled && " + find + ".getClientRects().length", selector, seconds: seconds)
+        let find = "Array.from(document.querySelectorAll(\"" + selector + "\")).find(el => !el.disabled && el.getClientRects().length)"
+        try await check(find, selector, seconds: seconds)
         _ = try await web.evaluateJavaScript(find + ".click(); true")
     }
     func visit(_ place: String) async throws {
@@ -296,6 +303,93 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
                 "initialGuideVisible": guideVisible, "dragChecked": route == "ship",
                 "crossingChecked": ship, "cancelCrossingChecked": route == "ship"]
     }
+    // Send a real mouse click to the control inside this test window.
+    func buyWithMouse() async throws {
+        let coordinates = try await web.evaluateJavaScript(#"""
+          (() => {
+            const el = document.querySelector('[data-rice="buy"]');
+            el.scrollIntoView({block:'center'});
+            el.addEventListener('click', e => {window.riceTrustedPurchase = e.isTrusted}, {once:true});
+            const r = el.getBoundingClientRect();
+            return [r.x + r.width / 2, innerHeight - r.y - r.height / 2];
+          })()
+        """#)
+        guard let coords = coordinates as? [CGFloat], coords.count == 2 else { throw CheckFailure("Missing buy button") }
+        let point = NSPoint(x: coords[0], y: coords[1])
+        guard let view = web.hitTest(web.convert(point, from: nil)) else { throw CheckFailure("Buy button outside window") }
+        for kind in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+            guard let event = NSEvent.mouseEvent(with: kind, location: point, modifierFlags: [],
+                 timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber, context: nil,
+                 eventNumber: 1, clickCount: 1, pressure: kind == .leftMouseDown ? 1 : 0) else { throw CheckFailure("Mouse input unavailable") }
+            if kind == .leftMouseDown { view.mouseDown(with: event) } else { view.mouseUp(with: event) }
+        }
+        try await check("window.riceTrustedPurchase === true", "trusted mouse purchase")
+    }
+    func playRice(route: String, driver: String) async throws -> [String: Any] {
+        func setup() async throws {
+            _ = try await web.evaluateJavaScript(driver)
+        }
+        func step(_ name: String) async throws {
+            FileHandle.standardError.write(Data(("Rice " + route + ": " + name + "\n").utf8))
+            do {
+                _ = try await web.callAsyncJavaScript("await ricePilot[name](); return true",
+                    arguments: ["name": name], in: nil, contentWorld: .page)
+            } catch { throw CheckFailure("Rice \(route) / \(name): \(error.localizedDescription) \((error as NSError).userInfo), resource errors: \(violations)") }
+            guard violations.isEmpty else { throw CheckFailure(violations.joined(separator: "; ")) }
+        }
+        try await openPage(rice: true)
+        try await setup()
+        try await step("intro")
+        if route == "four-bags" {
+            try await snapshot("west-opening")
+            try await step("chooseFour")
+            try await buyWithMouse()
+            try await step("loaded")
+            try await step("east")
+            let query = "localStorage.getItem('prosperity-road.rice-market.v1')"
+            let before = try await web.evaluateJavaScript("JSON.parse("+query+")") as? NSDictionary
+            try await openPage(reloading:true, rice:true)
+            try await setup()
+            let after = try await web.evaluateJavaScript("JSON.parse("+query+")") as? NSDictionary
+            guard let before, after == before else { throw CheckFailure("Cargo, cash or bank changed across reload") }
+            try await step("fullMonth")
+            try await snapshot("east-new-month")
+            try await step("fullReturn")
+            try await snapshot("forty-four")
+            try await step("finishAndReplay")
+        } else {
+            try await step("oneBag")
+            try await step("sealCounter")
+            try await step("keepFirst")
+            try await openPage(reloading:true, rice:true)
+            try await setup()
+            try await step("resumeSeals")
+            try await snapshot("three-seals")
+            try await step("sealMatch")
+            try await step("smallMonth")
+            try await step("lockSeal")
+        }
+        let report = try await web.evaluateJavaScript("ricePilot.summary()") as? [String:Any]
+        guard var report, violations.isEmpty else { throw CheckFailure("Missing rice report or resource failure") }
+        if route == "one-bag-deal" {
+            // Follow the published chapter links instead of injecting old campaign state.
+            let original = try await web.evaluateJavaScript("JSON.parse(localStorage.getItem('prosperity-road.rice-market.v1'))") as? NSDictionary
+            try await click("[data-rice='journal']")
+            try await click("a[href='#harbor']")
+            try await check("document.querySelector('.harbor') && document.querySelector('#menu')", "chapter one opens")
+            try await click("#menu")
+            try await click("a[href='#rice']")
+            try await check("document.querySelector('.rice-game')", "return to saved chapter two")
+            let restored = try await web.evaluateJavaScript("JSON.parse(localStorage.getItem('prosperity-road.rice-market.v1'))") as? NSDictionary
+            guard let original, original == restored else { throw CheckFailure("Visiting chapter one changed the trade save: \(String(describing: original)) -> \(String(describing: restored))") }
+        }
+        report["chapterSwitchChecked"] = route == "one-bag-deal"
+        report["sealProgressReloadChecked"] = route == "one-bag-deal"
+        report["route"] = route
+        report["trustedMouseAndReload"] = route == "four-bags"
+        report["frameSource"] = locked ? "native test clock while desktop locked" : "WebKit foreground RAF"
+        return report
+    }
     func finish() {
         frames?.cancel()
         web.configuration.userContentController.removeScriptMessageHandler(forName: "harborCheck")
@@ -305,7 +399,8 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
 
 @MainActor
 func run() async throws {
-    guard CommandLine.arguments.count == 3 else { throw CheckFailure("usage: swift scripts/harbor-smoke-mac.swift path/to/fog-harbor.html .qa/harbor-native") }
+    let rice = CommandLine.arguments.count == 4 && CommandLine.arguments[3] == "--rice"
+    guard CommandLine.arguments.count == 3 || rice else { throw CheckFailure("usage: swift scripts/harbor-smoke-mac.swift path/to/offline.html output-directory [--rice]") }
     let file = URL(fileURLWithPath: CommandLine.arguments[1]).standardizedFileURL
     let output = URL(fileURLWithPath: CommandLine.arguments[2], isDirectory: true).standardizedFileURL
     guard FileManager.default.isReadableFile(atPath: file.path) else { throw CheckFailure("Missing offline build at " + file.path) }
@@ -316,10 +411,13 @@ func run() async throws {
     let rules = #"[{"trigger":{"url-filter":"^https?://"},"action":{"type":"block"}},{"trigger":{"url-filter":"^wss?://"},"action":{"type":"block"}}]"#
     let list = try await store.compileContentRuleList(forIdentifier: "OfflineSmoke", encodedContentRuleList: rules)!
     var report: [[String: Any]] = []
-    for route in ["ship", "workers", "both"] {
+    let driverFile = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("rice-playthrough.js")
+    let driver = rice ? try String(contentsOf: driverFile, encoding: .utf8) : ""
+    for route in rice ? ["four-bags", "one-bag-deal"] : ["ship", "workers", "both"] {
         let test = Playthrough(file: file, output: output, rules: list)
         defer { test.finish() }
-        report.append(try await test.play(route: route))
+        let result = rice ? try await test.playRice(route: route, driver: driver) : try await test.play(route: route)
+        report.append(result)
         print("PASS " + route)
     }
     let json = try JSONSerialization.data(withJSONObject: report, options: [.sortedKeys, .prettyPrinted])

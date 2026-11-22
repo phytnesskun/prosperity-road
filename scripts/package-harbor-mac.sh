@@ -10,10 +10,14 @@ script_dir=$(CDPATH= cd "$(dirname "$0")" && pwd)
 game_html=$1
 output_dir=${2:-"$script_dir/../.qa/harbor-release"}
 game_name='雾港的最后一炉'
+bundle_id='org.prosperityroad.fogharbor'
+if [ "$(basename "$game_html")" = 'rice-market.html' ]; then
+    game_name='雾港米行'
+    bundle_id='org.prosperityroad.ricemarket'
+fi
 app="$output_dir/$game_name.app"
 contents="$app/Contents"
 archive="$output_dir/$game_name-macOS-arm64.zip"
-bundle_id='org.prosperityroad.fogharbor'
 
 if [ ! -s "$game_html" ]; then
     echo "Missing offline game: $game_html" >&2
