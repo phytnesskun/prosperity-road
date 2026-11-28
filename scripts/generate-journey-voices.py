@@ -1,6 +1,6 @@
 """Record the bilingual performances defined alongside each playable chapter.
 
-Use the existing edge-tts environment. Pass mill, convoy and/or quay.
+Use the existing edge-tts environment. Pass one or more chapter IDs: mill, convoy, quay, morning.
 Set HTTPS_PROXY if the recording machine needs a proxy.
 """
 import asyncio
@@ -45,7 +45,7 @@ async def main(ids):
 
     jobs = []
     for chapter in ids:
-        if chapter not in ("mill", "convoy", "quay"):
+        if chapter not in ("mill", "convoy", "quay", "morning"):
             raise ValueError("Unknown chapter: " + chapter)
         script = f"import {{ {chapter}Lines as lines }} from './src/chapters/{chapter}.ts'; console.log(JSON.stringify(Object.entries(lines)));"
         lines = json.loads(subprocess.check_output(["node", "--input-type=module", "-e", script], cwd=ROOT))
@@ -57,4 +57,4 @@ async def main(ids):
 
 
 if __name__ == "__main__":
-    asyncio.run(main(sys.argv[1:] or ["mill", "convoy", "quay"]))
+    asyncio.run(main(sys.argv[1:] or ["mill", "convoy", "quay", "morning"]))

@@ -22,15 +22,18 @@
 - `npm run build` 同时生成 `dist/rice-market.html`。双击即可离线从米行开始，同一文件里可以往返两章。重复打开原文件可续玩，手记里能设置人物配音。
 - `sh scripts/package-harbor-mac.sh dist/rice-market.html` 生成 Apple Silicon 的 macOS 13+ 应用和 ZIP。`swift scripts/harbor-smoke-mac.swift dist/rice-market.html .qa/rice-native --rice` 在原生窗口中验证两种运量、议价、重载与跨章返回。
 
-## 雾港续章 · 从磨坊到河湾
+## 雾港续章 · 从磨坊到早班渡口
 
-第二章收账后点「去磨坊接单」，或直接打开第三章。三章都可以在「航海手记」里选章、重玩、切换中英文配音。每一步操作都保存在本机。
+第二章收账后点「去磨坊接单」，或直接打开第三章。这四章都可以在「航海手记」里选章、重玩、切换中英文配音。每一步操作都保存在本机。
 
 - **第三章《风起磨坊》**（`/?scenario=mill`）。一天有三阵风。看风袋收放磨帆，拉起料闸，给街坊装粗粉，也能筛细粉赶船队的订单。
 - **第四章《潮窗里的船队》**（`/?scenario=convoy`）。在码头装面粉或灯油，握舵过沙洲、在浮标旁等潮，或绕行外航道。载重、水位和抵达时间都会改变交货结果。
 - **第五章《桥下游的灯》**（`/?scenario=quay`）。天黑前，纸坊借水赶做灯纸，六位街坊排队过河。扳分水闸、撑篙或捞起缠桨的纸絮，每过一班就能看到灯、河水和队伍的变化。
+- **第六章《雾港第一班早船》**（`/?scenario=morning`）。揭开旧班牌，给等船的客人和货物分三个船位。能走近岸再折返，也能直航东岸。写下明早的船期，第二天回来看看谁在等你。
 
-`npm run build` 生成 `dist/fog-harbor-journeys.html`。这份独立文件从磨坊开始，包含雾港五章、原创配乐和本地语音。一直在同一份文件、同一浏览器或应用里玩，即可续接进度。`sh scripts/package-harbor-mac.sh dist/fog-harbor-journeys.html` 打包 Apple Silicon 应用。原生离线试玩可用 `swift scripts/harbor-smoke-mac.swift dist/fog-harbor-journeys.html .qa/journeys-native --journeys` 复核。
+从第六章独立开局，可打开构建生成的 `dist/first-ferry.html`。接着第五章玩则沿用原文件，在桥湾交班后点「前往第六章」。`swift scripts/harbor-smoke-mac.swift dist/first-ferry.html .qa/morning-native --morning` 可验证拖放、次日两种班次、重载存档及结局。
+
+`npm run build` 生成 `dist/fog-harbor-journeys.html`。这份独立文件从磨坊开始，包含雾港六章、原创配乐和本地语音。一直在同一份文件、同一浏览器或应用里玩，即可续接进度。`sh scripts/package-harbor-mac.sh dist/fog-harbor-journeys.html` 打包 Apple Silicon 应用。原生离线试玩可用 `swift scripts/harbor-smoke-mac.swift dist/fog-harbor-journeys.html .qa/journeys-native --journeys` 复核。
 
 ## 面包危机 · 季度策略
 

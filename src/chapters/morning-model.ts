@@ -100,7 +100,7 @@ export function morningEnding(s: MorningState): string {
   const last = s.trips.at(-1)!.cargo;
   if (last.includes('eggs')) return '两筐鸡蛋赶上早市';
   if (s.board === 'early') return '班船准点，蛋担留岸';
-  if (last.every((item) => item === 'crate') && last.length >= 2) return '阿芸包下了午船';
+  if (last.every((item) => item === 'crate') && last.length >= 2) return '阿芸的午货赶上了船';
   if (last.includes('passenger') && last.includes('crate')) return '熟客和木箱同船';
   return last.includes('passenger') ? '老街坊的摆渡人' : '午潮的一箱货';
 }

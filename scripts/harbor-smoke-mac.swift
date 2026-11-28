@@ -1,6 +1,7 @@
 // swift scripts/harbor-smoke-mac.swift dist/fog-harbor.html .qa/harbor-native
 // swift scripts/harbor-smoke-mac.swift dist/rice-market.html .qa/rice-native --rice
 // swift scripts/harbor-smoke-mac.swift dist/fog-harbor-journeys.html .qa/journeys-native --journeys
+// swift scripts/harbor-smoke-mac.swift dist/first-ferry.html .qa/morning-native --morning
 import AppKit
 import WebKit
 
@@ -170,6 +171,28 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
             try await click("button[data-bake-take]")
         }
     }
+    // Viewport coordinates from the two scene controls, followed by viewport height.
+    @discardableResult
+    func dragMouse(_ points: [CGFloat]) async throws -> NSView {
+        let source = NSPoint(x: points[0], y: points[4] - points[1])
+        let target = NSPoint(x: points[2], y: points[4] - points[3])
+        guard let hit = web.hitTest(web.convert(source, from: nil)) else { throw CheckFailure("Inventory is outside the window") }
+        for step in 0...10 {
+            let type: NSEvent.EventType = step == 0 ? .leftMouseDown : (step == 10 ? .leftMouseUp : .leftMouseDragged)
+            let t = min(CGFloat(step) / 9, 1)
+            let point = NSPoint(x: source.x + (target.x - source.x) * t, y: source.y + (target.y - source.y) * t)
+            guard let event = NSEvent.mouseEvent(with: type, location: point, modifierFlags: [],
+                 timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber, context: nil,
+                 eventNumber: step + 1, clickCount: 1, pressure: step == 10 ? 0 : 1) else { throw CheckFailure("Could not create mouse input") }
+            switch type {
+            case .leftMouseDown: hit.mouseDown(with: event)
+            case .leftMouseUp: hit.mouseUp(with: event)
+            default: hit.mouseDragged(with: event)
+            }
+            try await Task.sleep(nanoseconds: 40_000_000)
+        }
+        return hit
+    }
     func dragToDock() async throws {
         let geometry = try await web.evaluateJavaScript(#"""
         (() => {
@@ -188,23 +211,7 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
         })()
         """#)
         guard let points = geometry as? [CGFloat], points.count == 5 else { throw CheckFailure("Missing drag geometry") }
-        let source = NSPoint(x: points[0], y: points[4] - points[1])
-        let target = NSPoint(x: points[2], y: points[4] - points[3])
-        guard let hit = web.hitTest(web.convert(source, from: nil)) else { throw CheckFailure("Inventory is outside the window") }
-        for step in 0...10 {
-            let type: NSEvent.EventType = step == 0 ? .leftMouseDown : (step == 10 ? .leftMouseUp : .leftMouseDragged)
-            let t = min(CGFloat(step) / 9, 1)
-            let point = NSPoint(x: source.x + (target.x - source.x) * t, y: source.y + (target.y - source.y) * t)
-            guard let event = NSEvent.mouseEvent(with: type, location: point, modifierFlags: [],
-                 timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber, context: nil,
-                 eventNumber: step + 1, clickCount: 1, pressure: step == 10 ? 0 : 1) else { throw CheckFailure("Could not create mouse input") }
-            switch type {
-            case .leftMouseDown: hit.mouseDown(with: event)
-            case .leftMouseUp: hit.mouseUp(with: event)
-            default: hit.mouseDragged(with: event)
-            }
-            try await Task.sleep(nanoseconds: 40_000_000)
-        }
+        let hit = try await dragMouse(points)
         guard let received = try await web.evaluateJavaScript("window.harborDrag") as? [String],
               received.contains("pointerdown"), received.contains("pointermove"), received.contains("pointerup") else {
             let events = try? await web.evaluateJavaScript("JSON.stringify(window.harborMouse)")
@@ -467,6 +474,11 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
         let retained = try await ending()
         guard retained == quay else { throw CheckFailure("Restarting the mill affected the quay") }
         try await click("#journey-next")
+        try await chapter("morning")
+        try await check("document.querySelector('#journey-play').dataset.bridgeLamps === '" + (alternate ? "6" : "4") + "'", "last night's bridge lights")
+        try await click("#journey-book")
+        try await check("document.querySelector('#journey-previous').textContent.includes('桥下游的灯')", "previous chapter in the log")
+        try await click("a[href='#rice']")
         try await check("document.querySelector('.rice-game')","return to the rice counter")
         try await click("[data-rice='journal']")
         try await click("a[href='#mill']")
@@ -475,6 +487,78 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
         try await check("innerWidth <= 400 && document.documentElement.scrollWidth <= innerWidth + 1","narrow viewport without overflow")
         guard violations.isEmpty else { throw CheckFailure(violations.joined(separator:", ")) }
         return ["mill":mill, "convoy":convoy, "quay":quay, "alternate":alternate, "restored":true, "observedRemoteRequests":0]
+    }
+    func playMorning(alternate: Bool) async throws -> [String:Any] {
+        let state = "JSON.parse(localStorage.getItem('prosperity-road.harbor-morning.v1')).state"
+        func act(_ name: String) async throws { try await click("[data-morning='" + name + "']") }
+        func dragOnQuay(_ x1: Double, _ y1: Double, _ x2: Double, _ y2: Double) async throws {
+            let geometry = try await web.evaluateJavaScript("""
+            (() => {
+                const canvas = document.querySelector('.morning-scene');
+                canvas.scrollIntoView({block:'nearest'});
+                const b = canvas.getBoundingClientRect();
+                return [b.x+b.width*\(x1), b.y+b.height*\(y1), b.x+b.width*\(x2), b.y+b.height*\(y2),innerHeight];
+            })()
+            """)
+            guard let points = geometry as? [CGFloat], points.count == 5 else { throw CheckFailure("Missing quay bounds") }
+            try await dragMouse(points)
+        }
+        func reloadCheckingSave() async throws {
+            let saved = try await web.evaluateJavaScript(state) as? NSDictionary
+            let previous = loads
+            web.reload()
+            try await until("reload the ferry ledger") { self.loads > previous }
+            try await check("document.querySelector('.morning-yard')","reopen ferry")
+            let after = try await web.evaluateJavaScript(state) as? NSDictionary
+            guard let saved, saved == after else { throw CheckFailure("Ferry ledger changed on reload") }
+        }
+        web.loadFileURL(file, allowingReadAccessTo: file)
+        try await check("document.querySelector('.morning-yard')","direct chapter six entry")
+        try await check("document.querySelector('#journey-play').dataset.bridgeLamps === undefined","independent start")
+        if !alternate { try await snapshot("old-ticket") }
+        try await act("uncover")
+        if alternate {
+            for _ in 0..<3 { try await act("crate") }
+        } else {
+            try await dragOnQuay(0.278,0.576,0.553,0.777)
+            try await check(state + ".cargo.join() === 'passenger'","drag person aboard")
+            try await dragOnQuay(0.553,0.777,0.335,0.692)
+            try await check(state + ".cargo.length === 0","drag person ashore")
+            try await act("passenger")
+            try await act("crate")
+            try await reloadCheckingSave()
+            try await act("near")
+            try await act("passenger")
+        }
+        try await act("east")
+        try await act(alternate ? "flex" : "early")
+        try await check(state + ".day === 2","return to the quay the following morning")
+        try await reloadCheckingSave()
+        window.setContentSize(NSSize(width:390, height:800))
+        try await check("innerWidth <= 400 && document.documentElement.scrollWidth <= innerWidth + 1","ferry fits phone width")
+        if alternate {
+            for _ in 0..<3 { try await act("crate") }
+        } else {
+            try await snapshot("morning-queue-narrow")
+            window.setContentSize(NSSize(width:1190,height:790))
+            try await check("innerWidth > 1000","wide quay")
+            try await snapshot("morning-queue")
+            try await act("eggs")
+            try await act("passenger")
+        }
+        try await act("east")
+        try await check(state + ".phase === 'done' && !document.querySelector('#journey-ending').hidden","finish second day")
+        try await reloadCheckingSave()
+        let summary = try await web.evaluateJavaScript("document.querySelector('#journey-summary').textContent") as? String
+        let ledger = try await web.evaluateJavaScript(state) as? [String:Any]
+        guard let summary, summary.contains(alternate ? "阿芸的午货赶上了船" : "两筐鸡蛋赶上早市"),
+              let ledger, let trips = ledger["trips"] as? [[String:Any]], trips.count == (alternate ? 2 : 3) else {
+            throw CheckFailure("Incorrect ferry ending or number of sailings: " + (summary ?? "no receipt"))
+        }
+        try await click("#journey-next")
+        try await check("document.querySelector('.rice-game')","last chapter to rice market")
+        guard violations.isEmpty else { throw CheckFailure(violations.joined(separator:", ")) }
+        return ["route":alternate ? "flex-cargo":"early-passengers", "ledger":ledger, "summary":summary, "observedRemoteRequests":0]
     }
     func finish() {
         frames?.cancel()
@@ -487,7 +571,8 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
 func run() async throws {
     let rice = CommandLine.arguments.count == 4 && CommandLine.arguments[3] == "--rice"
     let journeys = CommandLine.arguments.count == 4 && CommandLine.arguments[3] == "--journeys"
-    guard CommandLine.arguments.count == 3 || rice || journeys else { throw CheckFailure("usage: swift scripts/harbor-smoke-mac.swift path/to/offline.html output-directory [--rice|--journeys]") }
+    let morning = CommandLine.arguments.count == 4 && CommandLine.arguments[3] == "--morning"
+    guard CommandLine.arguments.count == 3 || rice || journeys || morning else { throw CheckFailure("usage: swift scripts/harbor-smoke-mac.swift path/to/offline.html output-directory [--rice|--journeys|--morning]") }
     let file = URL(fileURLWithPath: CommandLine.arguments[1]).standardizedFileURL
     let output = URL(fileURLWithPath: CommandLine.arguments[2], isDirectory: true).standardizedFileURL
     guard FileManager.default.isReadableFile(atPath: file.path) else { throw CheckFailure("Missing offline build at " + file.path) }
@@ -500,12 +585,16 @@ func run() async throws {
     var report: [[String: Any]] = []
     let driverFile = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("rice-playthrough.js")
     let driver = rice ? try String(contentsOf: driverFile, encoding: .utf8) : ""
-    let routes = journeys ? ["street-and-shoal", "ship-and-outer"] : (rice ? ["four-bags", "one-bag-deal"] : ["ship", "workers", "both"])
+    let routes: [String]
+    if morning { routes = ["early-passengers", "flex-cargo"] }
+    else if journeys { routes = ["street-and-shoal", "ship-and-outer"] }
+    else { routes = rice ? ["four-bags", "one-bag-deal"] : ["ship", "workers", "both"] }
     for route in routes {
         let test = Playthrough(file: file, output: output, rules: list)
         defer { test.finish() }
         let result: [String:Any]
-        if journeys { result = try await test.playJourneys(alternate:route == "ship-and-outer") }
+        if morning { result = try await test.playMorning(alternate:route == "flex-cargo") }
+        else if journeys { result = try await test.playJourneys(alternate:route == "ship-and-outer") }
         else if rice { result = try await test.playRice(route: route, driver: driver) }
         else { result = try await test.play(route: route) }
         report.append(result)

@@ -1,5 +1,5 @@
 const scenario = new URLSearchParams(location.search).get('scenario');
-if (scenario === 'mill' || scenario === 'convoy' || scenario === 'quay') {
+if (scenario === 'mill' || scenario === 'convoy' || scenario === 'quay' || scenario === 'morning') {
   void import('./chapters/game.ts').then(({ openChapter }) => openChapter(scenario));
 } else if (scenario === 'rice') {
   void import('./rice/game.ts');

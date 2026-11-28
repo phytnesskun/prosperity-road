@@ -11,6 +11,7 @@ export const chapters = {
   mill: ['第三章', '风起磨坊'],
   convoy: ['第四章', '潮窗里的船队'],
   quay: ['第五章', '桥下游的灯'],
+  morning: ['第六章', '雾港第一班早船'],
 } as const;
 export type Chapter = keyof typeof chapters;
 export type LaterChapter = Exclude<Chapter, 'harbor' | 'rice'>;

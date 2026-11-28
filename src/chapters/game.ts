@@ -4,16 +4,19 @@ import { chapterHref, chapters } from './shared.ts';
 import type { Chapter, LaterChapter } from './shared.ts';
 import { millLines, mountMill } from './mill.ts';
 import { convoyLines, mountConvoy } from './convoy.ts';
-import { quayLines, mountQuay } from './quay.ts';
+import { quayEnding, quayLines, quayStats, mountQuay, restoreQuay } from './quay.ts';
+import { morningLines, mountMorning } from './morning.ts';
 import baseStyle from './journeys.css?inline';
 import millStyle from './mill.css?inline';
 import convoyStyle from './convoy.css?inline';
 import quayStyle from './quay.css?inline';
+import morningStyle from './morning.css?inline';
 
 const episodes = {
   mill: { mount: mountMill, lines: millLines, style: millStyle, next: 'convoy' },
   convoy: { mount: mountConvoy, lines: convoyLines, style: convoyStyle, next: 'quay' },
-  quay: { mount: mountQuay, lines: quayLines, style: quayStyle, next: null },
+  quay: { mount: mountQuay, lines: quayLines, style: quayStyle, next: 'morning' },
+  morning: { mount: mountMorning, lines: morningLines, style: morningStyle, next: null },
 } as const;
 
 const clips = import.meta.glob<string>('./voices/*.mp3', { eager: true, query: '?url', import: 'default' });
@@ -104,7 +107,7 @@ export function openChapter(id: LaterChapter) {
           ? '从西岸带来的招牌 · ' + rice.stallName
           : '';
       }
-      const previous = id === 'convoy' ? 'mill' : 'convoy';
+      const previous = ({ convoy: 'mill', quay: 'convoy', morning: 'quay' } as const)[id];
       const note = JSON.parse(localStorage.getItem(keyFor(previous)) ?? 'null')?.ending;
       return typeof note === 'string' && note ? chapters[previous][1] + ' · ' + note : '';
     } catch {
@@ -134,7 +137,15 @@ export function openChapter(id: LaterChapter) {
     }
   }
   function mount() {
-    episode.mount(el('journey-play'), {
+    const host = el('journey-play');
+    if (id === 'morning') {
+      try {
+        const previous = JSON.parse(localStorage.getItem(keyFor('quay')) ?? 'null');
+        const quay = restoreQuay(previous?.state);
+        if (quayEnding(quay)) host.dataset.bridgeLamps = String(quayStats(quay).lamps);
+      } catch { /* An independent start needs no previous chapter. */ }
+    }
+    episode.mount(host, {
       load: () => currentState,
       save(state) {
         currentState = state;
