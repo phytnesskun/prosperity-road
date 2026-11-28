@@ -1,0 +1,161 @@
+:root {
+  color-scheme: dark;
+  font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  background: #142e2c;
+  color: #f7eccd;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 15% 4%, #36514b, transparent 52%), #142e2c;
+}
+.journey {
+  width: min(100% - 32px, 1040px);
+  margin: auto;
+  padding: 18px 0 32px;
+}
+.journey-head,
+.journey dialog header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.journey-head {
+  margin-bottom: 12px;
+}
+.journey-head h1,
+.journey dialog h2 {
+  font-family: 'Songti SC', SimSun, Georgia, serif;
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+.journey-head h1 {
+  font-size: clamp(24px, 4vw, 38px);
+}
+.journey-head p {
+  margin: 0 0 3px;
+  color: #cfbc91;
+  font-size: 12px;
+  letter-spacing: 0.13em;
+}
+.journey-head p span {
+  opacity: 0.55;
+}
+.journey button,
+.journey select {
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.journey :focus-visible {
+  outline: 3px solid #ffc76a;
+  outline-offset: 3px;
+}
+.journey button:disabled {
+  cursor: default;
+}
+.journey [hidden] {
+  display: none !important;
+}
+.journey-head button,
+.journey-dialogue button,
+.journey dialog button,
+.journey dialog select {
+  border: 1px solid #889b85;
+  background: #203c35;
+  border-radius: 5px;
+  color: #f6e9c7;
+  padding: 7px 12px;
+}
+.journey-dialogue {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 4px;
+  line-height: 1.6;
+}
+.journey-dialogue strong {
+  flex: none;
+  color: #efd193;
+}
+.journey-dialogue button {
+  margin-left: auto;
+  font-size: 12px;
+  flex: none;
+}
+#journey-ending {
+  background: #ecdbb6;
+  color: #253e35;
+  border-radius: 6px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+#journey-ending p {
+  margin: 0;
+  flex: 1 1 260px;
+}
+#journey-ending a {
+  color: #fff1cb;
+  background: #21463c;
+  padding: 8px 13px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+#journey-replay {
+  color: #28473b;
+  border: 1px solid #8f967e;
+  background: transparent;
+  border-radius: 4px;
+  padding: 7px 12px;
+}
+.journey dialog {
+  width: min(410px, 94%);
+  border: 1px solid #ba9e62;
+  border-radius: 9px;
+  background: #203a32;
+  color: #f2e5c6;
+  padding: 20px;
+}
+.journey dialog::backdrop {
+  background: #071b18bd;
+}
+.journey dialog nav {
+  margin: 14px 0;
+  display: grid;
+  gap: 4px;
+}
+.journey dialog nav a {
+  color: inherit;
+  padding: 8px;
+  text-decoration: none;
+  border-bottom: 1px solid #51665a;
+}
+.journey dialog nav a[aria-current] {
+  color: #ffda88;
+  border-left: 3px solid #d6b16c;
+}
+.journey-settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 14px 0;
+}
+@media (max-width: 550px) {
+  .journey {
+    width: calc(100% - 16px);
+    padding-top: 10px;
+  }
+  .journey-dialogue {
+    gap: 7px;
+    font-size: 14px;
+  }
+}

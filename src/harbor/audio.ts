@@ -39,12 +39,16 @@ export function createStreetAudio(onCaption: (line: string) => void) {
     if (context?.state === 'suspended') void context.resume().catch(() => {});
   }
   function say(key: Remark) {
-    stopVoice();
-    if (!sound || language === 'off' || document.hidden) return;
+    if (language === 'off') return;
     const source = clips[`./assets/voices/${key}-${language}.mp3`];
     if (!source) return;
     const line = remarks[key];
-    onCaption(`${line[0]} · ${line[language === 'zh' ? 1 : 2]}`);
+    speakClip(source, `${line[0]} · ${line[language === 'zh' ? 1 : 2]}`);
+  }
+  function speakClip(source: string, caption: string) {
+    stopVoice();
+    if (!sound || language === 'off' || document.hidden) return;
+    onCaption(caption);
     music.volume = 0.045;
     voice.src = source;
     void voice.play().catch(() => { if (voice.getAttribute('src') === source && voice.paused) stopVoice(); });
@@ -83,5 +87,5 @@ export function createStreetAudio(onCaption: (line: string) => void) {
     try { localStorage.setItem('prosperity-road.voice.v1', next); } catch { /* Session only. */ }
   }
   document.addEventListener('visibilitychange', () => { if (document.hidden) stopVoice(); updateMusic(); });
-  return { start, say, stopVoice, playEffect, setSound, setLanguage, get sound() { return sound; }, get language() { return language; } };
+  return { start, say, speakClip, stopVoice, playEffect, setSound, setLanguage, get sound() { return sound; }, get language() { return language; } };
 }

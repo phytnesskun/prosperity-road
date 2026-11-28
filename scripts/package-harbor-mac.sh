@@ -14,6 +14,9 @@ bundle_id='org.prosperityroad.fogharbor'
 if [ "$(basename "$game_html")" = 'rice-market.html' ]; then
     game_name='雾港米行'
     bundle_id='org.prosperityroad.ricemarket'
+elif [ "$(basename "$game_html")" = 'fog-harbor-journeys.html' ]; then
+    game_name='繁荣之路·雾港'
+    bundle_id='org.prosperityroad.harborjourneys'
 fi
 app="$output_dir/$game_name.app"
 contents="$app/Contents"

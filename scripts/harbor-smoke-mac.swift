@@ -1,5 +1,6 @@
 // swift scripts/harbor-smoke-mac.swift dist/fog-harbor.html .qa/harbor-native
 // swift scripts/harbor-smoke-mac.swift dist/rice-market.html .qa/rice-native --rice
+// swift scripts/harbor-smoke-mac.swift dist/fog-harbor-journeys.html .qa/journeys-native --journeys
 import AppKit
 import WebKit
 
@@ -16,7 +17,9 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
     let output: URL
     var loads = 0
     var frames: Task<Void, Never>?
-    let locked = (CGSessionCopyCurrentDictionary() as? [String: Any])?["CGSSessionScreenIsLocked"] as? Bool == true
+    // WebKit also suspends RAF when an unattended test window is occluded.
+    let useTestClock = ProcessInfo.processInfo.environment["HARBOR_TEST_CLOCK"] == "1"
+        || (CGSessionCopyCurrentDictionary() as? [String: Any])?["CGSSessionScreenIsLocked"] as? Bool == true
     var violations: [String] = []
     let save = "JSON.parse(localStorage.getItem('prosperity-road.fog-harbor.v1'))"
 
@@ -26,9 +29,8 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .nonPersistent()
         config.userContentController.add(rules)
-        // A locked Mac suspends RAF and hides every application. In that case only,
-        // feed the isolated renderer foreground frames from the native test clock.
-        if locked {
+        // Drive frames only inside this isolated test renderer when requested.
+        if useTestClock {
             config.preferences.inactiveSchedulingPolicy = .none
             let frameClock = #"""
             (() => {
@@ -89,7 +91,7 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
         window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
-        if locked {
+        if useTestClock {
             frames = Task { [weak self] in
                 while !Task.isCancelled {
                     try? await Task.sleep(nanoseconds: 30_000_000)
@@ -299,7 +301,7 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
         guard remoteCount == 0 && violations.isEmpty else { throw CheckFailure("Network or script violations: \(violations)") }
         guard let state = try await web.evaluateJavaScript(save + ".state") as? [String: Any] else { throw CheckFailure("Missing final state") }
         return ["route": route, "finalState": state, "observedRemoteRequests": remoteCount ?? -1, "reloadChecked": both,
-                "frameSource": locked ? "native test clock while desktop locked" : "WebKit foreground RAF",
+                "frameSource": useTestClock ? "native test clock" : "WebKit foreground RAF",
                 "initialGuideVisible": guideVisible, "dragChecked": route == "ship",
                 "crossingChecked": ship, "cancelCrossingChecked": route == "ship"]
     }
@@ -387,8 +389,92 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
         report["sealProgressReloadChecked"] = route == "one-bag-deal"
         report["route"] = route
         report["trustedMouseAndReload"] = route == "four-bags"
-        report["frameSource"] = locked ? "native test clock while desktop locked" : "WebKit foreground RAF"
+        report["frameSource"] = useTestClock ? "native test clock" : "WebKit foreground RAF"
         return report
+    }
+    func playJourneys(alternate: Bool) async throws -> [String:Any] {
+        func chapter(_ id: String) async throws {
+            try await check("document.querySelector('.journey')?.dataset.episode === '" + id + "'", "chapter " + id)
+        }
+        func actions(_ id: String, _ moves: [String]) async throws {
+            for move in moves { try await click("[data-" + id + "='" + move + "']") }
+        }
+        func ending() async throws -> String {
+            try await check("!document.querySelector('#journey-ending').hidden && document.querySelector('#journey-summary').textContent.length", "visible chapter ending")
+            return try await web.evaluateJavaScript("document.querySelector('#journey-summary').textContent") as? String ?? ""
+        }
+        web.loadFileURL(file, allowingReadAccessTo: file)
+        try await chapter("mill")
+        if !alternate {
+            try await snapshot("mill-opening")
+            try await click("#journey-book")
+            _ = try await web.evaluateJavaScript("""
+            const choice = document.querySelector('#journey-language');
+            choice.value = 'en'; choice.dispatchEvent(new Event('change'));
+            """)
+            try await check("document.querySelector('#journey-line').lang === 'en'", "English performance and captions")
+            _ = try await web.evaluateJavaScript("document.querySelector('#journey-language').value='zh'; document.querySelector('#journey-language').dispatchEvent(new Event('change')); true")
+            try await click("#journey-close")
+        }
+        try await actions("mill", ["grind"])
+        let before = try await web.evaluateJavaScript("localStorage.getItem('prosperity-road.harbor-mill.v1')") as? String
+        let previous = loads
+        web.reload()
+        try await until("reload mid-shift") { self.loads > previous }
+        try await chapter("mill")
+        let after = try await web.evaluateJavaScript("localStorage.getItem('prosperity-road.harbor-mill.v1')") as? String
+        guard before != nil, before == after else { throw CheckFailure("Lost mill in progress") }
+        try await actions("mill", ["sail", "grind", "sail", "grind"])
+        let street = Array(repeating:"street", count:alternate ? 4 : 6)
+        let shipments = Array(repeating:"sift", count:alternate ? 4 : 3) + Array(repeating:"ship", count:alternate ? 4 : 3)
+        try await actions("mill", street + shipments + ["close"])
+        let mill = try await ending()
+        guard mill.contains(alternate ? "启航前的最后一袋" : "整条街的热饼") else { throw CheckFailure(mill) }
+        try await click("#journey-next")
+        try await chapter("convoy")
+        try await actions("convoy", [alternate ? "oil" : "flour","cast-off"])
+        if !alternate { try await snapshot("convoy-fork") }
+        try await actions("convoy", [alternate ? "outer" : "shoal","unload"])
+        let convoy = try await ending()
+        try await click("#journey-next")
+        try await chapter("quay")
+        try await actions("quay", alternate ? ["ferry","ferry","ferry"] : ["skim","ferry","gate","ferry"])
+        let quay = try await ending()
+        if !alternate { try await snapshot("quay-evening") }
+        try await click("#journey-book")
+        try await click("a[href='#mill']")
+        try await chapter("mill")
+        let restored = try await ending()
+        guard mill == restored else { throw CheckFailure("Lost completed mill") }
+        _ = try await web.evaluateJavaScript("window.finishedMillSave = localStorage.getItem('prosperity-road.harbor-mill.v1'); true")
+        try await click("#journey-book")
+        try await click("#journey-reset")
+        try await click("#journey-restart")
+        try await check("document.querySelector('#journey-ending').hidden","reset current chapter")
+        if alternate {
+            // Another tab finished while this copy stood at the feed gate.
+            _ = try await web.evaluateJavaScript("localStorage.setItem('prosperity-road.harbor-mill.v1',window.finishedMillSave); true")
+            let lastLoad = loads
+            try await actions("mill", ["grind"])
+            try await until("restore newer progress before trading") { self.loads > lastLoad }
+            try await chapter("mill")
+            let newer = try await ending()
+            guard newer == mill else { throw CheckFailure("Old mill window overwrote newer progress") }
+        }
+        try await click("#journey-book")
+        try await click("a[href='#quay']")
+        try await chapter("quay")
+        let retained = try await ending()
+        guard retained == quay else { throw CheckFailure("Restarting the mill affected the quay") }
+        try await click("#journey-next")
+        try await check("document.querySelector('.rice-game')","return to the rice counter")
+        try await click("[data-rice='journal']")
+        try await click("a[href='#mill']")
+        try await chapter("mill")
+        window.setContentSize(NSSize(width:390, height:800))
+        try await check("innerWidth <= 400 && document.documentElement.scrollWidth <= innerWidth + 1","narrow viewport without overflow")
+        guard violations.isEmpty else { throw CheckFailure(violations.joined(separator:", ")) }
+        return ["mill":mill, "convoy":convoy, "quay":quay, "alternate":alternate, "restored":true, "observedRemoteRequests":0]
     }
     func finish() {
         frames?.cancel()
@@ -400,7 +486,8 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
 @MainActor
 func run() async throws {
     let rice = CommandLine.arguments.count == 4 && CommandLine.arguments[3] == "--rice"
-    guard CommandLine.arguments.count == 3 || rice else { throw CheckFailure("usage: swift scripts/harbor-smoke-mac.swift path/to/offline.html output-directory [--rice]") }
+    let journeys = CommandLine.arguments.count == 4 && CommandLine.arguments[3] == "--journeys"
+    guard CommandLine.arguments.count == 3 || rice || journeys else { throw CheckFailure("usage: swift scripts/harbor-smoke-mac.swift path/to/offline.html output-directory [--rice|--journeys]") }
     let file = URL(fileURLWithPath: CommandLine.arguments[1]).standardizedFileURL
     let output = URL(fileURLWithPath: CommandLine.arguments[2], isDirectory: true).standardizedFileURL
     guard FileManager.default.isReadableFile(atPath: file.path) else { throw CheckFailure("Missing offline build at " + file.path) }
@@ -413,10 +500,14 @@ func run() async throws {
     var report: [[String: Any]] = []
     let driverFile = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("rice-playthrough.js")
     let driver = rice ? try String(contentsOf: driverFile, encoding: .utf8) : ""
-    for route in rice ? ["four-bags", "one-bag-deal"] : ["ship", "workers", "both"] {
+    let routes = journeys ? ["street-and-shoal", "ship-and-outer"] : (rice ? ["four-bags", "one-bag-deal"] : ["ship", "workers", "both"])
+    for route in routes {
         let test = Playthrough(file: file, output: output, rules: list)
         defer { test.finish() }
-        let result = rice ? try await test.playRice(route: route, driver: driver) : try await test.play(route: route)
+        let result: [String:Any]
+        if journeys { result = try await test.playJourneys(alternate:route == "ship-and-outer") }
+        else if rice { result = try await test.playRice(route: route, driver: driver) }
+        else { result = try await test.play(route: route) }
         report.append(result)
         print("PASS " + route)
     }

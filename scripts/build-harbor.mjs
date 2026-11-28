@@ -27,4 +27,5 @@ function page(chapter, title) { return `<!doctype html><html lang="zh-CN"><head>
 await mkdir(path.join(root, 'dist'), { recursive: true });
 await writeFile(path.join(root, 'dist/fog-harbor.html'), page('harbor', '雾港的最后一炉'));
 await writeFile(path.join(root, 'dist/rice-market.html'), page('rice', '谁把西岸的粮买空了？'));
-console.log('Offline chapters: dist/fog-harbor.html and dist/rice-market.html');
+await writeFile(path.join(root, 'dist/fog-harbor-journeys.html'), page('mill', '风起磨坊'));
+console.log('Built three standalone entry files for all five harbor chapters.');

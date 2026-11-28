@@ -1,3 +1,4 @@
+import { chapterHref } from '../chapters/shared.ts';
 import css from './game.css?inline';
 import { restoreHarbor } from '../harbor/model.ts';
 import { createStreetAudio } from '../harbor/audio.ts';
@@ -72,7 +73,7 @@ function save() {
   }
 }
 
-const goPrologue = location.protocol === 'file:' ? '#harbor' : '?scenario=harbor';
+const goPrologue = chapterHref('harbor');
 const app = document.getElementById('app')!;
 app.innerHTML = `<main class="rice-game">
 <header class="brandbar"><div class="sign"><span class="crest" aria-hidden="true">米</span><div><p class="series">繁荣之路 · 雾港第二章</p><h1>谁把西岸的粮买空了？</h1></div></div>
@@ -88,7 +89,7 @@ app.innerHTML = `<main class="rice-game">
 <div class="action-panel"><div class="trade-tools"><label class="qty">袋数 <select id="quantity"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
 <button class="action-button" data-rice="buy">买米装船</button><button class="sale-button" data-rice="sell">照牌价卖</button><button class="sale-button" data-rice="haggle">商印议价</button></div>
 <div class="action-row"><button class="dark-button" data-rice="sail"></button><button class="sale-button" data-rice="month">收市换月</button><button class="sale-button" data-rice="end" hidden>本季收账</button><button class="action-button" data-rice="rent" hidden>租摊挂匾</button>
-<button class="sale-button" data-rice="again" hidden>再跑一趟</button></div></div></section></div>
+<button class="sale-button" data-rice="again" hidden>再跑一趟</button><a class="action-button" id="to-mill" href="${chapterHref('mill')}" hidden>去磨坊接单 →</a></div></div></section></div>
 <footer class="prices"><div aria-label="两岸消息"><span class="board">西岸 <b id="west-price"></b> 枚 · 仓内 <span id="west-stock"></span> 袋</span>
 <span class="board">东岸 <b id="east-price"></b> 枚 · 仓内 <span id="east-stock"></span> 袋</span></div><span id="foot-tip" class="tip"></span></footer>
 <dialog class="sheet" id="rice-sheet" aria-labelledby="sheet-title"><h2 id="sheet-title"></h2><div id="sheet-content"></div></dialog></main>`;
@@ -178,6 +179,7 @@ function sync() {
   btn('end').hidden = state.month === 1 || state.ended;
   btn('rent').hidden = !canRent(state);
   btn('again').hidden = !state.ended;
+  by('to-mill').hidden = !state.ended;
   select.disabled = busy;
   root.querySelectorAll<HTMLButtonElement>('[data-spot]').forEach((b) => {
     b.hidden = state.ended || busy;
@@ -390,7 +392,7 @@ function openSheet(mode: typeof sheetMode) {
     content.innerHTML = `<p>本月牌价开市时挂出，收市换月后按仓里的余粮调整。每程船票两枚，船上可装四袋，每家米行每月最多收四袋对岸米。</p>
     <p>已付船费 ${state.paidFares} 枚，议价多收 ${state.talkBonus} 枚。谈成 ${state.speech} 笔议价生意。${canHold(state) ? '落印前可以先留一枚。' : '谈成第一笔议价，就能学会留一枚商印。'}${state.freePass ? ' 船长给你留了一张赠票。' : ''}</p>
     <label>人物配音 <select id="rice-language"><option value="zh">中文</option><option value="en">English</option><option value="off">关闭</option></select></label>
-    <div class="pane-actions"><button class="action-button" data-rice="back">回米行</button><button class="light-button" data-rice="hear">听掌柜说</button><button class="light-button" data-rice="again">重开本章</button><a href="${goPrologue}">回到雾港序章</a></div>
+    <div class="pane-actions"><button class="action-button" data-rice="back">回米行</button><button class="light-button" data-rice="hear">听掌柜说</button><button class="light-button" data-rice="again">重开本章</button><a href="${goPrologue}">回到雾港序章</a><a href="${chapterHref('mill')}">第三章 · 风起磨坊</a></div>
     <p class="fine">${storageWorking ? '进度随每笔成交保存在本机。' : '此设备无法保存，关窗前可继续游玩。'}</p>`;
     const lang = by<HTMLSelectElement>('rice-language');
     lang.value = audio.language;
