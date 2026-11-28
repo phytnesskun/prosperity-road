@@ -1,0 +1,262 @@
+.mill-play {
+  overflow: hidden;
+  border: 1px solid #717b67;
+  border-radius: 10px;
+  background: #f3e9ce;
+  color: #303f34;
+  font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+}
+.mill-play *,
+.mill-play *::after {
+  box-sizing: border-box;
+}
+.mill-play [hidden] {
+  display: none;
+}
+.mill-view {
+  position: relative;
+  isolation: isolate;
+  background: #abc1b1;
+  overflow: hidden;
+}
+.mill-hills {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.mill-wings {
+  position: absolute;
+  width: 17%;
+  height: auto;
+  top: 6.79%;
+  left: 41.91%;
+  animation: mill-turn 7s linear infinite;
+  pointer-events: none;
+}
+@keyframes mill-turn {
+  to {
+    transform: rotate(1turn);
+  }
+}
+.mill-wind,
+.mill-marker {
+  position: absolute;
+  border: 1px solid #ded2a6;
+  color: #fff4d7;
+  background: #2a443bea;
+  border-radius: 4px;
+  font-weight: 650;
+  box-shadow: 0 2px 4px #263d3440;
+}
+.mill-wind {
+  top: 4.5%;
+  left: 1.7%;
+  font-size: clamp(0.72rem, 1.55vw, 0.98rem);
+  padding: 0.35em 0.7em;
+}
+.mill-play button {
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.mill-marker {
+  transform: translate(-50%, 0);
+  min-height: 25px;
+  padding: 0.18em 0.55em;
+  font-size: clamp(0.68rem, 1.4vw, 0.85rem) !important;
+}
+.mill-at-bakery {
+  left: 16%;
+  top: 81%;
+}
+.mill-at-wheel {
+  left: 51%;
+  top: 72%;
+}
+.mill-at-ship {
+  left: 85%;
+  top: 75%;
+}
+.mill-play button:focus-visible {
+  outline: 3px solid #eb8f3c;
+  outline-offset: 2px;
+  z-index: 2;
+}
+.mill-marker:disabled {
+  opacity: 0.73;
+  cursor: default;
+}
+.mill-desk {
+  display: grid;
+  grid-template-columns: 1.18fr 1fr;
+}
+.mill-bench,
+.mill-orders {
+  padding: clamp(12px, 2vw, 22px);
+}
+.mill-orders {
+  border-left: 1px solid #b6aa89;
+  background: #e7dcbb;
+}
+.mill-panel-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+.mill-panel-title h2 {
+  margin: 0;
+  font:
+    700 clamp(1.1rem, 2.6vw, 1.45rem) 'Songti SC',
+    SimSun,
+    Georgia,
+    serif;
+  color: #2d4438;
+}
+.mill-panel-title > span {
+  color: #665a42;
+  font-size: 0.82rem;
+}
+.mill-hint,
+.mill-trough {
+  color: #514b38;
+  line-height: 1.45;
+  font-size: 0.87rem;
+  margin: 8px 0;
+}
+.mill-trough {
+  margin-bottom: 0;
+  font-weight: 650;
+}
+.mill-work {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.mill-desk button,
+.mill-close button {
+  background: #f7efda;
+  color: #2c493d;
+  border: 1px solid #887b5e;
+  border-radius: 4px;
+  padding: 6px 9px;
+  min-height: 37px;
+  font-size: 0.875rem;
+  font-weight: 640;
+}
+.mill-desk button.mill-brass,
+.mill-close button {
+  background: #334e41;
+  color: #fff0c6;
+}
+.mill-desk button:disabled {
+  opacity: 0.47;
+  cursor: default;
+}
+.mill-desk button:not(:disabled):hover,
+.mill-close button:hover {
+  box-shadow: inset 0 0 0 2px #b2a27a;
+}
+.mill-ticket {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 9px;
+  align-items: center;
+  padding: 7px 0 0;
+}
+.mill-ticket + .mill-ticket {
+  border-top: 1px solid #c5b998;
+  margin-top: 6px;
+}
+.mill-ticket strong {
+  display: block;
+  font-size: 0.94rem;
+  color: #36473a;
+}
+.mill-ticket small {
+  display: block;
+  color: #635840;
+  font-size: 0.76rem;
+}
+.mill-ticket span {
+  font-size: 0.83rem;
+  font-variant-numeric: tabular-nums;
+}
+.mill-close {
+  border-top: 1px solid #b5a888;
+  background: #ecdfbe;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 16px;
+  color: #504b37;
+  font-size: 0.875rem;
+}
+.mill-close button {
+  flex-shrink: 0;
+}
+@media (max-width: 680px) {
+  .mill-desk {
+    grid-template-columns: 1fr;
+  }
+  .mill-orders {
+    border-left: none;
+    border-top: 1px solid #b6aa89;
+  }
+  .mill-wind {
+    top: 4px;
+  }
+  .mill-close {
+    padding-inline: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mill-wings {
+    animation: none;
+  }
+}
+.mill-sack {
+  position: absolute;
+  top: 61%;
+  width: clamp(23px, 3.3vw, 34px);
+  height: clamp(26px, 3.8vw, 39px);
+  color: #563e29;
+  background: #dac08c;
+  border: 1px solid #806446;
+  border-top: 4px solid #946d46;
+  border-radius: 40% 40% 28% 28%;
+  box-shadow:
+    inset -3px -2px #bda36d,
+    0 3px 3px #4b4b3644;
+  font:
+    bold 0.83rem/1 'Songti SC',
+    SimSun,
+    serif;
+  display: grid;
+  place-items: center;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.mill-coarse-sack {
+  left: 41.5%;
+}
+.mill-fine-sack {
+  left: 62.4%;
+  background: #f4e7bf;
+  border-top-color: #688a7f;
+  box-shadow:
+    inset -3px -2px #d5c7a2,
+    0 3px 3px #4b4b3644;
+}
+.mill-sack.in-hand {
+  z-index: 3;
+  cursor: grabbing;
+}
+.mill-marker.awaiting-sack {
+  outline: 2px solid #ffe6a6;
+  background: #486a4d;
+}
