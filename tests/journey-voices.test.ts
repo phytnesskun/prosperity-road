@@ -6,8 +6,10 @@ import { convoyLines } from '../src/chapters/convoy.ts';
 import { quayLines } from '../src/chapters/quay.ts';
 import { morningLines } from '../src/chapters/morning.ts';
 
+import { stories } from '../src/tides/library.ts';
+
 test('each spoken harbor line ships with both offline recordings', () => {
-  for (const [chapter, lines] of Object.entries({ mill: millLines, convoy: convoyLines, quay: quayLines, morning: morningLines })) {
+  for (const [chapter, lines] of Object.entries({ mill: millLines, convoy: convoyLines, quay: quayLines, morning: morningLines, ...Object.fromEntries(stories.map(s => ['ch' + s.num, s.lines])) })) {
     for (const key of Object.keys(lines)) {
       for (const language of ['zh', 'en']) {
         const file = new URL(`../src/chapters/voices/${chapter}-${key}-${language}.mp3`, import.meta.url);

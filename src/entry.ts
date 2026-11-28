@@ -1,5 +1,6 @@
+import { isChapter } from './chapters/shared.ts';
 const scenario = new URLSearchParams(location.search).get('scenario');
-if (scenario === 'mill' || scenario === 'convoy' || scenario === 'quay' || scenario === 'morning') {
+if (scenario && isChapter(scenario) && scenario !== 'rice' && scenario !== 'harbor') {
   void import('./chapters/game.ts').then(({ openChapter }) => openChapter(scenario));
 } else if (scenario === 'rice') {
   void import('./rice/game.ts');

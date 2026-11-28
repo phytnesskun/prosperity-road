@@ -1,0 +1,38 @@
+.tide-yard { margin-top: 12px; border: 1px solid #928767; background: #efe5c9; color: #263b33; border-radius: 8px; overflow: hidden }
+.tide-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 15px 19px 12px }
+.tide-heading h2 { margin: 0; font: 650 clamp(19px,3vw,27px)/1.25 'Songti SC',SimSun,serif }
+.tide-heading p { margin: 7px 0 0; line-height: 1.5; color: #435348; font-size: 15px }
+[data-tide-stage] { white-space: nowrap; font-size: 13px; color: #556251 }
+.tide-scene { position: relative; isolation: isolate; background: #849d8b }
+.tide-scene canvas { display: block; width: 100%; height: auto }
+.tide-spots { position: absolute; inset: 0; pointer-events: none }
+.tide-spots button { position: absolute; pointer-events: auto; top: 77%; transform: translate(-50%,-50%); width: 18%; height: 26%; padding: 0; border: 2px solid transparent; border-radius: 13px; color: inherit; background: transparent }
+.tide-spots .tide-source { left: 13%; cursor: grab; touch-action: none }
+.tide-spots .tide-source:active { cursor: grabbing }
+.tide-spots .tide-source.carrying { border-color: #ffdc89; background: #ffe19119 }
+.tide-spots button:hover,.tide-spots button.over,.tide-spots button:focus-visible { border-color: #ffdc89; background: #ffe19119 }
+.tide-controls { padding: 10px 17px 13px }
+[data-tide-help] { color: #54634e; font-size: 13px; margin: 0 0 8px }
+[data-tide-actions] { display: flex; gap: 8px; flex-wrap: wrap }
+[data-tide-actions] button { flex: 1 1 125px; min-width: 0; padding: 9px; border-radius: 5px; background: #294b41; color: #fff4d8; border: 1px solid #204037; line-height: 1.4; font-weight: 600 }
+[data-tide-actions] button:hover, [data-tide-actions] button.over { background: #396052 }
+[data-tide-actions] small { display: block; color: #e2dfc0; margin-top: 2px; font-size: 12px; font-weight: 400 }
+.tide-result { margin: 0; padding: 10px 18px; border-top: 1px solid #b3b192; background: #dddcc0; color: #254237; font-size: 15px; line-height: 1.5 }
+.tide-rebase { margin: 8px 18px; padding: 5px 8px; color: #314738; background: transparent; border: 1px solid #7b8978; border-radius: 4px }
+@media(max-width:550px){
+  .tide-heading { padding: 11px 10px; gap: 6px }
+  .tide-heading p { font-size: 14px }
+  .tide-controls { padding: 9px }
+  [data-tide-actions] { gap: 5px }
+  [data-tide-actions] button { flex-basis: 88px; padding: 7px 5px; font-size: 14px }
+  .tide-result { padding: 8px 10px }
+  .tide-spots button { height: 32% }
+}
+
+.tide-board { display: flex; gap: 0; flex-wrap: wrap; background: #304e45; color: #f4eacf; margin: 0; padding: 5px 9px; border-top: 1px solid #8c7b59 }
+.tide-board div { flex: 1 1 65px; padding: 4px 7px; border-inline-end: 1px solid #8c9b804d }
+.tide-board div:last-child { border: 0 }
+.tide-board dt { font-size: 12px; color: #d5d5b9 }
+.tide-board dd { margin: 2px 0 0; font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums }
+@media(prefers-reduced-motion:no-preference) { .tide-board .changed dd { animation: tide-price .8s ease-out } }
+@keyframes tide-price { from { color: #ffdb78; transform: translateY(-3px) } to { color: inherit; transform: none } }

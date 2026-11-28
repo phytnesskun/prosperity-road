@@ -556,9 +556,81 @@ final class Playthrough: NSObject, WKNavigationDelegate, WKScriptMessageHandler 
             throw CheckFailure("Incorrect ferry ending or number of sailings: " + (summary ?? "no receipt"))
         }
         try await click("#journey-next")
-        try await check("document.querySelector('.rice-game')","last chapter to rice market")
+        let final = try await playSeason(alternate: alternate)
+        try await check("document.querySelector('.harbor')", "return to the bread cart after chapter twenty")
         guard violations.isEmpty else { throw CheckFailure(violations.joined(separator:", ")) }
-        return ["route":alternate ? "flex-cargo":"early-passengers", "ledger":ledger, "summary":summary, "observedRemoteRequests":0]
+        return ["route":alternate ? "flex-cargo":"early-passengers", "ledger":ledger, "summary":summary, "season":final, "observedRemoteRequests":0]
+    }
+    func playSeason(alternate: Bool) async throws -> [[String:Any]] {
+        var chapters: [[String: Any]] = []
+        for num in 7...20 {
+            let id = "ch" + String(num)
+            let state = "JSON.parse(localStorage.getItem('prosperity-road.harbor-" + id + ".v1')).state"
+            try await check("document.querySelector('.journey')?.dataset.episode === '" + id + "' && document.querySelector('.tide-yard canvas')", "enter " + id)
+            try await check(state + ".past.morning === '" + (alternate ? "flex-cargo" : "early-eggs") + "'", "inherit actual ferry route in " + id)
+            try await check("document.documentElement.scrollWidth <= innerWidth + 1", "responsive " + id)
+            if num == 8 && !alternate {
+                try await click("#journey-book")
+                _ = try await web.evaluateJavaScript("(()=>{const l=document.querySelector('#journey-language');l.value='en';l.dispatchEvent(new Event('change'));return true;})()")
+                try await check("document.querySelector('#journey-line').lang === 'en' && document.querySelector('#journey-line').textContent.includes('price board')","English red sail dialogue")
+                _ = try await web.evaluateJavaScript("(()=>{const l=document.querySelector('#journey-language');l.value='zh';l.dispatchEvent(new Event('change'));return true;})()")
+                try await click("#journey-close")
+                try await check("document.querySelector('#journey-line').lang === 'zh-CN'","Chinese dialogue restored")
+                _ = try await web.evaluateJavaScript("""
+                (()=>{const key='prosperity-road.harbor-ch7.v1';window.oldBridge=localStorage.getItem(key);
+                  localStorage.removeItem(key);window.dispatchEvent(new Event('focus'));return true;})()
+                """)
+                try await check("!document.querySelector('.tide-rebase').hidden","notice updated earlier history without replacing this run")
+                _ = try await web.evaluateJavaScript("localStorage.setItem('prosperity-road.harbor-ch7.v1',window.oldBridge);window.dispatchEvent(new Event('focus'));true")
+                try await check("document.querySelector('.tide-rebase').hidden","restore original history")
+            }
+            if num == 13 {
+                try await check(state + ".past.fair && " + state + ".past.partner && " + state + ".past.lamp", "goods, partner and lamp crossed the bay")
+            }
+            if !alternate && [7,8,12,13,18].contains(num) { try await snapshot("scene-" + id) }
+            for turn in 0..<3 {
+                try await check("document.querySelector('#journey-play').dataset.tideTurn === '" + String(turn) + "'", "wait for stage " + id)
+                if turn == 0 && ((num == 7 && !alternate) || (num == 8 && alternate)) {
+                    let dropAt = alternate ? "[data-tide-actions] button:last-child" : ".tide-target"
+                    let geometry = try await web.evaluateJavaScript("""
+                    (()=>{const s=document.querySelector('.tide-source'), d=document.querySelector('\(dropAt)');
+                    s.scrollIntoView({block:'nearest'}); const a=s.getBoundingClientRect(),b=d.getBoundingClientRect();
+                    return [a.x+a.width/2,a.y+a.height/2,b.x+b.width/2,b.y+b.height/2,innerHeight]})()
+                    """)
+                    guard let coordinates = geometry as? [CGFloat] else { throw CheckFailure("Missing drag targets") }
+                    if !alternate {
+                        try await dragMouse([coordinates[0],coordinates[1],coordinates[0],coordinates[1]-50,coordinates[4]])
+                        try await check(state + ".picks.length === 0","dropping outside a destination preserves the cart")
+                    }
+                    try await dragMouse(coordinates)
+                } else {
+                    try await click(alternate ? "[data-tide-actions] button:last-child" : "[data-tide-actions] button:first-child")
+                }
+                try await check(state + ".picks.length === " + String(turn + 1), "save action " + id)
+                if num == 12 && turn == 1 {
+                    let before = try await web.evaluateJavaScript(state) as? NSDictionary
+                    let previous = loads
+                    web.reload()
+                    try await until("reload the fair") { self.loads > previous }
+                    try await check("document.querySelector('#journey-play')?.dataset.tideTurn === '2'","restore fair stage")
+                    let after = try await web.evaluateJavaScript(state) as? NSDictionary
+                    guard before == after else { throw CheckFailure("Fair changed across reload") }
+                }
+            }
+            try await check("!document.querySelector('#journey-ending').hidden && document.querySelector('[data-tide-result]').textContent.length > 3","visible ending and action feedback for " + id)
+            if num == 20 {
+                try await check(state + ".past.homeKeeper && " + state + ".past.winterDeal", "return to a harbor run by the chosen person")
+                try await snapshot(alternate ? "final-alternate-mobile" : "final-homecoming")
+                try await click("#journey-book")
+                try await check("document.querySelectorAll('#journey-log nav a').length === 20 && document.querySelector('#journey-previous').textContent.includes('两岸换班')", "twenty chapters and past entry in journal")
+                try await click("#journey-close")
+            }
+            guard let summary = try await web.evaluateJavaScript("document.querySelector('#journey-summary').textContent") as? String,
+                  let stateData = try await web.evaluateJavaScript(state) as? [String: Any] else { throw CheckFailure("Missing chapter receipt") }
+            chapters.append(["chapter":num,"ending":summary,"state":stateData])
+            try await click("#journey-next")
+        }
+        return chapters
     }
     func finish() {
         frames?.cancel()

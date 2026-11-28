@@ -29,4 +29,5 @@ await writeFile(path.join(root, 'dist/fog-harbor.html'), page('harbor', '雾港�
 await writeFile(path.join(root, 'dist/rice-market.html'), page('rice', '谁把西岸的粮买空了？'));
 await writeFile(path.join(root, 'dist/fog-harbor-journeys.html'), page('mill', '风起磨坊'));
 await writeFile(path.join(root, 'dist/first-ferry.html'), page('morning', '雾港第一班早船'));
-console.log('Built four standalone entry files for all six harbor chapters.');
+await writeFile(path.join(root, 'dist/harbor-season.html'), page('ch7', '桥开那天'));
+console.log('Built five standalone entry files for all twenty harbor chapters.');

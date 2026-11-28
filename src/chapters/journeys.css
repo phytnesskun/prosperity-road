@@ -128,6 +128,8 @@ body {
 }
 .journey dialog nav {
   margin: 14px 0;
+  max-height: min(44vh, 370px);
+  overflow-y: auto;
   display: grid;
   gap: 4px;
 }

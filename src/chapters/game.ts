@@ -1,11 +1,15 @@
 import { createStreetAudio } from '../harbor/audio.ts';
 import type { Language } from '../harbor/audio.ts';
 import { chapterHref, chapters } from './shared.ts';
-import type { Chapter, LaterChapter } from './shared.ts';
+import type { Chapter, ChapterContext, LaterChapter } from './shared.ts';
 import { millLines, mountMill } from './mill.ts';
 import { convoyLines, mountConvoy } from './convoy.ts';
 import { quayEnding, quayLines, quayStats, mountQuay, restoreQuay } from './quay.ts';
 import { morningLines, mountMorning } from './morning.ts';
+import { stories } from '../tides/library.ts';
+import { mountTides } from '../tides/game.ts';
+import type { StoryLine } from '../tides/types.ts';
+import tidesStyle from '../tides/tides.css?inline';
 import baseStyle from './journeys.css?inline';
 import millStyle from './mill.css?inline';
 import convoyStyle from './convoy.css?inline';
@@ -16,15 +20,30 @@ const episodes = {
   mill: { mount: mountMill, lines: millLines, style: millStyle, next: 'convoy' },
   convoy: { mount: mountConvoy, lines: convoyLines, style: convoyStyle, next: 'quay' },
   quay: { mount: mountQuay, lines: quayLines, style: quayStyle, next: 'morning' },
-  morning: { mount: mountMorning, lines: morningLines, style: morningStyle, next: null },
+  morning: { mount: mountMorning, lines: morningLines, style: morningStyle, next: 'ch7' },
 } as const;
+
+type Episode = {
+  mount(host: HTMLElement, ctx: ChapterContext): void;
+  lines: Record<string, StoryLine>;
+  style: string;
+  next: Chapter | null;
+};
+const chapterOrder = Object.keys(chapters) as Chapter[];
+function getEpisode(id: LaterChapter): Episode {
+  if (Object.hasOwn(episodes, id)) return episodes[id as keyof typeof episodes];
+  const story = stories.find(item => 'ch' + item.num === id);
+  if (!story) throw new Error('Unknown story ' + id);
+  return { mount: (host, ctx) => mountTides(host, ctx, story), lines: story.lines, style: tidesStyle,
+    next: chapterOrder[chapterOrder.indexOf(id) + 1] ?? null };
+}
 
 const clips = import.meta.glob<string>('./voices/*.mp3', { eager: true, query: '?url', import: 'default' });
 const keyFor = (id: LaterChapter) => 'prosperity-road.harbor-' + id + '.v1';
 
 export function openChapter(id: LaterChapter) {
   const app = document.getElementById('app')!;
-  const episode = episodes[id];
+  const episode = getEpisode(id);
   const [number, title] = chapters[id];
   const style = document.createElement('style');
   style.textContent = baseStyle + '\n' + episode.style;
@@ -69,10 +88,13 @@ export function openChapter(id: LaterChapter) {
       return false;
     }
   }
+  function refreshEarlierChapters() { el('journey-play').dispatchEvent(new Event('voyagehistory')); }
   window.addEventListener('storage', (event) => {
     if (event.key === storageKey || event.key === null) changedElsewhere();
+    if (event.key !== storageKey) refreshEarlierChapters();
   });
-  window.addEventListener('pageshow', () => changedElsewhere());
+  window.addEventListener('pageshow', () => { if (!changedElsewhere()) refreshEarlierChapters(); });
+  window.addEventListener('focus', refreshEarlierChapters);
   function persist() {
     if (changedElsewhere()) return;
     try {
@@ -107,7 +129,7 @@ export function openChapter(id: LaterChapter) {
           ? '从西岸带来的招牌 · ' + rice.stallName
           : '';
       }
-      const previous = ({ convoy: 'mill', quay: 'convoy', morning: 'quay' } as const)[id];
+      const previous = chapterOrder[chapterOrder.indexOf(id) - 1] as LaterChapter;
       const note = JSON.parse(localStorage.getItem(keyFor(previous)) ?? 'null')?.ending;
       return typeof note === 'string' && note ? chapters[previous][1] + ' · ' + note : '';
     } catch {
@@ -162,20 +184,22 @@ export function openChapter(id: LaterChapter) {
         }
         el('journey-ending').hidden = false;
         el('journey-summary').textContent = summary;
-        el('journey-summary').hidden = id === 'quay';
+        el('journey-summary').hidden = id === 'quay' || id.startsWith('ch');
         const next = el<HTMLAnchorElement>('journey-next');
-        next.href = chapterHref(episode.next ?? 'rice');
+        next.href = chapterHref(episode.next ?? 'harbor');
         next.textContent = episode.next
           ? '前往' + chapters[episode.next][0] + ' · ' + chapters[episode.next][1] + ' →'
-          : '回西岸逛逛 →';
+          : '回雾港推一次旧面包车 →';
       },
     });
   }
+  app.addEventListener('pointerdown', () => audio.start(), { capture: true });
   app.addEventListener('click', () => audio.start(), { capture: true });
   el('journey-book').onclick = () => {
     audio.stopVoice();
     options();
     book.showModal();
+    book.querySelector('[aria-current]')?.scrollIntoView({ block: 'nearest' });
   };
   el('journey-close').onclick = () => book.close();
   book.onclose = () => {
